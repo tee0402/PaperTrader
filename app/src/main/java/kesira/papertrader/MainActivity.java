@@ -8,6 +8,7 @@ import android.widget.ListView;
 
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -19,17 +20,17 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<CustomRow> rows = new ArrayList<>();
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String ticker = "MSFT";
-        new RetrieveFeedTask().execute("https://www.google.com/finance/info?q=NASDAQ:" + ticker);
+        String tickers = "MSFT, AMD";
+        new RetrieveFeedTask().execute("https://www.google.com/finance/info?q=NASDAQ:" + tickers);
 
-        ListView listView = (ListView) findViewById(R.id.listview);
-        listView.setAdapter(new TextViewAdapter(this, rows));
+        listView = (ListView) findViewById(R.id.listview);
 
         new SlidingRootNavBuilder(this).withMenuLayout(R.layout.menu_drawer_navigation).inject();
     }
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             catch(Exception e) {
-                Log.e("Exception", e.getMessage());
+                Log.e("Exception", e.toString());
                 return null;
             }
         }
@@ -67,12 +68,16 @@ public class MainActivity extends AppCompatActivity {
             }
             Log.i("INFO", result);
             try {
-                JSONObject jsonObject = new JSONObject(result);
-                rows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                JSONArray jsonArray = new JSONArray(result);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    rows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                }
             }
             catch (Exception e) {
                 Log.e("Exception", e.getMessage());
             }
+            listView.setAdapter(new TextViewAdapter(getBaseContext(), rows));
         }
     }
 }

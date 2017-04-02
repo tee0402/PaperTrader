@@ -1,6 +1,8 @@
 package kesira.papertrader;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +13,7 @@ import java.util.ArrayList;
 
 class TextViewAdapter extends BaseAdapter {
 
-    private LayoutInflater inflater;
+    private LayoutInflater mInflater;
     private ArrayList<CustomRow> mArrayList;
 
     private class ViewHolder {
@@ -21,7 +23,7 @@ class TextViewAdapter extends BaseAdapter {
     }
 
     TextViewAdapter(Context context, ArrayList<CustomRow> arrayList) {
-        inflater = LayoutInflater.from(context);
+        mInflater = LayoutInflater.from(context);
         mArrayList = arrayList;
     }
 
@@ -40,11 +42,12 @@ class TextViewAdapter extends BaseAdapter {
         return position;
     }
 
+    @SuppressLint("InflateParams")
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.listview_row, parent);
+            convertView = mInflater.inflate(R.layout.listview_row, null);
             holder = new ViewHolder();
             holder.textView1 = (TextView) convertView.findViewById(R.id.ticker);
             holder.textView2 = (TextView) convertView.findViewById(R.id.quote);
@@ -55,7 +58,14 @@ class TextViewAdapter extends BaseAdapter {
         }
         holder.textView1.setText(mArrayList.get(position).getTicker());
         holder.textView2.setText(mArrayList.get(position).getQuote());
-        holder.textView3.setText(mArrayList.get(position).getPercentChange());
+        if (Double.valueOf(mArrayList.get(position).getPercentChange()) >= 0) {
+            holder.textView3.setText("+" + mArrayList.get(position).getPercentChange() + "%");
+            holder.textView3.setTextColor(Color.GREEN);
+        }
+        else {
+            holder.textView3.setText(String.format("%s%%", mArrayList.get(position).getPercentChange()));
+            holder.textView3.setTextColor(Color.RED);
+        }
         return convertView;
     }
 }
