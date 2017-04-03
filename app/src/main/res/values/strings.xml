@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Paper Trader</string>
+    <string name="account_balance">Account Balance</string>
+    <string name="balance_amount">$125.46</string>
+    <string name="balance_currency">USD</string>
+    <string name="watchlist">Watchlist</string>
+    <string name="button_add">Add</string>
+</resources>
