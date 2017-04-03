@@ -5,4 +5,5 @@
     <string name="balance_currency">USD</string>
     <string name="watchlist">Watchlist</string>
     <string name="button_add">Add</string>
+    <string name="context_menu_item1">Remove from watchlist</string>
 </resources>
