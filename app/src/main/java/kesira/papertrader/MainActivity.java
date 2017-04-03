@@ -14,8 +14,6 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -54,8 +52,6 @@ public class MainActivity extends AppCompatActivity {
         registerForContextMenu(listView);
         listAdapter = new TextViewAdapter(getBaseContext(), customRows);
         listView.setAdapter(listAdapter);
-
-        new SlidingRootNavBuilder(this).withMenuLayout(R.layout.menu_drawer_navigation).inject();
 
         try {
             InputStream inputStream = this.openFileInput("watchlist.txt");
