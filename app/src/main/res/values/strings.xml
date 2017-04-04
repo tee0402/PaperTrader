@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Paper Trader</string>
+    <string name="context_menu_item1">Remove from watchlist</string>
+    <string name="portfolio_value">Portfolio Value</string>
+    <string name="positions">Positions</string>
     <string name="watchlist">Watchlist</string>
     <string name="button_add">Add</string>
-    <string name="context_menu_item1">Remove from watchlist</string>
+    <string name="button_buy">Buy</string>
+    <string name="button_sell">Sell</string>
+    <string name="quantity">Quantity</string>
+    <string name="cancel">Cancel</string>
 </resources>

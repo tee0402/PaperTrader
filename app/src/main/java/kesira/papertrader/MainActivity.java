@@ -1,6 +1,8 @@
 package kesira.papertrader;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,7 +34,10 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<CustomRow> customRows = new ArrayList<>();
     private TextViewAdapter listAdapter;
     private String tickerSelected;
+    private float portfolioValue;
+    private ArrayList<String> positions = new ArrayList<>();
 
+    @SuppressLint("DefaultLocale")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +58,36 @@ public class MainActivity extends AppCompatActivity {
         registerForContextMenu(listView);
         listAdapter = new TextViewAdapter(getBaseContext(), customRows);
         listView.setAdapter(listAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent(getApplicationContext(), StockInfoActivity.class);
+                intent.putExtra("ticker", customRows.get(i).getTicker());
+                startActivity(intent);
+            }
+        });
+
+        try {
+            InputStream inputStream = this.openFileInput("save.txt");
+            if (inputStream != null) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String str;
+                if ((str = bufferedReader.readLine()) != null) {
+                    portfolioValue = Float.valueOf(str);
+                }
+                while ((str = bufferedReader.readLine()) != null) {
+                    positions.add(str);
+                }
+                inputStream.close();
+            }
+        }
+        catch (IOException e) {
+            Log.e("Exception", "Reading from save failed: " + e.toString());
+            portfolioValue = 10000f;
+        }
+
+        ((TextView) findViewById(R.id.portfolioValue)).setText(String.format("$%.2f", portfolioValue));
 
         try {
             InputStream inputStream = this.openFileInput("watchlist.txt");
@@ -59,9 +95,11 @@ public class MainActivity extends AppCompatActivity {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String str;
+                String tickers = "";
                 while ((str = bufferedReader.readLine()) != null) {
-                    new RetrieveFeedTask().execute("https://www.google.com/finance/info?q=NASDAQ:" + str);
+                    tickers += str + ",";
                 }
+                new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + tickers);
                 inputStream.close();
             }
         }
@@ -77,6 +115,17 @@ public class MainActivity extends AppCompatActivity {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("watchlist.txt", Context.MODE_PRIVATE));
             for (int i = 0; i < customRows.size(); i++) {
                 outputStreamWriter.write(customRows.get(i).getTicker() + "\n");
+            }
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "Writing to saved watchlist failed: " + e.toString());
+        }
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("save.txt", Context.MODE_PRIVATE));
+            outputStreamWriter.write(portfolioValue + "\n");
+            for (int i = 0; i < positions.size(); i++) {
+                outputStreamWriter.write(positions.get(i) + "\n");
             }
             outputStreamWriter.close();
         }
@@ -129,6 +178,10 @@ public class MainActivity extends AppCompatActivity {
 
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
 
+        protected void onPreExecute() {
+            findViewById(R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
+        }
+
         protected String doInBackground(String... params) {
             try {
                 URL url = new URL(params[0]);
@@ -161,14 +214,17 @@ public class MainActivity extends AppCompatActivity {
             Log.i("INFO", result);
             try {
                 JSONArray jsonArray = new JSONArray(result);
-                JSONObject jsonObject = jsonArray.getJSONObject(0);
-                if (!containsTicker(jsonObject.getString("t"))) {
-                    customRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    if (!containsTicker(jsonObject.getString("t"))) {
+                        customRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                    }
                 }
             }
             catch (Exception e) {
                 Log.e("Exception", e.getMessage());
             }
+            findViewById(R.id.progressBarWatchlist).setVisibility(View.GONE);
             listAdapter.notifyDataSetChanged();
         }
     }
