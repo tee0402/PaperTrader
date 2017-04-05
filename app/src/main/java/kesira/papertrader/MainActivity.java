@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
     public void addToWatchlist(View view) {
         EditText editText = (EditText) findViewById(R.id.editText);
         String ticker = editText.getText().toString();
-        new RetrieveFeedTask().execute("https://www.google.com/finance/info?q=NASDAQ:" + ticker);
+        new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + ticker);
         editText.getText().clear();
     }
 
