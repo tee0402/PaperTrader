@@ -1,6 +1,7 @@
 package kesira.papertrader;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -12,6 +13,7 @@ import android.view.KeyEvent;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -51,6 +53,14 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
                 return false;
+            }
+        });
+        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if (!b) {
+                    hideKeyboard(view);
+                }
             }
         });
 
@@ -151,11 +161,18 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public void hideKeyboard(View view) {
+        InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
     public void addToWatchlist(View view) {
         EditText editText = (EditText) findViewById(R.id.editText);
         String ticker = editText.getText().toString();
         new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + ticker);
         editText.getText().clear();
+        editText.clearFocus();
+        view.requestFocus();
     }
 
     void removeTicker(String ticker) {

@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
+import android.view.WindowManager;
 
 public class BuyDialogFragment extends DialogFragment {
 
@@ -29,6 +30,10 @@ public class BuyDialogFragment extends DialogFragment {
                         BuyDialogFragment.this.getDialog().cancel();
                     }
                 });
-        return builder.create();
+        AlertDialog dialog = builder.create();
+        //noinspection ConstantConditions
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        dialog.show();
+        return dialog;
     }
 }

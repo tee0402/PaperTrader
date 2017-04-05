@@ -4,6 +4,7 @@
     <string name="portfolio_value">Portfolio Value</string>
     <string name="positions">Positions</string>
     <string name="watchlist">Watchlist</string>
+    <string name="stock_ticker_symbol">Stock ticker symbol</string>
     <string name="button_add">Add</string>
     <string name="button_buy">Buy</string>
     <string name="button_sell">Sell</string>
