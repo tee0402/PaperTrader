@@ -91,6 +91,13 @@ public class StockInfoActivity extends AppCompatActivity {
                         ((TextView) findViewById(R.id.stockPercentChange)).setText(String.format("%s%%", jsonObject.getString("cp")));
                         ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.RED);
                     }
+                    ((TextView) findViewById(R.id.exchange)).setText(jsonObject.getString("e"));
+                    if (jsonObject.getString("yld").equals("")) {
+                        ((TextView) findViewById(R.id.stockYield)).setText("0.00%");
+                    }
+                    else {
+                        ((TextView) findViewById(R.id.stockYield)).setText(jsonObject.getString("yld") + "%");
+                    }
                 }
             }
             catch (Exception e) {

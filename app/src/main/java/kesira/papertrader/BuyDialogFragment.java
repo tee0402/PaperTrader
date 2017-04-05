@@ -1,6 +1,5 @@
 package kesira.papertrader;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -12,7 +11,6 @@ import android.view.WindowManager;
 
 public class BuyDialogFragment extends DialogFragment {
 
-    @SuppressLint("InflateParams")
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
