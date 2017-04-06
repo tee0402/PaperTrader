@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -105,11 +106,9 @@ public class MainActivity extends AppCompatActivity {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String str;
-                String tickers = "";
                 while ((str = bufferedReader.readLine()) != null) {
-                    tickers += str + ",";
+                    new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + str);
                 }
-                new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + tickers);
                 inputStream.close();
             }
         }
@@ -169,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
     public void addToWatchlist(View view) {
         EditText editText = (EditText) findViewById(R.id.editText);
         String ticker = editText.getText().toString();
-        new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + ticker);
+        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
         editText.getText().clear();
         editText.clearFocus();
         view.requestFocus();
@@ -231,8 +230,15 @@ public class MainActivity extends AppCompatActivity {
             Log.i("INFO", result);
             try {
                 JSONArray jsonArray = new JSONArray(result);
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                JSONObject jsonObject = jsonArray.getJSONObject(0);
+                if (!jsonObject.isNull("Exchange")) {
+                    if (jsonObject.getString("Exchange").equals("NYSE")) {
+                        new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NYSE%3A" + jsonObject.getString("Symbol"));
+                    } else if (jsonObject.getString("Exchange").equals("NASDAQ")) {
+                        new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + jsonObject.getString("Symbol"));
+                    }
+                }
+                else {
                     if (!containsTicker(jsonObject.getString("t"))) {
                         customRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
                     }
