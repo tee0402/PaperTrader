@@ -35,19 +35,15 @@ public class StockInfoActivity extends AppCompatActivity {
     private String ticker;
     static final long MILLION = 1000000L;
     static final long BILLION = 1000000000L;
+    private LineChart chart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stock_info);
 
-        Intent intent = getIntent();
-        ticker = intent.getStringExtra("ticker");
-        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + ticker);
-        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
-        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A365%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
-
-        LineChart chart = (LineChart) findViewById(R.id.chart);
+        chart = (LineChart) findViewById(R.id.chart);
+        chart.setNoDataText("Loading...");
         chart.setScaleEnabled(false);
         chart.setDrawGridBackground(true);
         chart.getLegend().setEnabled(false);
@@ -60,26 +56,12 @@ public class StockInfoActivity extends AppCompatActivity {
         Description description = new Description();
         description.setText("MPAndroidChart by Philipp Jahoda");
         chart.setDescription(description);
-        ArrayList<Entry> entries = new ArrayList<>();
-        float price = 20;
-        for (int i = 0; i < 20; i++) {
-            if (Math.random() >= 0.5) {
-                entries.add(new Entry(i, (float) (price + Math.random() * 20)));
-            }
-            else {
-                entries.add(new Entry(i, (float) (price - Math.random() * 10)));
-            }
-        }
-        LineDataSet dataSet = new LineDataSet(entries, "Label");
-        dataSet.setDrawHorizontalHighlightIndicator(false);
-        dataSet.setDrawCircles(false);
-        dataSet.setLineWidth(3);
-        dataSet.setColor(ContextCompat.getColor(this, R.color.colorPrimary));
-        dataSet.setValueTextColor(ContextCompat.getColor(this, R.color.colorAccent));
-        LineData lineData = new LineData(dataSet);
-        lineData.setDrawValues(false);
-        chart.setData(lineData);
-        chart.invalidate();
+
+        Intent intent = getIntent();
+        ticker = intent.getStringExtra("ticker");
+        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + ticker);
+        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
+        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A365%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
     }
 
     public void buy(View view) {
@@ -141,8 +123,28 @@ public class StockInfoActivity extends AppCompatActivity {
                 Object json = new JSONTokener(result).nextValue();
                 if (json instanceof JSONObject) {
                     JSONObject jsonObject = new JSONObject(result);
-                    ((TextView) findViewById(R.id.stockName)).setText(jsonObject.getString("Name"));
-                    ((TextView) findViewById(R.id.stockMarketCap)).setText("$" + convertBigNumber(Double.valueOf(jsonObject.getString("MarketCap")), 2));
+                    if (!jsonObject.isNull("Positions")) {
+                        JSONArray positions = jsonObject.getJSONArray("Positions");
+                        JSONArray values = jsonObject.getJSONArray("Elements").getJSONObject(0).getJSONObject("DataSeries").getJSONObject("close").getJSONArray("values");
+                        ArrayList<Entry> entries = new ArrayList<>();
+                        for (int i = 0; i < positions.length(); i++) {
+                            entries.add(new Entry(Float.valueOf(String.valueOf(positions.get(i))), Float.valueOf(String.valueOf(values.get(i)))));
+                        }
+                        LineDataSet dataSet = new LineDataSet(entries, "Label");
+                        dataSet.setDrawHorizontalHighlightIndicator(false);
+                        dataSet.setDrawCircles(false);
+                        dataSet.setLineWidth(2);
+                        dataSet.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+                        dataSet.setValueTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+                        LineData lineData = new LineData(dataSet);
+                        lineData.setDrawValues(false);
+                        chart.setData(lineData);
+                        chart.invalidate();
+                    }
+                    else {
+                        ((TextView) findViewById(R.id.stockName)).setText(jsonObject.getString("Name"));
+                        ((TextView) findViewById(R.id.stockMarketCap)).setText("$" + convertBigNumber(Double.valueOf(jsonObject.getString("MarketCap")), 2));
+                    }
                 }
                 else if (json instanceof JSONArray) {
                     JSONArray jsonArray = new JSONArray(result);
