@@ -36,6 +36,7 @@ public class StockInfoActivity extends AppCompatActivity {
     static final long MILLION = 1000000L;
     static final long BILLION = 1000000000L;
     private LineChart chart;
+    private float portfolioValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +60,7 @@ public class StockInfoActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         ticker = intent.getStringExtra("ticker");
+        portfolioValue = intent.getFloatExtra("portfolioValue", 0);
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + ticker);
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A365%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
@@ -66,6 +68,10 @@ public class StockInfoActivity extends AppCompatActivity {
 
     public void buy(View view) {
         DialogFragment newFragment = new BuyDialogFragment();
+        int shares = (int) (portfolioValue / Float.valueOf(((TextView) findViewById(R.id.stockPrice)).getText().toString()));
+        Bundle args = new Bundle();
+        args.putInt("shares", shares);
+        newFragment.setArguments(args);
         newFragment.show(getSupportFragmentManager(), "buy");
     }
 

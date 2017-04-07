@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ListView listView = (ListView) findViewById(R.id.listview);
+        ListView listView = (ListView) findViewById(R.id.watchlist);
         registerForContextMenu(listView);
         listAdapter = new TextViewAdapter(getBaseContext(), customRows);
         listView.setAdapter(listAdapter);
@@ -73,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(getApplicationContext(), StockInfoActivity.class);
                 intent.putExtra("ticker", customRows.get(i).getTicker());
-                startActivity(intent);
+                intent.putExtra("portfolioValue", portfolioValue);
+                startActivityForResult(intent, 1);
             }
         });
 
@@ -97,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
             portfolioValue = 10000f;
         }
 
-        ((TextView) findViewById(R.id.portfolioValue)).setText(String.format("$%.2f", portfolioValue));
+        ((TextView) findViewById(R.id.portfolioValue)).setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
 
         try {
             InputStream inputStream = this.openFileInput("watchlist.txt");
@@ -120,9 +122,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("watchlist.txt", Context.MODE_PRIVATE));
-            for (int i = 0; i < customRows.size(); i++) {
-                outputStreamWriter.write(customRows.get(i).getTicker() + "\n");
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("save.txt", Context.MODE_PRIVATE));
+            outputStreamWriter.write(portfolioValue + "\n");
+            for (int i = 0; i < positions.size(); i++) {
+                outputStreamWriter.write(positions.get(i) + "\n");
             }
             outputStreamWriter.close();
         }
@@ -130,10 +133,9 @@ public class MainActivity extends AppCompatActivity {
             Log.e("Exception", "Writing to saved watchlist failed: " + e.toString());
         }
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("save.txt", Context.MODE_PRIVATE));
-            outputStreamWriter.write(portfolioValue + "\n");
-            for (int i = 0; i < positions.size(); i++) {
-                outputStreamWriter.write(positions.get(i) + "\n");
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("watchlist.txt", Context.MODE_PRIVATE));
+            for (int i = 0; i < customRows.size(); i++) {
+                outputStreamWriter.write(customRows.get(i).getTicker() + "\n");
             }
             outputStreamWriter.close();
         }
