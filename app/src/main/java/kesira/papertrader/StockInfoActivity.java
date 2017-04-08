@@ -139,6 +139,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         LineData lineData = new LineData(dataSet);
                         lineData.setDrawValues(false);
                         chart.setData(lineData);
+                        chart.animateX(1000);
                         chart.invalidate();
                     }
                     else {
