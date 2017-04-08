@@ -6,6 +6,12 @@
     <string name="watchlist">Watchlist</string>
     <string name="stock_ticker_symbol">Stock ticker symbol</string>
     <string name="button_add">Add</string>
+    <string name="button_1w">1W</string>
+    <string name="button_1m">1M</string>
+    <string name="button_3m">3M</string>
+    <string name="button_1y">1Y</string>
+    <string name="button_5y">5Y</string>
+    <string name="button_max">MAX</string>
     <string name="button_buy">Buy</string>
     <string name="button_sell">Sell</string>
     <string name="quantity">Quantity</string>
