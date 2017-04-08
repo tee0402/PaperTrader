@@ -38,6 +38,7 @@
             android:id="@+id/mstb_multi_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-15dp"
             android:layout_marginBottom="10dp"
             mstb:values="@array/duration_array"
             mstb:mstbPrimaryColor="@color/colorPrimary"
