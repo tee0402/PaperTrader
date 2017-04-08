@@ -11,8 +11,9 @@ import android.widget.LinearLayout;
 public abstract class ToggleButton extends LinearLayout {
 
     public interface OnValueChangedListener {
+        // TODO: Add this callback:
         // public void onValueChanged(int value, boolean selected);
-        void onValueChanged(int value);
+        public void onValueChanged(int value);
     }
 
     OnValueChangedListener listener;
