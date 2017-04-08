@@ -49,7 +49,7 @@
                 android:button="@null"
                 android:checked="true"
                 android:gravity="center"
-                android:padding="5dp"
+                android:padding="10dp"
                 android:text="@string/button_1w"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -60,7 +60,7 @@
                 android:background="@drawable/rbtn_selector"
                 android:button="@null"
                 android:gravity="center"
-                android:padding="5dp"
+                android:padding="10dp"
                 android:text="@string/button_1m"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -71,7 +71,7 @@
                 android:background="@drawable/rbtn_selector"
                 android:button="@null"
                 android:gravity="center"
-                android:padding="5dp"
+                android:padding="10dp"
                 android:text="@string/button_3m"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -82,7 +82,7 @@
                 android:background="@drawable/rbtn_selector"
                 android:button="@null"
                 android:gravity="center"
-                android:padding="5dp"
+                android:padding="10dp"
                 android:text="@string/button_1y"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -93,7 +93,7 @@
                 android:background="@drawable/rbtn_selector"
                 android:button="@null"
                 android:gravity="center"
-                android:padding="5dp"
+                android:padding="10dp"
                 android:text="@string/button_5y"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -104,7 +104,7 @@
                 android:background="@drawable/rbtn_selector"
                 android:button="@null"
                 android:gravity="center"
-                android:padding="5dp"
+                android:padding="10dp"
                 android:text="@string/button_max"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
         </RadioGroup>
