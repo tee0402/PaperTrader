@@ -34,6 +34,13 @@
             android:id="@+id/chart"
             android:layout_width="match_parent"
             android:layout_height="250dp" />
+        <org.honorato.multistatetogglebutton.MultiStateToggleButton xmlns:mstb="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/mstb_multi_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            mstb:values="@array/duration_array"
+            mstb:mstbPrimaryColor="@color/colorPrimary"
+            mstb:mstbSecondaryColor="@color/colorGray" />
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
