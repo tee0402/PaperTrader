@@ -34,19 +34,85 @@
             android:id="@+id/chart"
             android:layout_width="match_parent"
             android:layout_height="250dp" />
-        <org.honorato.multistatetogglebutton.MultiStateToggleButton xmlns:mstb="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/mstb_multi_id"
-            android:layout_width="wrap_content"
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-15dp"
-            android:layout_marginBottom="10dp"
-            mstb:values="@array/duration_array"
-            mstb:mstbPrimaryColor="@color/colorPrimary"
-            mstb:mstbSecondaryColor="@color/colorGray" />
+            android:gravity="center"
+            android:orientation="horizontal" >
+            <RadioButton
+                android:id="@+id/radio1W"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rbtn_selector"
+                android:button="@null"
+                android:checked="true"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="@string/button_1w"
+                android:textColor="@drawable/rbtn_textcolor_selector" />
+            <RadioButton
+                android:id="@+id/radio1M"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rbtn_selector"
+                android:button="@null"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="@string/button_1m"
+                android:textColor="@drawable/rbtn_textcolor_selector" />
+            <RadioButton
+                android:id="@+id/radio3M"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rbtn_selector"
+                android:button="@null"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="@string/button_3m"
+                android:textColor="@drawable/rbtn_textcolor_selector" />
+            <RadioButton
+                android:id="@+id/radio1Y"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rbtn_selector"
+                android:button="@null"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="@string/button_1y"
+                android:textColor="@drawable/rbtn_textcolor_selector" />
+            <RadioButton
+                android:id="@+id/radio5Y"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rbtn_selector"
+                android:button="@null"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="@string/button_5y"
+                android:textColor="@drawable/rbtn_textcolor_selector" />
+            <RadioButton
+                android:id="@+id/radioMax"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rbtn_selector"
+                android:button="@null"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="@string/button_max"
+                android:textColor="@drawable/rbtn_textcolor_selector" />
+        </RadioGroup>
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
