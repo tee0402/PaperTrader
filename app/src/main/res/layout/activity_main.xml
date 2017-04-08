@@ -67,7 +67,7 @@
             android:layout_centerHorizontal="true"
             android:visibility="gone" />
         <ListView
-            android:id="@+id/listview"
+            android:id="@+id/watchlist"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingLeft="16dp"

@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ListView listView = (ListView) findViewById(R.id.listview);
+        ListView listView = (ListView) findViewById(R.id.watchlist);
         registerForContextMenu(listView);
         listAdapter = new TextViewAdapter(getBaseContext(), customRows);
         listView.setAdapter(listAdapter);
