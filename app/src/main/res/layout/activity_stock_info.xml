@@ -38,8 +38,9 @@
             android:id="@+id/radioGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:gravity="center"
-            android:orientation="horizontal" >
+            android:orientation="horizontal">
             <RadioButton
                 android:id="@+id/radio1W"
                 android:layout_width="match_parent"
@@ -112,7 +113,7 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
+            android:layout_marginBottom="10dp">
             <Button
                 android:id="@+id/buy"
                 android:layout_width="match_parent"
@@ -133,7 +134,6 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:background="@android:color/darker_gray"/>
         <LinearLayout
