@@ -37,8 +37,8 @@ import java.util.ArrayList;
 public class StockInfoActivity extends AppCompatActivity {
 
     private String ticker;
-    static final long MILLION = 1000000L;
-    static final long BILLION = 1000000000L;
+    private static final long MILLION = 1000000L;
+    private static final long BILLION = 1000000000L;
     private LineChart chart;
 
     @Override
@@ -223,7 +223,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         ((TextView) findViewById(R.id.stockPrice)).setText(jsonObject.getString("l"));
                         if (Float.valueOf(jsonObject.getString("cp")) >= 0) {
                             ((TextView) findViewById(R.id.stockPercentChange)).setText("+" + jsonObject.getString("cp") + "%");
-                            ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.GREEN);
+                            ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.parseColor("#33CC33"));
                         }
                         else {
                             ((TextView) findViewById(R.id.stockPercentChange)).setText(String.format("%s%%", jsonObject.getString("cp")));

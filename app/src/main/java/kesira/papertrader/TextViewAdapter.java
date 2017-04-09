@@ -13,8 +13,8 @@ import java.util.ArrayList;
 
 class TextViewAdapter extends BaseAdapter {
 
-    private LayoutInflater mInflater;
-    private ArrayList<CustomRow> mArrayList;
+    private final LayoutInflater mInflater;
+    private final ArrayList<CustomRow> mArrayList;
 
     private class ViewHolder {
         TextView textView1;
@@ -58,9 +58,9 @@ class TextViewAdapter extends BaseAdapter {
         }
         holder.textView1.setText(mArrayList.get(position).getTicker());
         holder.textView2.setText(mArrayList.get(position).getQuote());
-        if (Double.valueOf(mArrayList.get(position).getPercentChange()) >= 0) {
+        if (Float.valueOf(mArrayList.get(position).getPercentChange()) >= 0) {
             holder.textView3.setText("+" + mArrayList.get(position).getPercentChange() + "%");
-            holder.textView3.setTextColor(Color.GREEN);
+            holder.textView3.setTextColor(Color.parseColor("#33CC33"));
         }
         else {
             holder.textView3.setText(String.format("%s%%", mArrayList.get(position).getPercentChange()));

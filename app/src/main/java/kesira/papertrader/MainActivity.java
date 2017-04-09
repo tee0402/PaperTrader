@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,19 +31,19 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ArrayList<CustomRow> positionsRows = new ArrayList<>();
-    private ArrayList<CustomRow> watchlistRows = new ArrayList<>();
+    private final ArrayList<CustomRow> positionsRows = new ArrayList<>();
+    private final ArrayList<CustomRow> watchlistRows = new ArrayList<>();
     private TextViewAdapter positionsAdapter;
     private TextViewAdapter watchlistAdapter;
     private String tickerSelected;
     private TextView cash;
     private float portfolioValue;
-    private TextView portfolioValueText;
     private SharedPreferences prefs;
     private int taskCounter = 0;
 
@@ -108,8 +109,6 @@ public class MainActivity extends AppCompatActivity {
             cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
         }
         portfolioValue = prefs.getFloat("cash", -1);
-
-        portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
 
         try {
             InputStream inputStream = this.openFileInput("stocks.txt");
@@ -185,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void hideKeyboard(View view) {
+    private void hideKeyboard(View view) {
         InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
@@ -224,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
 
+        @Override
         protected void onPreExecute() {
             taskCounter++;
             findViewById(R.id.progressBarPositions).setVisibility(View.VISIBLE);
@@ -298,7 +298,18 @@ public class MainActivity extends AppCompatActivity {
 
             taskCounter--;
             if (taskCounter == 0) {
+                TextView portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
                 portfolioValueText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
+                
+                TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
+                if (portfolioValue / 10000 - 1 >= 0) {
+                    portfolioValuePerformanceText.setText("+" + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (+" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+                    portfolioValuePerformanceText.setTextColor(Color.parseColor("#33CC33"));
+                }
+                else {
+                    portfolioValuePerformanceText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+                    portfolioValuePerformanceText.setTextColor(Color.RED);
+                }
             }
         }
     }
