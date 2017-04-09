@@ -45,6 +45,23 @@
         android:layout_marginBottom="10dp"
         android:text="@string/positions"
         android:textSize="25sp" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+        <ProgressBar
+            android:id="@+id/progressBarPositions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:layout_centerHorizontal="true"
+            android:visibility="gone" />
+        <ListView
+            android:id="@+id/positions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbarStyle="outsideOverlay" />
+    </RelativeLayout>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -54,7 +71,7 @@
         android:textSize="25sp" />
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center">
         <ProgressBar
             android:id="@+id/progressBarWatchlist"
@@ -66,7 +83,7 @@
         <ListView
             android:id="@+id/watchlist"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:scrollbarStyle="outsideOverlay" />
     </RelativeLayout>
 </LinearLayout>

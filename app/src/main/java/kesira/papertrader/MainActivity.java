@@ -35,8 +35,10 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ArrayList<CustomRow> customRows = new ArrayList<>();
-    private TextViewAdapter listAdapter;
+    private ArrayList<CustomRow> positionsRows = new ArrayList<>();
+    private ArrayList<CustomRow> watchlistRows = new ArrayList<>();
+    private TextViewAdapter positionsAdapter;
+    private TextViewAdapter watchlistAdapter;
     private String tickerSelected;
     private TextView portfolioValue;
     private SharedPreferences prefs;
@@ -66,15 +68,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        ListView positions = (ListView) findViewById(R.id.positions);
+        positionsAdapter = new TextViewAdapter(getBaseContext(), positionsRows);
+        positions.setAdapter(positionsAdapter);
+        positions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent(getApplicationContext(), StockInfoActivity.class);
+                intent.putExtra("ticker", positionsRows.get(i).getTicker());
+                startActivityForResult(intent, 1);
+            }
+        });
+
         ListView watchlist = (ListView) findViewById(R.id.watchlist);
         registerForContextMenu(watchlist);
-        listAdapter = new TextViewAdapter(getBaseContext(), customRows);
-        watchlist.setAdapter(listAdapter);
+        watchlistAdapter = new TextViewAdapter(getBaseContext(), watchlistRows);
+        watchlist.setAdapter(watchlistAdapter);
         watchlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(getApplicationContext(), StockInfoActivity.class);
-                intent.putExtra("ticker", customRows.get(i).getTicker());
+                intent.putExtra("ticker", watchlistRows.get(i).getTicker());
                 startActivityForResult(intent, 1);
             }
         });
@@ -92,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            InputStream inputStream = this.openFileInput("watchlist.txt");
+            InputStream inputStream = this.openFileInput("stocks.txt");
             if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -104,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         catch (IOException e) {
-            Log.e("Exception", "Reading from saved watchlist failed: " + e.toString());
+            Log.e("Exception", "Reading from saved stocks failed: " + e.toString());
         }
     }
 
@@ -118,14 +132,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("watchlist.txt", Context.MODE_PRIVATE));
-            for (int i = 0; i < customRows.size(); i++) {
-                outputStreamWriter.write(customRows.get(i).getTicker() + "\n");
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("stocks.txt", Context.MODE_PRIVATE));
+            for (int i = 0; i < positionsRows.size(); i++) {
+                outputStreamWriter.write(positionsRows.get(i).getTicker() + "\n");
+            }
+            for (int i = 0; i < watchlistRows.size(); i++) {
+                outputStreamWriter.write(watchlistRows.get(i).getTicker() + "\n");
             }
             outputStreamWriter.close();
         }
         catch (IOException e) {
-            Log.e("Exception", "Writing to saved watchlist failed: " + e.toString());
+            Log.e("Exception", "Writing to saved stocks failed: " + e.toString());
         }
     }
 
@@ -141,8 +158,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        removeTicker(tickerSelected);
-        listAdapter.notifyDataSetChanged();
+        removeFromWatchlist(tickerSelected);
+        watchlistAdapter.notifyDataSetChanged();
         return true;
     }
 
@@ -160,18 +177,23 @@ public class MainActivity extends AppCompatActivity {
         view.requestFocus();
     }
 
-    void removeTicker(String ticker) {
-        for (int i = 0; i < customRows.size(); i++) {
-            if (customRows.get(i).getTicker().equals(ticker)) {
-                customRows.remove(i);
+    private void removeFromWatchlist(String ticker) {
+        for (int i = 0; i < watchlistRows.size(); i++) {
+            if (watchlistRows.get(i).getTicker().equals(ticker)) {
+                watchlistRows.remove(i);
                 break;
             }
         }
     }
 
     private boolean containsTicker(String ticker) {
-        for (int i = 0; i < customRows.size(); i++) {
-            if (customRows.get(i).getTicker().equals(ticker)) {
+        for (int i = 0; i < positionsRows.size(); i++) {
+            if (positionsRows.get(i).getTicker().equals(ticker)) {
+                return true;
+            }
+        }
+        for (int i = 0; i < watchlistRows.size(); i++) {
+            if (watchlistRows.get(i).getTicker().equals(ticker)) {
                 return true;
             }
         }
@@ -181,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
 
         protected void onPreExecute() {
+            findViewById(R.id.progressBarPositions).setVisibility(View.VISIBLE);
             findViewById(R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
         }
 
@@ -217,24 +240,32 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONArray jsonArray = new JSONArray(result);
                 JSONObject jsonObject = jsonArray.getJSONObject(0);
+                //If JSON contains "Exchange" property
                 if (!jsonObject.isNull("Exchange")) {
                     if (jsonObject.getString("Exchange").equals("NYSE") || jsonObject.getString("Exchange").equals("BATS Trading Inc")) {
                         new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NYSE%3A" + jsonObject.getString("Symbol"));
-                    } else if (jsonObject.getString("Exchange").equals("NASDAQ")) {
+                    }
+                    else if (jsonObject.getString("Exchange").equals("NASDAQ")) {
                         new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + jsonObject.getString("Symbol"));
                     }
                 }
-                else {
-                    if (!containsTicker(jsonObject.getString("t"))) {
-                        customRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                //If JSON does not contain "Exchange" property and positions and watchlist do not already contain ticker
+                else if (!containsTicker(jsonObject.getString("t"))) {
+                    if (prefs.getInt(jsonObject.getString("t"), 0) > 0) {
+                        positionsRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                        positionsAdapter.notifyDataSetChanged();
+                    }
+                    else {
+                        watchlistRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                        watchlistAdapter.notifyDataSetChanged();
                     }
                 }
             }
             catch (Exception e) {
                 Log.e("Exception", e.getMessage());
             }
+            findViewById(R.id.progressBarPositions).setVisibility(View.GONE);
             findViewById(R.id.progressBarWatchlist).setVisibility(View.GONE);
-            listAdapter.notifyDataSetChanged();
         }
     }
 }

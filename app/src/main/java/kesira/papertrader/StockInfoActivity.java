@@ -189,7 +189,8 @@ public class StockInfoActivity extends AppCompatActivity {
                     if (!jsonObject.isNull("Exchange")) {
                         if (jsonObject.getString("Exchange").equals("NYSE") || jsonObject.getString("Exchange").equals("BATS Trading Inc")) {
                             new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NYSE%3A" + jsonObject.getString("Symbol"));
-                        } else if (jsonObject.getString("Exchange").equals("NASDAQ")) {
+                        }
+                        else if (jsonObject.getString("Exchange").equals("NASDAQ")) {
                             new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + jsonObject.getString("Symbol"));
                         }
                     }
@@ -198,14 +199,16 @@ public class StockInfoActivity extends AppCompatActivity {
                         if (Float.valueOf(jsonObject.getString("cp")) >= 0) {
                             ((TextView) findViewById(R.id.stockPercentChange)).setText("+" + jsonObject.getString("cp") + "%");
                             ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.GREEN);
-                        } else {
+                        }
+                        else {
                             ((TextView) findViewById(R.id.stockPercentChange)).setText(String.format("%s%%", jsonObject.getString("cp")));
                             ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.RED);
                         }
                         ((TextView) findViewById(R.id.exchange)).setText(jsonObject.getString("e"));
                         if (jsonObject.getString("yld").equals("")) {
                             ((TextView) findViewById(R.id.stockYield)).setText("0.00%");
-                        } else {
+                        }
+                        else {
                             ((TextView) findViewById(R.id.stockYield)).setText(jsonObject.getString("yld") + "%");
                         }
                     }
