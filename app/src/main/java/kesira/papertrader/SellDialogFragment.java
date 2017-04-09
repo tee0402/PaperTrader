@@ -26,7 +26,7 @@ public class SellDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        final View view = inflater.inflate(R.layout.dialog, null);
+        final View view = inflater.inflate(R.layout.dialog_sell, null);
         final String ticker = getArguments().getString("ticker");
         final float stockPrice = Float.valueOf(((TextView) getActivity().findViewById(R.id.stockPrice)).getText().toString());
         final EditText editText = (EditText) view.findViewById(R.id.quantity);
@@ -34,8 +34,7 @@ public class SellDialogFragment extends DialogFragment {
         final SharedPreferences prefs = getActivity().getSharedPreferences("Save", Context.MODE_PRIVATE);
         final int sharesOwned = prefs.getInt(ticker, 0);
 
-        ((TextView) view.findViewById(R.id.shares)).setText("You can sell " + sharesOwned + " shares.");
-        amount.setHint(NumberFormat.getCurrencyInstance().format(sharesOwned * stockPrice) + " available");
+        amount.setHint(sharesOwned + " shares available");
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {

@@ -26,7 +26,7 @@ public class BuyDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        final View view = inflater.inflate(R.layout.dialog, null);
+        final View view = inflater.inflate(R.layout.dialog_buy, null);
         final String ticker = getArguments().getString("ticker");
         final float stockPrice = Float.valueOf(((TextView) getActivity().findViewById(R.id.stockPrice)).getText().toString());
         final EditText editText = (EditText) view.findViewById(R.id.quantity);
