@@ -8,8 +8,11 @@ import android.support.annotation.IdRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -92,6 +95,25 @@ public class StockInfoActivity extends AppCompatActivity {
                 }
             }
         });
+
+        TextView stockPrice = (TextView) findViewById(R.id.stockPrice);
+        stockPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                findViewById(R.id.buy).setEnabled(true);
+                findViewById(R.id.sell).setEnabled(true);
+            }
+        });
     }
 
     public void buy(View view) {
@@ -143,7 +165,7 @@ public class StockInfoActivity extends AppCompatActivity {
                     urlConnection.disconnect();
                 }
             }
-            catch(Exception e) {
+            catch (Exception e) {
                 Log.e("Exception", e.toString());
                 return null;
             }
@@ -151,7 +173,7 @@ public class StockInfoActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            if(result == null) {
+            if (result == null) {
                 result = "Error getting stock info";
             }
             Log.i("INFO", result);

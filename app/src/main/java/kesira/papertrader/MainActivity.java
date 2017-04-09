@@ -126,6 +126,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         portfolioValue.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)));
+        for (int i = 0; i < positionsRows.size(); i++) {
+            if (prefs.getInt(positionsRows.get(i).getTicker(), 0) == 0) {
+                watchlistRows.add(positionsRows.get(i));
+                watchlistAdapter.notifyDataSetChanged();
+                positionsRows.remove(i);
+                positionsAdapter.notifyDataSetChanged();
+            }
+        }
+        for (int i = 0; i < watchlistRows.size(); i++) {
+            if (prefs.getInt(watchlistRows.get(i).getTicker(), 0) > 0) {
+                positionsRows.add(watchlistRows.get(i));
+                positionsAdapter.notifyDataSetChanged();
+                watchlistRows.remove(i);
+                watchlistAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
     @Override
@@ -225,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                     urlConnection.disconnect();
                 }
             }
-            catch(Exception e) {
+            catch (Exception e) {
                 Log.e("Exception", e.toString());
                 return null;
             }
@@ -233,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            if(result == null) {
+            if (result == null) {
                 result = "Error getting stock quote";
             }
             Log.i("INFO", result);
