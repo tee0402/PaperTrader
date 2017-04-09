@@ -20,6 +20,5 @@
     <string name="amount">Amount:</string>
     <string name="cancel">Cancel</string>
     <string name="exchange">Exchange</string>
-    <string name="market_cap">Market cap</string>
-    <string name="dividend_yield">Dividend yield</string>
+    <string name="market_cap">Market Cap</string>
 </resources>
