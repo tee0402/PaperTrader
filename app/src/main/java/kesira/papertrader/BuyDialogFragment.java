@@ -32,10 +32,10 @@ public class BuyDialogFragment extends DialogFragment {
         final EditText editText = (EditText) view.findViewById(R.id.quantity);
         final TextView amount = (TextView) view.findViewById(R.id.amountValue);
         final SharedPreferences prefs = getActivity().getSharedPreferences("Save", Context.MODE_PRIVATE);
-        final int sharesCanAfford = (int) (prefs.getFloat("portfolioValue", -1) / stockPrice);
+        final int sharesCanAfford = (int) (prefs.getFloat("cash", -1) / stockPrice);
 
         ((TextView) view.findViewById(R.id.shares)).setText("You can buy " + sharesCanAfford + " shares.");
-        amount.setHint(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)) + " available");
+        amount.setHint(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)) + " available");
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -71,7 +71,7 @@ public class BuyDialogFragment extends DialogFragment {
                         else {
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putInt(ticker, prefs.getInt(ticker, 0) + quantity);
-                            editor.putFloat("portfolioValue", prefs.getFloat("portfolioValue", -1) - stockPrice * quantity);
+                            editor.putFloat("cash", prefs.getFloat("cash", -1) - stockPrice * quantity);
                             editor.apply();
                             Toast.makeText(getActivity(), "Bought " + quantity + " shares successfully", Toast.LENGTH_LONG).show();
                         }

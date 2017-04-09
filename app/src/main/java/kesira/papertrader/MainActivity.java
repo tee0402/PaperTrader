@@ -40,8 +40,11 @@ public class MainActivity extends AppCompatActivity {
     private TextViewAdapter positionsAdapter;
     private TextViewAdapter watchlistAdapter;
     private String tickerSelected;
-    private TextView portfolioValue;
+    private TextView cash;
+    private float portfolioValue;
+    private TextView portfolioValueText;
     private SharedPreferences prefs;
+    private int taskCounter = 0;
 
     @SuppressLint("DefaultLocale")
     @Override
@@ -93,17 +96,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        portfolioValue = (TextView) findViewById(R.id.portfolioValue);
+        cash = (TextView) findViewById(R.id.cash);
         prefs = getSharedPreferences("Save", Context.MODE_PRIVATE);
-        if (prefs.getFloat("portfolioValue", -1) == -1) {
+        if (prefs.getFloat("cash", -1) == -1) {
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putFloat("portfolioValue", 10000);
+            editor.putFloat("cash", 10000);
             editor.apply();
-            portfolioValue.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)));
+            cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
         }
         else {
-            portfolioValue.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)));
+            cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
         }
+        portfolioValue = prefs.getFloat("cash", -1);
+
+        portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
 
         try {
             InputStream inputStream = this.openFileInput("stocks.txt");
@@ -125,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        portfolioValue.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)));
+        cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
         for (int i = 0; i < positionsRows.size(); i++) {
             if (prefs.getInt(positionsRows.get(i).getTicker(), 0) == 0) {
                 watchlistRows.add(positionsRows.get(i));
@@ -219,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
 
         protected void onPreExecute() {
+            taskCounter++;
             findViewById(R.id.progressBarPositions).setVisibility(View.VISIBLE);
             findViewById(R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
         }
@@ -274,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
                     if (prefs.getInt(jsonObject.getString("t"), 0) > 0) {
                         positionsRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
                         positionsAdapter.notifyDataSetChanged();
+                        portfolioValue += Float.valueOf(jsonObject.getString("l")) * prefs.getInt(jsonObject.getString("t"), 0);
                     }
                     else {
                         watchlistRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
@@ -284,8 +292,14 @@ public class MainActivity extends AppCompatActivity {
             catch (Exception e) {
                 Log.e("Exception", e.getMessage());
             }
+
             findViewById(R.id.progressBarPositions).setVisibility(View.GONE);
             findViewById(R.id.progressBarWatchlist).setVisibility(View.GONE);
+
+            taskCounter--;
+            if (taskCounter == 0) {
+                portfolioValueText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
+            }
         }
     }
 }

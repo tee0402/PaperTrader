@@ -70,7 +70,7 @@ public class SellDialogFragment extends DialogFragment {
                         else {
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putInt(ticker, sharesOwned - quantity);
-                            editor.putFloat("portfolioValue", prefs.getFloat("portfolioValue", -1) + stockPrice * quantity);
+                            editor.putFloat("cash", prefs.getFloat("cash", -1) + stockPrice * quantity);
                             editor.apply();
                             Toast.makeText(getActivity(), "Sold " + quantity + " shares successfully", Toast.LENGTH_LONG).show();
                         }
