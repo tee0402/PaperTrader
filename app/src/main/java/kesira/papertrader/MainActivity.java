@@ -226,7 +226,11 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
             try {
                 URL url = new URL(params[0]);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                HttpURLConnection urlConnection;
+                do {
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                }
+                while (urlConnection.getResponseCode() >= 400);
                 try {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
                     String stockInfo = "";
