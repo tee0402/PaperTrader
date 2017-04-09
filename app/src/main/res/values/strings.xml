@@ -15,6 +15,7 @@
     <string name="button_buy">Buy</string>
     <string name="button_sell">Sell</string>
     <string name="quantity">Quantity</string>
+    <string name="amount">Amount:</string>
     <string name="cancel">Cancel</string>
     <string name="exchange">Exchange</string>
     <string name="market_cap">Market cap</string>

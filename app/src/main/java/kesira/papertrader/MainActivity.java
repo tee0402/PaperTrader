@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -37,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<CustomRow> customRows = new ArrayList<>();
     private TextViewAdapter listAdapter;
     private String tickerSelected;
-    private float portfolioValue;
-    private ArrayList<String> positions = new ArrayList<>();
+    private TextView portfolioValue;
+    private SharedPreferences prefs;
 
     @SuppressLint("DefaultLocale")
     @Override
@@ -65,41 +66,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ListView listView = (ListView) findViewById(R.id.watchlist);
-        registerForContextMenu(listView);
+        ListView watchlist = (ListView) findViewById(R.id.watchlist);
+        registerForContextMenu(watchlist);
         listAdapter = new TextViewAdapter(getBaseContext(), customRows);
-        listView.setAdapter(listAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        watchlist.setAdapter(listAdapter);
+        watchlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(getApplicationContext(), StockInfoActivity.class);
                 intent.putExtra("ticker", customRows.get(i).getTicker());
-                intent.putExtra("portfolioValue", portfolioValue);
                 startActivityForResult(intent, 1);
             }
         });
 
-        try {
-            InputStream inputStream = this.openFileInput("save.txt");
-            if (inputStream != null) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                String str;
-                if ((str = bufferedReader.readLine()) != null) {
-                    portfolioValue = Float.valueOf(str);
-                }
-                while ((str = bufferedReader.readLine()) != null) {
-                    positions.add(str);
-                }
-                inputStream.close();
-            }
+        portfolioValue = (TextView) findViewById(R.id.portfolioValue);
+        prefs = getSharedPreferences("Save", Context.MODE_PRIVATE);
+        if (prefs.getFloat("portfolioValue", -1) == -1) {
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putFloat("portfolioValue", 10000);
+            editor.apply();
+            portfolioValue.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)));
         }
-        catch (IOException e) {
-            Log.e("Exception", "Reading from save failed: " + e.toString());
-            portfolioValue = 10000f;
+        else {
+            portfolioValue.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)));
         }
-
-        ((TextView) findViewById(R.id.portfolioValue)).setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
 
         try {
             InputStream inputStream = this.openFileInput("watchlist.txt");
@@ -119,19 +109,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        portfolioValue.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("portfolioValue", -1)));
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
-        try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("save.txt", Context.MODE_PRIVATE));
-            outputStreamWriter.write(portfolioValue + "\n");
-            for (int i = 0; i < positions.size(); i++) {
-                outputStreamWriter.write(positions.get(i) + "\n");
-            }
-            outputStreamWriter.close();
-        }
-        catch (IOException e) {
-            Log.e("Exception", "Writing to saved watchlist failed: " + e.toString());
-        }
         try {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("watchlist.txt", Context.MODE_PRIVATE));
             for (int i = 0; i < customRows.size(); i++) {
