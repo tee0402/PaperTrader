@@ -16,12 +16,14 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,7 +34,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class StockInfoActivity extends AppCompatActivity {
 
@@ -40,6 +45,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private static final long MILLION = 1000000L;
     private static final long BILLION = 1000000000L;
     private LineChart chart;
+    private XAxis xAxis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +57,11 @@ public class StockInfoActivity extends AppCompatActivity {
         chart.setScaleEnabled(false);
         chart.setDrawGridBackground(true);
         chart.getLegend().setEnabled(false);
-        XAxis xAxis = chart.getXAxis();
-        xAxis.setEnabled(false);
+        xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawAxisLine(false);
+        xAxis.setDrawGridLines(false);
+        xAxis.setGranularity(1f);
         YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setDrawAxisLine(false);
         YAxis rightAxis = chart.getAxisRight();
@@ -146,6 +155,7 @@ public class StockInfoActivity extends AppCompatActivity {
 
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
 
+        @Override
         protected String doInBackground(String... params) {
             try {
                 URL url = new URL(params[0]);
@@ -185,11 +195,46 @@ public class StockInfoActivity extends AppCompatActivity {
                 if (json instanceof JSONObject) {
                     JSONObject jsonObject = new JSONObject(result);
                     if (!jsonObject.isNull("Positions")) {
-                        JSONArray positions = jsonObject.getJSONArray("Positions");
+                        final JSONArray dates = jsonObject.getJSONArray("Dates");
+                        SimpleDateFormat datesFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
+                        SimpleDateFormat monthDayFormat = new SimpleDateFormat("MMM d", Locale.ENGLISH);
+                        SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMM YYYY", Locale.ENGLISH);
+                        SimpleDateFormat yearFormat = new SimpleDateFormat("YYYY", Locale.ENGLISH);
+                        if (dates.length() < 100) {
+                            for (int i = 0; i < dates.length(); i++) {
+                                Date date = datesFormat.parse(dates.get(i).toString());
+                                dates.put(i, monthDayFormat.format(date));
+                            }
+                        }
+                        else if (dates.length() >= 100 && dates.length() < 365) {
+                            for (int i = 0; i < dates.length(); i++) {
+                                Date date = datesFormat.parse(dates.get(i).toString());
+                                dates.put(i, monthYearFormat.format(date));
+                            }
+                        }
+                        else {
+                            for (int i = 0; i < dates.length(); i++) {
+                                Date date = datesFormat.parse(dates.get(i).toString());
+                                dates.put(i, yearFormat.format(date));
+                            }
+                        }
+                        IAxisValueFormatter formatter = new IAxisValueFormatter() {
+                            @Override
+                            public String getFormattedValue(float value, AxisBase axis) {
+                                try {
+                                    return dates.get((int) value).toString();
+                                }
+                                catch (Exception e) {
+                                    Log.e("Exception", e.getMessage());
+                                }
+                                return null;
+                            }
+                        };
+                        xAxis.setValueFormatter(formatter);
                         JSONArray values = jsonObject.getJSONArray("Elements").getJSONObject(0).getJSONObject("DataSeries").getJSONObject("close").getJSONArray("values");
                         ArrayList<Entry> entries = new ArrayList<>();
-                        for (int i = 0; i < positions.length(); i++) {
-                            entries.add(new Entry(Float.valueOf(String.valueOf(positions.get(i))), Float.valueOf(String.valueOf(values.get(i)))));
+                        for (int i = 0; i < dates.length(); i++) {
+                            entries.add(new Entry(i, Float.valueOf(String.valueOf(values.get(i)))));
                         }
                         LineDataSet dataSet = new LineDataSet(entries, "Label");
                         dataSet.setDrawHorizontalHighlightIndicator(false);

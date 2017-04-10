@@ -77,6 +77,7 @@ public class SellDialogFragment extends DialogFragment {
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
                     public void onClick(DialogInterface dialog, int id) {
                         SellDialogFragment.this.getDialog().cancel();
                     }

@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         EditText editText = (EditText) findViewById(R.id.editText);
         editText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     addToWatchlist(v);
@@ -230,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
         }
 
+        @Override
         protected String doInBackground(String... params) {
             try {
                 URL url = new URL(params[0]);
