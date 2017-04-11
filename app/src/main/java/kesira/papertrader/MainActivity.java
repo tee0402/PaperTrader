@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
             if (taskCounter == 0) {
                 TextView portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
                 portfolioValueText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
-                
+
                 TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
                 if (portfolioValue / 10000 - 1 >= 0) {
                     portfolioValuePerformanceText.setText("+" + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (+" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
