@@ -60,7 +60,6 @@ public class StockInfoActivity extends AppCompatActivity {
         xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawAxisLine(false);
-        xAxis.setDrawGridLines(false);
         xAxis.setGranularity(1f);
         YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setDrawAxisLine(false);
