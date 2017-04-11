@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-class TextViewAdapter extends BaseAdapter {
+class WatchlistAdapter extends BaseAdapter {
 
     private final LayoutInflater mInflater;
     private final ArrayList<CustomRow> mArrayList;
@@ -22,7 +22,7 @@ class TextViewAdapter extends BaseAdapter {
         TextView textView3;
     }
 
-    TextViewAdapter(Context context, ArrayList<CustomRow> arrayList) {
+    WatchlistAdapter(Context context, ArrayList<CustomRow> arrayList) {
         mInflater = LayoutInflater.from(context);
         mArrayList = arrayList;
     }
@@ -47,7 +47,7 @@ class TextViewAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.listview_row, null);
+            convertView = mInflater.inflate(R.layout.watchlist_row, null);
             holder = new ViewHolder();
             holder.textView1 = (TextView) convertView.findViewById(R.id.ticker);
             holder.textView2 = (TextView) convertView.findViewById(R.id.quote);

@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final ArrayList<CustomRow> positionsRows = new ArrayList<>();
     private final ArrayList<CustomRow> watchlistRows = new ArrayList<>();
-    private TextViewAdapter positionsAdapter;
-    private TextViewAdapter watchlistAdapter;
+    private PositionsAdapter positionsAdapter;
+    private WatchlistAdapter watchlistAdapter;
     private String tickerSelected;
     private TextView cash;
     private float portfolioValue;
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ListView positions = (ListView) findViewById(R.id.positions);
-        positionsAdapter = new TextViewAdapter(getBaseContext(), positionsRows);
+        positionsAdapter = new PositionsAdapter(getBaseContext(), positionsRows);
         positions.setAdapter(positionsAdapter);
         positions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
         ListView watchlist = (ListView) findViewById(R.id.watchlist);
         registerForContextMenu(watchlist);
-        watchlistAdapter = new TextViewAdapter(getBaseContext(), watchlistRows);
+        watchlistAdapter = new WatchlistAdapter(getBaseContext(), watchlistRows);
         watchlist.setAdapter(watchlistAdapter);
         watchlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
