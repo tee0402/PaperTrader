@@ -34,7 +34,6 @@
                     android:layout_marginRight="10dp"
                     android:layout_marginEnd="10dp"
                     android:text="@string/portfolio_value"
-                    android:textColor="@color/colorPrimary"
                     android:textSize="15sp" />
                 <TextView
                     android:id="@+id/portfolioValuePerformance"
@@ -59,7 +58,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cash"
-                android:textColor="@color/colorPrimary"
                 android:textSize="15sp" />
         </LinearLayout>
     </LinearLayout>
@@ -86,7 +84,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/positions"
-        android:textColor="@color/colorPrimary"
         android:textSize="25sp" />
     <RelativeLayout
         android:layout_width="match_parent"
@@ -115,7 +112,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/watchlist"
-        android:textColor="@color/colorPrimary"
         android:textSize="25sp" />
     <RelativeLayout
         android:layout_width="match_parent"
