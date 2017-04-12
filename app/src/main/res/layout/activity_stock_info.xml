@@ -42,6 +42,18 @@
             android:gravity="center"
             android:orientation="horizontal">
             <RadioButton
+                android:id="@+id/radio1D"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rbtn_selector"
+                android:button="@null"
+                android:checked="true"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/button_1d"
+                android:textColor="@drawable/rbtn_textcolor_selector" />
+            <RadioButton
                 android:id="@+id/radio1W"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -153,6 +165,17 @@
                     android:textSize="16sp" />
                 <TextView
                     android:id="@+id/exchange"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="25sp"
+                    android:textColor="@color/colorPrimary" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dividend_yield"
+                    android:textSize="16sp" />
+                <TextView
+                    android:id="@+id/dividend_yield"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="25sp"

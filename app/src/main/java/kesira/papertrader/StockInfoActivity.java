@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -30,6 +31,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -46,6 +48,8 @@ public class StockInfoActivity extends AppCompatActivity {
     private static final long BILLION = 1000000000L;
     private LineChart chart;
     private XAxis xAxis;
+    private YAxis leftAxis;
+    private LimitLine limitLine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,8 +64,9 @@ public class StockInfoActivity extends AppCompatActivity {
         xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawAxisLine(false);
+        xAxis.setDrawGridLines(false);
         xAxis.setGranularity(1f);
-        YAxis leftAxis = chart.getAxisLeft();
+        leftAxis = chart.getAxisLeft();
         leftAxis.setDrawAxisLine(false);
         YAxis rightAxis = chart.getAxisRight();
         rightAxis.setEnabled(false);
@@ -73,30 +78,40 @@ public class StockInfoActivity extends AppCompatActivity {
         ticker = intent.getStringExtra("ticker");
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + ticker);
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
-        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A365%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
+        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=60&p=1d&f=c&q=" + ticker);
 
         RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        radioGroup.check(R.id.radio1Y);
+        radioGroup.check(R.id.radio1D);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
                 switch (i) {
+                    case R.id.radio1D:
+                        leftAxis.addLimitLine(limitLine);
+                        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=60&p=1d&f=c&q=" + ticker);
+                        break;
                     case R.id.radio1W:
+                        leftAxis.removeLimitLine(limitLine);
                         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A7%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
                         break;
                     case R.id.radio1M:
+                        leftAxis.removeLimitLine(limitLine);
                         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A30%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
                         break;
                     case R.id.radio3M:
+                        leftAxis.removeLimitLine(limitLine);
                         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A90%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
                         break;
                     case R.id.radio1Y:
+                        leftAxis.removeLimitLine(limitLine);
                         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A365%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
                         break;
                     case R.id.radio5Y:
+                        leftAxis.removeLimitLine(limitLine);
                         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A1825%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
                         break;
                     case R.id.radioMax:
+                        leftAxis.removeLimitLine(limitLine);
                         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters=%7B%22Normalized%22%3Afalse%2C%22NumberOfDays%22%3A36500%2C%22DataPeriod%22%3A%22Day%22%2C%22Elements%22%3A%5B%7B%22Symbol%22%3A%22" + ticker + "%22%2C%22Type%22%3A%22price%22%2C%22Params%22%3A%5B%22c%22%5D%7D%5D%7D");
                         break;
                 }
@@ -159,10 +174,12 @@ public class StockInfoActivity extends AppCompatActivity {
             try {
                 URL url = new URL(params[0]);
                 HttpURLConnection urlConnection;
+
                 do {
                     urlConnection = (HttpURLConnection) url.openConnection();
                 }
                 while (urlConnection.getResponseCode() >= 400);
+
                 try {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
                     String stockInfo = "";
@@ -230,6 +247,8 @@ public class StockInfoActivity extends AppCompatActivity {
                             }
                         };
                         xAxis.setValueFormatter(formatter);
+                        xAxis.resetAxisMaximum();
+
                         JSONArray values = jsonObject.getJSONArray("Elements").getJSONObject(0).getJSONObject("DataSeries").getJSONObject("close").getJSONArray("values");
                         ArrayList<Entry> entries = new ArrayList<>();
                         for (int i = 0; i < dates.length(); i++) {
@@ -239,8 +258,14 @@ public class StockInfoActivity extends AppCompatActivity {
                         dataSet.setDrawHorizontalHighlightIndicator(false);
                         dataSet.setDrawCircles(false);
                         dataSet.setLineWidth(2);
-                        dataSet.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-                        dataSet.setValueTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+                        if (entries.size() >= 2) {
+                            if (entries.get(0).getY() <= entries.get(entries.size() - 1).getY()) {
+                                dataSet.setColor(Color.parseColor("#33CC33"));
+                            }
+                            else {
+                                dataSet.setColor(Color.RED);
+                            }
+                        }
                         LineData lineData = new LineData(dataSet);
                         lineData.setDrawValues(false);
                         chart.setData(lineData);
@@ -274,7 +299,69 @@ public class StockInfoActivity extends AppCompatActivity {
                             ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.RED);
                         }
                         ((TextView) findViewById(R.id.exchange)).setText(jsonObject.getString("e"));
+                        if (jsonObject.getString("yld").equals("")) {
+                            ((TextView) findViewById(R.id.dividend_yield)).setText("0.00%");
+                        }
+                        else {
+                            ((TextView) findViewById(R.id.dividend_yield)).setText(jsonObject.getString("yld") + "%");
+                        }
+                        limitLine = new LimitLine(Float.valueOf(jsonObject.getString("pcls_fix")));
+                        limitLine.setLineColor(Color.parseColor("#3F51B5"));
+                        limitLine.setLineWidth(1);
+                        limitLine.enableDashedLine(30, 30, 0);
+                        leftAxis.addLimitLine(limitLine);
                     }
+                }
+                else {
+                    final ArrayList<String> dates = new ArrayList<>();
+                    SimpleDateFormat minFormat = new SimpleDateFormat("mmm", Locale.ENGLISH);
+                    SimpleDateFormat hourMinFormat = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
+                    for (int i = 570; i <= 960; i++) {
+                        Date date = minFormat.parse("" + i);
+                        dates.add(hourMinFormat.format(date));
+                    }
+                    IAxisValueFormatter formatter = new IAxisValueFormatter() {
+                        @Override
+                        public String getFormattedValue(float value, AxisBase axis) {
+                            try {
+                                return dates.get((int) value);
+                            }
+                            catch (Exception e) {
+                                Log.e("Exception", e.getMessage());
+                            }
+                            return null;
+                        }
+                    };
+                    xAxis.setValueFormatter(formatter);
+                    xAxis.setAxisMaximum(389);
+
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
+                    ArrayList<Entry> entries = new ArrayList<>();
+                    String line;
+                    for (int i = 0; i < 8; i++) {
+                        bufferedReader.readLine();
+                    }
+                    while ((line = bufferedReader.readLine()) != null) {
+                        entries.add(new Entry(entries.size(), Float.valueOf(line)));
+                    }
+                    bufferedReader.close();
+                    LineDataSet dataSet = new LineDataSet(entries, "Label");
+                    dataSet.setDrawHorizontalHighlightIndicator(false);
+                    dataSet.setDrawCircles(false);
+                    dataSet.setLineWidth(2);
+                    if (entries.size() >= 2) {
+                        if (entries.get(0).getY() <= entries.get(entries.size() - 1).getY()) {
+                            dataSet.setColor(Color.parseColor("#33CC33"));
+                        }
+                        else {
+                            dataSet.setColor(Color.RED);
+                        }
+                    }
+                    LineData lineData = new LineData(dataSet);
+                    lineData.setDrawValues(false);
+                    chart.setData(lineData);
+                    chart.animateX(1000);
+                    chart.invalidate();
                 }
             }
             catch (Exception e) {
