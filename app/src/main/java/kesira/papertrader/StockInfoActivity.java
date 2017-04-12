@@ -49,6 +49,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private YAxis leftAxis;
     private LimitLine limitLine;
     private LineDataSet dataSet;
+    private float prevClose;
     private int taskCounter = 0;
     private boolean done = false;
 
@@ -255,6 +256,8 @@ public class StockInfoActivity extends AppCompatActivity {
                         };
                         xAxis.setValueFormatter(formatter);
                         xAxis.resetAxisMaximum();
+                        leftAxis.resetAxisMaximum();
+                        leftAxis.resetAxisMinimum();
 
                         JSONArray values = jsonObject.getJSONArray("Elements").getJSONObject(0).getJSONObject("DataSeries").getJSONObject("close").getJSONArray("values");
                         ArrayList<Entry> entries = new ArrayList<>();
@@ -312,6 +315,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         else {
                             ((TextView) findViewById(R.id.dividend_yield)).setText(jsonObject.getString("yld") + "%");
                         }
+                        prevClose = Float.valueOf(jsonObject.getString("pcls_fix"));
                         limitLine = new LimitLine(Float.valueOf(jsonObject.getString("pcls_fix")));
                         limitLine.setLineColor(Color.parseColor("#3F51B5"));
                         limitLine.setLineWidth(1);
@@ -356,6 +360,8 @@ public class StockInfoActivity extends AppCompatActivity {
                     dataSet.setDrawHorizontalHighlightIndicator(false);
                     dataSet.setDrawCircles(false);
                     dataSet.setLineWidth(2);
+
+                    done = false;
                 }
             }
             catch (Exception e) {
@@ -367,6 +373,12 @@ public class StockInfoActivity extends AppCompatActivity {
                 dataSet.setColor(((TextView) findViewById(R.id.stockPercentChange)).getCurrentTextColor());
                 LineData lineData = new LineData(dataSet);
                 lineData.setDrawValues(false);
+                if (prevClose > lineData.getYMax()) {
+                    leftAxis.setAxisMaximum(prevClose + 0.1f * (lineData.getYMax() - lineData.getYMin()));
+                }
+                else if (prevClose < lineData.getYMin()) {
+                    leftAxis.setAxisMinimum(prevClose - 0.1f * (lineData.getYMax() - lineData.getYMin()));
+                }
                 chart.setData(lineData);
                 chart.animateX(1000);
                 chart.invalidate();
