@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -66,6 +65,7 @@ public class StockInfoActivity extends AppCompatActivity {
         xAxis.setDrawAxisLine(false);
         xAxis.setDrawGridLines(false);
         xAxis.setGranularity(1f);
+        xAxis.setLabelCount(5, false);
         leftAxis = chart.getAxisLeft();
         leftAxis.setDrawAxisLine(false);
         YAxis rightAxis = chart.getAxisRight();
@@ -78,7 +78,7 @@ public class StockInfoActivity extends AppCompatActivity {
         ticker = intent.getStringExtra("ticker");
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + ticker);
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
-        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=60&p=1d&f=c&q=" + ticker);
+        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=c&q=" + ticker);
 
         RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         radioGroup.check(R.id.radio1D);
@@ -88,7 +88,7 @@ public class StockInfoActivity extends AppCompatActivity {
                 switch (i) {
                     case R.id.radio1D:
                         leftAxis.addLimitLine(limitLine);
-                        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=60&p=1d&f=c&q=" + ticker);
+                        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=c&q=" + ticker);
                         break;
                     case R.id.radio1W:
                         leftAxis.removeLimitLine(limitLine);
@@ -316,7 +316,7 @@ public class StockInfoActivity extends AppCompatActivity {
                     final ArrayList<String> dates = new ArrayList<>();
                     SimpleDateFormat minFormat = new SimpleDateFormat("mmm", Locale.ENGLISH);
                     SimpleDateFormat hourMinFormat = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
-                    for (int i = 570; i <= 960; i++) {
+                    for (int i = 570; i <= 960; i += 5) {
                         Date date = minFormat.parse("" + i);
                         dates.add(hourMinFormat.format(date));
                     }
@@ -333,7 +333,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         }
                     };
                     xAxis.setValueFormatter(formatter);
-                    xAxis.setAxisMaximum(389);
+                    xAxis.setAxisMaximum(77);
 
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
                     ArrayList<Entry> entries = new ArrayList<>();
