@@ -48,6 +48,9 @@ public class StockInfoActivity extends AppCompatActivity {
     private XAxis xAxis;
     private YAxis leftAxis;
     private LimitLine limitLine;
+    private LineDataSet dataSet;
+    private int taskCounter = 0;
+    private boolean done = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +170,11 @@ public class StockInfoActivity extends AppCompatActivity {
     }
 
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
+
+        @Override
+        protected void onPreExecute() {
+            taskCounter++;
+        }
 
         @Override
         protected String doInBackground(String... params) {
@@ -344,27 +352,24 @@ public class StockInfoActivity extends AppCompatActivity {
                         entries.add(new Entry(entries.size(), Float.valueOf(line)));
                     }
                     bufferedReader.close();
-                    LineDataSet dataSet = new LineDataSet(entries, "Label");
+                    dataSet = new LineDataSet(entries, "Label");
                     dataSet.setDrawHorizontalHighlightIndicator(false);
                     dataSet.setDrawCircles(false);
                     dataSet.setLineWidth(2);
-                    if (entries.size() >= 2) {
-                        if (entries.get(0).getY() <= entries.get(entries.size() - 1).getY()) {
-                            dataSet.setColor(Color.parseColor("#33CC33"));
-                        }
-                        else {
-                            dataSet.setColor(Color.RED);
-                        }
-                    }
-                    LineData lineData = new LineData(dataSet);
-                    lineData.setDrawValues(false);
-                    chart.setData(lineData);
-                    chart.animateX(1000);
-                    chart.invalidate();
                 }
             }
             catch (Exception e) {
                 Log.e("Exception", e.getMessage());
+            }
+            taskCounter--;
+            if (!done && taskCounter == 0) {
+                done = true;
+                dataSet.setColor(((TextView) findViewById(R.id.stockPercentChange)).getCurrentTextColor());
+                LineData lineData = new LineData(dataSet);
+                lineData.setDrawValues(false);
+                chart.setData(lineData);
+                chart.animateX(1000);
+                chart.invalidate();
             }
         }
     }
