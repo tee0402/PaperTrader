@@ -14,7 +14,6 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.LimitLine;
@@ -45,7 +44,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private String ticker;
     private static final long MILLION = 1000000L;
     private static final long BILLION = 1000000000L;
-    private LineChart chart;
+    private CustomLineChart chart;
     private XAxis xAxis;
     private YAxis leftAxis;
     private LimitLine limitLine;
@@ -55,7 +54,7 @@ public class StockInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stock_info);
 
-        chart = (LineChart) findViewById(R.id.chart);
+        chart = (CustomLineChart) findViewById(R.id.chart);
         chart.setNoDataText("Loading...");
         chart.setScaleEnabled(false);
         chart.setDrawGridBackground(true);
