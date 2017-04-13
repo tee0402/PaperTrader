@@ -309,13 +309,17 @@ public class StockInfoActivity extends AppCompatActivity {
                             ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.RED);
                         }
                         ((TextView) findViewById(R.id.exchange)).setText(jsonObject.getString("e"));
-                        if (jsonObject.getString("yld").equals("")) {
-                            ((TextView) findViewById(R.id.dividend_yield)).setText("0.00%");
+                        if (!jsonObject.isNull("yld")) {
+                            findViewById(R.id.dividendYield).setVisibility(View.VISIBLE);
+                            findViewById(R.id.dividendYieldText).setVisibility(View.VISIBLE);
+                            if (jsonObject.getString("yld").equals("")) {
+                                ((TextView) findViewById(R.id.dividendYield)).setText("0.00%");
+                            }
+                            else {
+                                ((TextView) findViewById(R.id.dividendYield)).setText(jsonObject.getString("yld") + "%");
+                            }
                         }
-                        else {
-                            ((TextView) findViewById(R.id.dividend_yield)).setText(jsonObject.getString("yld") + "%");
-                        }
-                        if (!jsonObject.getString("ecp").equals("0.00")) {
+                        if (!jsonObject.isNull("ecp") && !jsonObject.getString("ecp").equals("0.00")) {
                             findViewById(R.id.extendedHours).setVisibility(View.VISIBLE);
                             findViewById(R.id.extendedHoursChange).setVisibility(View.VISIBLE);
                             if (Float.valueOf(jsonObject.getString("ecp")) > 0) {
