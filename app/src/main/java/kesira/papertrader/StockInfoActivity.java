@@ -315,6 +315,20 @@ public class StockInfoActivity extends AppCompatActivity {
                         else {
                             ((TextView) findViewById(R.id.dividend_yield)).setText(jsonObject.getString("yld") + "%");
                         }
+                        if (!jsonObject.getString("ecp").equals("0.00")) {
+                            findViewById(R.id.extendedHours).setVisibility(View.VISIBLE);
+                            findViewById(R.id.extendedHoursChange).setVisibility(View.VISIBLE);
+                            if (Float.valueOf(jsonObject.getString("ecp")) > 0) {
+                                ((TextView) findViewById(R.id.extendedHours)).setText("Extended Hours: " + jsonObject.getString("el") + " ");
+                                ((TextView) findViewById(R.id.extendedHoursChange)).setText(jsonObject.getString("ec") + " (+" + jsonObject.getString("ecp") + "%)");
+                                ((TextView) findViewById(R.id.extendedHoursChange)).setTextColor(Color.parseColor("#33CC33"));
+                            }
+                            else {
+                                ((TextView) findViewById(R.id.extendedHours)).setText("Extended Hours: " + jsonObject.getString("el") + " ");
+                                ((TextView) findViewById(R.id.extendedHoursChange)).setText(jsonObject.getString("ec") + " (" + jsonObject.getString("ecp") + "%)");
+                                ((TextView) findViewById(R.id.extendedHoursChange)).setTextColor(Color.RED);
+                            }
+                        }
                         prevClose = Float.valueOf(jsonObject.getString("pcls_fix"));
                         limitLine = new LimitLine(Float.valueOf(jsonObject.getString("pcls_fix")));
                         limitLine.setLineColor(Color.parseColor("#3F51B5"));
@@ -344,12 +358,12 @@ public class StockInfoActivity extends AppCompatActivity {
                         }
                     };
                     xAxis.setValueFormatter(formatter);
-                    xAxis.setAxisMaximum(77);
+                    xAxis.setAxisMaximum(78);
 
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
                     ArrayList<Entry> entries = new ArrayList<>();
                     String line;
-                    for (int i = 0; i < 8; i++) {
+                    for (int i = 0; i < 7; i++) {
                         bufferedReader.readLine();
                     }
                     while ((line = bufferedReader.readLine()) != null) {
@@ -373,11 +387,11 @@ public class StockInfoActivity extends AppCompatActivity {
                 dataSet.setColor(((TextView) findViewById(R.id.stockPercentChange)).getCurrentTextColor());
                 LineData lineData = new LineData(dataSet);
                 lineData.setDrawValues(false);
-                if (prevClose > lineData.getYMax()) {
-                    leftAxis.setAxisMaximum(prevClose + 0.1f * (lineData.getYMax() - lineData.getYMin()));
+                if (prevClose >= lineData.getYMax()) {
+                    leftAxis.setAxisMaximum(prevClose + 0.1f * (prevClose - lineData.getYMin()));
                 }
                 else if (prevClose < lineData.getYMin()) {
-                    leftAxis.setAxisMinimum(prevClose - 0.1f * (lineData.getYMax() - lineData.getYMin()));
+                    leftAxis.setAxisMinimum(prevClose - 0.1f * (lineData.getYMax() - prevClose));
                 }
                 chart.setData(lineData);
                 chart.animateX(1000);

@@ -46,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private float portfolioValue;
     private SharedPreferences prefs;
     private int taskCounter = 0;
+    private int stockCount = 0;
+    private boolean portfolioValueShown = false;
 
     @SuppressLint("DefaultLocale")
     @Override
@@ -118,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String str;
                 while ((str = bufferedReader.readLine()) != null) {
+                    stockCount++;
                     new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + str);
                 }
                 inputStream.close();
@@ -125,6 +128,10 @@ public class MainActivity extends AppCompatActivity {
         }
         catch (IOException e) {
             Log.e("Exception", "Reading from saved stocks failed: " + e.toString());
+        }
+
+        if (stockCount == 0) {
+            showPortfolioValue();
         }
     }
 
@@ -222,6 +229,23 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    private void showPortfolioValue() {
+        TextView portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
+        portfolioValueText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
+
+        TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
+        if (portfolioValue / 10000 - 1 >= 0) {
+            portfolioValuePerformanceText.setText("+" + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (+" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+            portfolioValuePerformanceText.setTextColor(Color.parseColor("#33CC33"));
+        }
+        else {
+            portfolioValuePerformanceText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+            portfolioValuePerformanceText.setTextColor(Color.RED);
+        }
+
+        portfolioValueShown = true;
+    }
+
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
 
         @Override
@@ -286,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
                         portfolioValue += Float.valueOf(jsonObject.getString("l")) * prefs.getInt(jsonObject.getString("t"), 0);
                     }
                     else {
+                        showPortfolioValue();
                         watchlistRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
                         watchlistAdapter.notifyDataSetChanged();
                     }
@@ -299,19 +324,8 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.progressBarWatchlist).setVisibility(View.GONE);
 
             taskCounter--;
-            if (taskCounter == 0) {
-                TextView portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
-                portfolioValueText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
-
-                TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
-                if (portfolioValue / 10000 - 1 >= 0) {
-                    portfolioValuePerformanceText.setText("+" + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (+" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
-                    portfolioValuePerformanceText.setTextColor(Color.parseColor("#33CC33"));
-                }
-                else {
-                    portfolioValuePerformanceText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
-                    portfolioValuePerformanceText.setTextColor(Color.RED);
-                }
+            if (!portfolioValueShown && taskCounter == 0) {
+                showPortfolioValue();
             }
         }
     }
