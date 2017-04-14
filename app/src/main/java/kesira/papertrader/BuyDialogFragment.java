@@ -18,6 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.NumberFormat;
+import java.util.HashSet;
+import java.util.Set;
 
 public class BuyDialogFragment extends DialogFragment {
 
@@ -33,6 +35,7 @@ public class BuyDialogFragment extends DialogFragment {
         final TextView amount = (TextView) view.findViewById(R.id.amountValue);
         final SharedPreferences prefs = getActivity().getSharedPreferences("Save", Context.MODE_PRIVATE);
         final int sharesCanAfford = (int) (prefs.getFloat("cash", -1) / stockPrice);
+        final int sharesOwned = prefs.getInt(ticker, 0);
 
         ((TextView) view.findViewById(R.id.shares)).setText("You can buy " + sharesCanAfford + " shares.");
         amount.setHint(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)) + " available");
@@ -70,7 +73,15 @@ public class BuyDialogFragment extends DialogFragment {
                         }
                         else {
                             SharedPreferences.Editor editor = prefs.edit();
-                            editor.putInt(ticker, prefs.getInt(ticker, 0) + quantity);
+                            if (sharesOwned == 0) {
+                                Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
+                                positionsSet.add(ticker);
+                                editor.putStringSet("positions", positionsSet);
+                                Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+                                watchlistSet.remove(ticker);
+                                editor.putStringSet("watchlist", watchlistSet);
+                            }
+                            editor.putInt(ticker, sharesOwned + quantity);
                             editor.putFloat("cash", prefs.getFloat("cash", -1) - stockPrice * quantity);
                             editor.apply();
                             Toast.makeText(getActivity(), "Bought " + quantity + " shares successfully", Toast.LENGTH_LONG).show();

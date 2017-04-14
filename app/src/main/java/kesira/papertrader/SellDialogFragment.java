@@ -18,6 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.NumberFormat;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SellDialogFragment extends DialogFragment {
 
@@ -69,6 +71,14 @@ public class SellDialogFragment extends DialogFragment {
                         }
                         else {
                             SharedPreferences.Editor editor = prefs.edit();
+                            if (sharesOwned - quantity == 0) {
+                                Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
+                                positionsSet.remove(ticker);
+                                editor.putStringSet("positions", positionsSet);
+                                Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+                                watchlistSet.add(ticker);
+                                editor.putStringSet("watchlist", watchlistSet);
+                            }
                             editor.putInt(ticker, sharesOwned - quantity);
                             editor.putFloat("cash", prefs.getFloat("cash", -1) + stockPrice * quantity);
                             editor.apply();

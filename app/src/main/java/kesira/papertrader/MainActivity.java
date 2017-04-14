@@ -25,15 +25,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,9 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView cash;
     private float portfolioValue;
     private SharedPreferences prefs;
-    private int taskCounter = 0;
-    private int stockCount = 0;
-    private boolean portfolioValueShown = false;
+    private int positionsCount;
 
     @SuppressLint("DefaultLocale")
     @Override
@@ -83,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(getApplicationContext(), StockInfoActivity.class);
                 intent.putExtra("ticker", positionsRows.get(i).getTicker());
-                startActivityForResult(intent, 1);
+                startActivity(intent);
             }
         });
 
@@ -96,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(getApplicationContext(), StockInfoActivity.class);
                 intent.putExtra("ticker", watchlistRows.get(i).getTicker());
-                startActivityForResult(intent, 1);
+                startActivity(intent);
             }
         });
 
@@ -113,24 +111,19 @@ public class MainActivity extends AppCompatActivity {
         }
         portfolioValue = prefs.getFloat("cash", -1);
 
-        try {
-            InputStream inputStream = this.openFileInput("stocks.txt");
-            if (inputStream != null) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                String str;
-                while ((str = bufferedReader.readLine()) != null) {
-                    stockCount++;
-                    new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + str);
-                }
-                inputStream.close();
-            }
+        Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
+        Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+        positionsCount = positionsSet.size();
+        Iterator<String> positionsIterator = positionsSet.iterator();
+        Iterator<String> watchlistIterator = watchlistSet.iterator();
+        for (int i = 0; i < positionsSet.size(); i++) {
+            new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + positionsIterator.next());
         }
-        catch (IOException e) {
-            Log.e("Exception", "Reading from saved stocks failed: " + e.toString());
+        for (int i = 0; i < watchlistSet.size(); i++) {
+            new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + watchlistIterator.next());
         }
 
-        if (stockCount == 0) {
+        if (positionsCount == 0) {
             showPortfolioValue();
         }
     }
@@ -138,7 +131,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
+
         for (int i = 0; i < positionsRows.size(); i++) {
             if (prefs.getInt(positionsRows.get(i).getTicker(), 0) == 0) {
                 watchlistRows.add(positionsRows.get(i));
@@ -154,24 +149,6 @@ public class MainActivity extends AppCompatActivity {
                 watchlistRows.remove(i);
                 watchlistAdapter.notifyDataSetChanged();
             }
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("stocks.txt", Context.MODE_PRIVATE));
-            for (int i = 0; i < positionsRows.size(); i++) {
-                outputStreamWriter.write(positionsRows.get(i).getTicker() + "\n");
-            }
-            for (int i = 0; i < watchlistRows.size(); i++) {
-                outputStreamWriter.write(watchlistRows.get(i).getTicker() + "\n");
-            }
-            outputStreamWriter.close();
-        }
-        catch (IOException e) {
-            Log.e("Exception", "Writing to saved stocks failed: " + e.toString());
         }
     }
 
@@ -200,7 +177,9 @@ public class MainActivity extends AppCompatActivity {
     public void addToWatchlist(View view) {
         EditText editText = (EditText) findViewById(R.id.editText);
         String ticker = editText.getText().toString();
-        new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
+        if (!containsTicker(ticker)) {
+            new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
+        }
         editText.getText().clear();
         editText.clearFocus();
         view.requestFocus();
@@ -213,20 +192,17 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
+        Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+        SharedPreferences.Editor editor = prefs.edit();
+        watchlistSet.remove(ticker);
+        editor.putStringSet("watchlist", watchlistSet);
+        editor.apply();
     }
 
     private boolean containsTicker(String ticker) {
-        for (int i = 0; i < positionsRows.size(); i++) {
-            if (positionsRows.get(i).getTicker().equals(ticker)) {
-                return true;
-            }
-        }
-        for (int i = 0; i < watchlistRows.size(); i++) {
-            if (watchlistRows.get(i).getTicker().equals(ticker)) {
-                return true;
-            }
-        }
-        return false;
+        Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
+        Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+        return positionsSet.contains(ticker) || watchlistSet.contains(ticker);
     }
 
     private void showPortfolioValue() {
@@ -242,15 +218,12 @@ public class MainActivity extends AppCompatActivity {
             portfolioValuePerformanceText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
             portfolioValuePerformanceText.setTextColor(Color.RED);
         }
-
-        portfolioValueShown = true;
     }
 
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {
 
         @Override
         protected void onPreExecute() {
-            taskCounter++;
             findViewById(R.id.progressBarPositions).setVisibility(View.VISIBLE);
             findViewById(R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
         }
@@ -293,6 +266,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONArray jsonArray = new JSONArray(result);
                 JSONObject jsonObject = jsonArray.getJSONObject(0);
+                Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
+                Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
                 //If JSON contains "Exchange" property
                 if (!jsonObject.isNull("Exchange")) {
                     if (jsonObject.getString("Exchange").equals("NYSE") || jsonObject.getString("Exchange").equals("BATS Trading Inc")) {
@@ -303,17 +278,19 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 //If JSON does not contain "Exchange" property and positions and watchlist do not already contain ticker
-                else if (!containsTicker(jsonObject.getString("t"))) {
-                    if (prefs.getInt(jsonObject.getString("t"), 0) > 0) {
-                        positionsRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
-                        positionsAdapter.notifyDataSetChanged();
-                        portfolioValue += Float.valueOf(jsonObject.getString("l")) * prefs.getInt(jsonObject.getString("t"), 0);
-                    }
-                    else {
-                        showPortfolioValue();
-                        watchlistRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
-                        watchlistAdapter.notifyDataSetChanged();
-                    }
+                else if (positionsSet.contains(jsonObject.getString("t"))) {
+                    positionsRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                    positionsAdapter.notifyDataSetChanged();
+                    portfolioValue += Float.valueOf(jsonObject.getString("l")) * prefs.getInt(jsonObject.getString("t"), 0);
+                    positionsCount--;
+                }
+                else {
+                    watchlistRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
+                    watchlistAdapter.notifyDataSetChanged();
+                    SharedPreferences.Editor editor = prefs.edit();
+                    watchlistSet.add(jsonObject.getString("t"));
+                    editor.putStringSet("watchlist", watchlistSet);
+                    editor.apply();
                 }
             }
             catch (Exception e) {
@@ -323,8 +300,7 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.progressBarPositions).setVisibility(View.GONE);
             findViewById(R.id.progressBarWatchlist).setVisibility(View.GONE);
 
-            taskCounter--;
-            if (!portfolioValueShown && taskCounter == 0) {
+            if (positionsCount == 0) {
                 showPortfolioValue();
             }
         }
