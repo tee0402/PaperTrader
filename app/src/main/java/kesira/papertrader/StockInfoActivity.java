@@ -362,7 +362,6 @@ public class StockInfoActivity extends AppCompatActivity {
                         }
                     };
                     xAxis.setValueFormatter(formatter);
-                    xAxis.setAxisMaximum(78);
 
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
                     ArrayList<Entry> entries = new ArrayList<>();
@@ -374,6 +373,10 @@ public class StockInfoActivity extends AppCompatActivity {
                         entries.add(new Entry(entries.size(), Float.valueOf(line)));
                     }
                     bufferedReader.close();
+                    xAxis.setAxisMaximum(78);
+                    if (entries.size() == 78) {
+                        xAxis.setAxisMaximum(77);
+                    }
                     dataSet = new LineDataSet(entries, "Label");
                     dataSet.setDrawHorizontalHighlightIndicator(false);
                     dataSet.setDrawCircles(false);
@@ -394,7 +397,7 @@ public class StockInfoActivity extends AppCompatActivity {
                 if (prevClose >= lineData.getYMax()) {
                     leftAxis.setAxisMaximum(prevClose + 0.1f * (prevClose - lineData.getYMin()));
                 }
-                else if (prevClose < lineData.getYMin()) {
+                else if (prevClose <= lineData.getYMin()) {
                     leftAxis.setAxisMinimum(prevClose - 0.1f * (lineData.getYMax() - prevClose));
                 }
                 chart.setData(lineData);
