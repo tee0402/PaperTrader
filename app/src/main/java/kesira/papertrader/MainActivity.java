@@ -111,8 +111,8 @@ public class MainActivity extends AppCompatActivity {
         }
         portfolioValue = prefs.getFloat("cash", -1);
 
-        Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
-        Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+        Set<String> positionsSet = prefs.getStringSet("positions", new HashSet<String>());
+        Set<String> watchlistSet = prefs.getStringSet("watchlist", new HashSet<String>());
         positionsCount = positionsSet.size();
         Iterator<String> positionsIterator = positionsSet.iterator();
         Iterator<String> watchlistIterator = watchlistSet.iterator();
@@ -192,16 +192,16 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
-        Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
         SharedPreferences.Editor editor = prefs.edit();
+        Set<String> watchlistSet = new HashSet<>(prefs.getStringSet("watchlist", new HashSet<String>()));
         watchlistSet.remove(ticker);
         editor.putStringSet("watchlist", watchlistSet);
         editor.apply();
     }
 
     private boolean containsTicker(String ticker) {
-        Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
-        Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+        Set<String> positionsSet = prefs.getStringSet("positions", new HashSet<String>());
+        Set<String> watchlistSet = prefs.getStringSet("watchlist", new HashSet<String>());
         return positionsSet.contains(ticker) || watchlistSet.contains(ticker);
     }
 
@@ -266,9 +266,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONArray jsonArray = new JSONArray(result);
                 JSONObject jsonObject = jsonArray.getJSONObject(0);
-                Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
-                Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
-                //If JSON contains "Exchange" property
+                Set<String> positionsSet = prefs.getStringSet("positions", new HashSet<String>());
+                //If it is a Markit on Demand query
                 if (!jsonObject.isNull("Exchange")) {
                     if (jsonObject.getString("Exchange").equals("NYSE") || jsonObject.getString("Exchange").equals("BATS Trading Inc")) {
                         new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NYSE%3A" + jsonObject.getString("Symbol"));
@@ -277,17 +276,19 @@ public class MainActivity extends AppCompatActivity {
                         new RetrieveFeedTask().execute("http://finance.google.com/finance/info?client=ig&q=NASDAQ%3A" + jsonObject.getString("Symbol"));
                     }
                 }
-                //If JSON does not contain "Exchange" property and positions and watchlist do not already contain ticker
+                //If it is a Google Finance query and ticker is a position
                 else if (positionsSet.contains(jsonObject.getString("t"))) {
                     positionsRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
                     positionsAdapter.notifyDataSetChanged();
                     portfolioValue += Float.valueOf(jsonObject.getString("l")) * prefs.getInt(jsonObject.getString("t"), 0);
                     positionsCount--;
                 }
+                //If it is a Google Finance query and ticker is in watchlist or not in positions nor watchlist
                 else {
                     watchlistRows.add(new CustomRow(jsonObject.getString("t"), jsonObject.getString("l"), jsonObject.getString("cp")));
                     watchlistAdapter.notifyDataSetChanged();
                     SharedPreferences.Editor editor = prefs.edit();
+                    Set<String> watchlistSet = new HashSet<>(prefs.getStringSet("watchlist", new HashSet<String>()));
                     watchlistSet.add(jsonObject.getString("t"));
                     editor.putStringSet("watchlist", watchlistSet);
                     editor.apply();

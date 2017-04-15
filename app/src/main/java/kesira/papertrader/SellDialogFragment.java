@@ -72,10 +72,10 @@ public class SellDialogFragment extends DialogFragment {
                         else {
                             SharedPreferences.Editor editor = prefs.edit();
                             if (sharesOwned - quantity == 0) {
-                                Set<String> positionsSet = prefs.getStringSet("positions" , new HashSet<String>());
+                                Set<String> positionsSet = new HashSet<>(prefs.getStringSet("positions", new HashSet<String>()));
                                 positionsSet.remove(ticker);
                                 editor.putStringSet("positions", positionsSet);
-                                Set<String> watchlistSet = prefs.getStringSet("watchlist" , new HashSet<String>());
+                                Set<String> watchlistSet = new HashSet<>(prefs.getStringSet("watchlist", new HashSet<String>()));
                                 watchlistSet.add(ticker);
                                 editor.putStringSet("watchlist", watchlistSet);
                             }
