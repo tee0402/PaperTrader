@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
         cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
 
+        positionsAdapter.notifyDataSetChanged();
         for (int i = 0; i < positionsRows.size(); i++) {
             if (prefs.getInt(positionsRows.get(i).getTicker(), 0) == 0) {
                 watchlistRows.add(positionsRows.get(i));
