@@ -20,6 +20,9 @@
     <string name="cost">Cost:</string>
     <string name="amount">Amount:</string>
     <string name="cancel">Cancel</string>
+    <string name="shares_owned">Shares Owned</string>
+    <string name="position_value">Position Value</string>
+    <string name="cost_basis">Cost Basis</string>
     <string name="exchange">Exchange</string>
     <string name="market_cap">Market Cap</string>
     <string name="dividend_yield">Dividend Yield</string>
