@@ -227,16 +227,28 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/position_performance"
+                        android:text="@string/percentage_of_portfolio"
                         android:textSize="16sp" />
                     <TextView
-                        android:id="@+id/positionPerformance"
+                        android:id="@+id/percentageOfPortfolio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
                         android:textSize="25sp"
                         android:textColor="@color/colorPrimary" />
                 </LinearLayout>
             </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/position_performance"
+                android:textSize="16sp" />
+            <TextView
+                android:id="@+id/positionPerformance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"
+                android:textColor="@color/colorPrimary" />
         </LinearLayout>
         <View
             android:layout_width="match_parent"

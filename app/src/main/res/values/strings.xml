@@ -23,6 +23,7 @@
     <string name="shares_owned">Shares Owned</string>
     <string name="position_value">Position Value</string>
     <string name="cost_basis">Cost Basis</string>
+    <string name="percentage_of_portfolio">Percentage of Portfolio</string>
     <string name="position_performance">Position Performance</string>
     <string name="exchange">Exchange</string>
     <string name="market_cap">Market Cap</string>

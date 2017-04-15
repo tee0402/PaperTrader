@@ -219,6 +219,10 @@ public class MainActivity extends AppCompatActivity {
             portfolioValuePerformanceText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
             portfolioValuePerformanceText.setTextColor(Color.RED);
         }
+
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putFloat("portfolioValue", portfolioValue);
+        editor.apply();
     }
 
     private class RetrieveFeedTask extends AsyncTask<String, String, String> {

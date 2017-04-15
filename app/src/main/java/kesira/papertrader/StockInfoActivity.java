@@ -315,6 +315,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         float costBasis = prefs.getFloat(ticker + "_cost", 0);
                         int sharesOwned = prefs.getInt(ticker, 0);
                         ((TextView) findViewById(R.id.positionValue)).setText(NumberFormat.getCurrencyInstance().format(sharesOwned * stockPrice));
+                        ((TextView) findViewById(R.id.percentageOfPortfolio)).setText(new DecimalFormat("0.00").format(sharesOwned * stockPrice / prefs.getFloat("portfolioValue", 0) * 100) + "%");
                         if (stockPrice - costBasis >= 0) {
                             ((TextView) findViewById(R.id.positionPerformance)).setText("+" + NumberFormat.getCurrencyInstance().format(sharesOwned * (stockPrice - costBasis)) + " (+" + new DecimalFormat("0.00").format((stockPrice - costBasis) / costBasis * 100) + "%)");
                             ((TextView) findViewById(R.id.positionPerformance)).setTextColor(Color.parseColor("#33CC33"));
