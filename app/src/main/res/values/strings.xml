@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Paper Trader</string>
+    <string name="search_title">Search for stocks</string>
+    <string name="search_hint">Enter stock ticker or name</string>
     <string name="context_menu_item1">Remove from watchlist</string>
     <string name="portfolio_value">Portfolio Value</string>
     <string name="cash">Cash</string>
