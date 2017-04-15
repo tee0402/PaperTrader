@@ -62,7 +62,7 @@ class PositionsAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
         holder.textView1.setText(mArrayList.get(position).getTicker());
-        holder.textView2.setText(mArrayList.get(position).getQuote());
+        holder.textView2.setText("$" + mArrayList.get(position).getQuote());
         if (Float.valueOf(mArrayList.get(position).getPercentChange()) >= 0) {
             holder.textView3.setText("+" + mArrayList.get(position).getPercentChange() + "%");
             holder.textView3.setTextColor(Color.parseColor("#33CC33"));

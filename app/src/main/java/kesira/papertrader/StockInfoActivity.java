@@ -324,7 +324,7 @@ public class StockInfoActivity extends AppCompatActivity {
                             ((TextView) findViewById(R.id.positionPerformance)).setText(NumberFormat.getCurrencyInstance().format(sharesOwned * (stockPrice - costBasis)) + " (" + new DecimalFormat("0.00").format((stockPrice - costBasis) / costBasis * 100) + "%)");
                             ((TextView) findViewById(R.id.positionPerformance)).setTextColor(Color.RED);
                         }
-                        ((TextView) findViewById(R.id.stockPrice)).setText(jsonObject.getString("l"));
+                        ((TextView) findViewById(R.id.stockPrice)).setText("$" + jsonObject.getString("l"));
                         if (Float.valueOf(jsonObject.getString("cp")) >= 0) {
                             ((TextView) findViewById(R.id.stockPercentChange)).setText("+" + jsonObject.getString("cp") + "%");
                             ((TextView) findViewById(R.id.stockPercentChange)).setTextColor(Color.parseColor("#33CC33"));
