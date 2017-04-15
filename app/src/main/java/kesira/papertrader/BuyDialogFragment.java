@@ -3,7 +3,9 @@ package kesira.papertrader;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -17,6 +19,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.Set;
@@ -80,11 +85,26 @@ public class BuyDialogFragment extends DialogFragment {
                                 Set<String> watchlistSet = new HashSet<>(prefs.getStringSet("watchlist", new HashSet<String>()));
                                 watchlistSet.remove(ticker);
                                 editor.putStringSet("watchlist", watchlistSet);
+                                getActivity().findViewById(R.id.position).setVisibility(View.VISIBLE);
                             }
                             editor.putInt(ticker, sharesOwned + quantity);
+                            editor.putFloat(ticker + "_cost", (sharesOwned * prefs.getFloat(ticker + "_cost", 0) + quantity * stockPrice) / (sharesOwned + quantity));
                             editor.putFloat("cash", prefs.getFloat("cash", -1) - stockPrice * quantity);
                             editor.apply();
                             Toast.makeText(getActivity(), "Bought " + quantity + " shares successfully", Toast.LENGTH_LONG).show();
+
+                            ((TextView) getActivity().findViewById(R.id.sharesOwned)).setText(String.valueOf(sharesOwned + quantity));
+                            ((TextView) getActivity().findViewById(R.id.positionValue)).setText(NumberFormat.getCurrencyInstance().format((sharesOwned + quantity) * stockPrice));
+                            float costBasis = prefs.getFloat(ticker + "_cost", 0);
+                            ((TextView) getActivity().findViewById(R.id.costBasis)).setText(NumberFormat.getCurrencyInstance().format(costBasis));
+                            if (stockPrice - costBasis >= 0) {
+                                ((TextView) getActivity().findViewById(R.id.positionPerformance)).setText("+" + NumberFormat.getCurrencyInstance().format((sharesOwned + quantity) * (stockPrice - costBasis)) + " (+" + new DecimalFormat("0.00").format((stockPrice - costBasis) / costBasis * 100) + "%)");
+                                ((TextView) getActivity().findViewById(R.id.positionPerformance)).setTextColor(Color.parseColor("#33CC33"));
+                            }
+                            else {
+                                ((TextView) getActivity().findViewById(R.id.positionPerformance)).setText(NumberFormat.getCurrencyInstance().format((sharesOwned + quantity) * (stockPrice - costBasis)) + " (" + new DecimalFormat("0.00").format((stockPrice - costBasis) / costBasis * 100) + "%)");
+                                ((TextView) getActivity().findViewById(R.id.positionPerformance)).setTextColor(Color.RED);
+                            }
                         }
                     }
                 })

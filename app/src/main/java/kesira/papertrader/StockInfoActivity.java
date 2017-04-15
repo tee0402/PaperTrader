@@ -1,6 +1,8 @@
 package kesira.papertrader;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -34,6 +36,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,6 +45,7 @@ import java.util.Locale;
 public class StockInfoActivity extends AppCompatActivity {
 
     private String ticker;
+    private SharedPreferences prefs;
     private static final long MILLION = 1000000L;
     private static final long BILLION = 1000000000L;
     private CustomLineChart chart;
@@ -79,6 +83,14 @@ public class StockInfoActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         ticker = intent.getStringExtra("ticker");
+
+        prefs = getSharedPreferences("Save", Context.MODE_PRIVATE);
+        if (prefs.getInt(ticker, 0) > 0) {
+            findViewById(R.id.position).setVisibility(View.VISIBLE);
+            ((TextView) findViewById(R.id.sharesOwned)).setText(String.valueOf(prefs.getInt(ticker, 0)));
+            ((TextView) findViewById(R.id.costBasis)).setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat(ticker + "_cost", 0)));
+        }
+
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + ticker);
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
         new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=c&q=" + ticker);
@@ -299,6 +311,18 @@ public class StockInfoActivity extends AppCompatActivity {
                         }
                     }
                     else {
+                        float stockPrice = Float.valueOf(jsonObject.getString("l"));
+                        float costBasis = prefs.getFloat(ticker + "_cost", 0);
+                        int sharesOwned = prefs.getInt(ticker, 0);
+                        ((TextView) findViewById(R.id.positionValue)).setText(NumberFormat.getCurrencyInstance().format(sharesOwned * stockPrice));
+                        if (stockPrice - costBasis >= 0) {
+                            ((TextView) findViewById(R.id.positionPerformance)).setText("+" + NumberFormat.getCurrencyInstance().format(sharesOwned * (stockPrice - costBasis)) + " (+" + new DecimalFormat("0.00").format((stockPrice - costBasis) / costBasis * 100) + "%)");
+                            ((TextView) findViewById(R.id.positionPerformance)).setTextColor(Color.parseColor("#33CC33"));
+                        }
+                        else {
+                            ((TextView) findViewById(R.id.positionPerformance)).setText(NumberFormat.getCurrencyInstance().format(sharesOwned * (stockPrice - costBasis)) + " (" + new DecimalFormat("0.00").format((stockPrice - costBasis) / costBasis * 100) + "%)");
+                            ((TextView) findViewById(R.id.positionPerformance)).setTextColor(Color.RED);
+                        }
                         ((TextView) findViewById(R.id.stockPrice)).setText(jsonObject.getString("l"));
                         if (Float.valueOf(jsonObject.getString("cp")) >= 0) {
                             ((TextView) findViewById(R.id.stockPercentChange)).setText("+" + jsonObject.getString("cp") + "%");
