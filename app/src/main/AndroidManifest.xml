@@ -13,20 +13,25 @@
         android:theme="@style/AppTheme"
         android:fullBackupContent="true"
         tools:ignore="GoogleAppIndexingWarning">
+        <provider android:name="kesira.papertrader.MyCustomSuggestionProvider"
+            android:authorities="kesira.papertrader.MyCustomSuggestionProvider"
+            android:exported="false" />
         <activity android:name="kesira.papertrader.MainActivity"
             android:screenOrientation="nosensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable" />
+            <meta-data android:name="android.app.default_searchable"
+                android:value="kesira.papertrader.SearchActivity"/>
         </activity>
-        <activity android:name="kesira.papertrader.SearchResultsActivity"
+        <activity android:name="kesira.papertrader.SearchActivity"
             android:screenOrientation="nosensor">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable"/>
         </activity>
         <activity android:name="kesira.papertrader.StockInfoActivity"
             android:parentActivityName="kesira.papertrader.MainActivity"
