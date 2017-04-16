@@ -54,6 +54,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private LimitLine limitLine;
     private LineDataSet dataSet;
     private float prevClose;
+    private float stockPrice;
     private int taskCounter = 0;
     private boolean done = false;
 
@@ -157,6 +158,7 @@ public class StockInfoActivity extends AppCompatActivity {
         DialogFragment newFragment = new BuyDialogFragment();
         Bundle args = new Bundle();
         args.putString("ticker", ticker);
+        args.putFloat("stockPrice", stockPrice);
         newFragment.setArguments(args);
         newFragment.show(getSupportFragmentManager(), "buy");
     }
@@ -165,6 +167,7 @@ public class StockInfoActivity extends AppCompatActivity {
         DialogFragment newFragment = new SellDialogFragment();
         Bundle args = new Bundle();
         args.putString("ticker", ticker);
+        args.putFloat("stockPrice", stockPrice);
         newFragment.setArguments(args);
         newFragment.show(getSupportFragmentManager(), "sell");
     }
@@ -311,7 +314,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         }
                     }
                     else {
-                        float stockPrice = Float.valueOf(jsonObject.getString("l"));
+                        stockPrice = Float.valueOf(jsonObject.getString("l"));
                         float costBasis = prefs.getFloat(ticker + "_cost", 0);
                         int sharesOwned = prefs.getInt(ticker, 0);
                         ((TextView) findViewById(R.id.positionValue)).setText(NumberFormat.getCurrencyInstance().format(sharesOwned * stockPrice));
