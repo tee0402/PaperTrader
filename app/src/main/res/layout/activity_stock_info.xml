@@ -12,7 +12,7 @@
             android:id="@+id/stockName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="30sp" />
+            android:textSize="25sp" />
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -22,14 +22,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="50sp" />
+                android:textSize="44sp" />
             <TextView
                 android:id="@+id/stockPercentChange"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textSize="50sp" />
+                android:textSize="44sp" />
         </LinearLayout>
         <LinearLayout
             android:orientation="horizontal"

@@ -314,7 +314,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         }
                     }
                     else {
-                        stockPrice = Float.valueOf(jsonObject.getString("l"));
+                        stockPrice = Float.valueOf(jsonObject.getString("l_fix"));
                         float costBasis = prefs.getFloat(ticker + "_cost", 0);
                         int sharesOwned = prefs.getInt(ticker, 0);
                         ((TextView) findViewById(R.id.positionValue)).setText(NumberFormat.getCurrencyInstance().format(sharesOwned * stockPrice));
