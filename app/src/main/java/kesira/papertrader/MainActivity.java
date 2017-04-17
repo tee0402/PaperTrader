@@ -138,6 +138,23 @@ public class MainActivity extends AppCompatActivity {
         cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
 
         positionsAdapter.notifyDataSetChanged();
+
+        Set<String> watchlistSet = prefs.getStringSet("watchlist", new HashSet<String>());
+        Iterator<String> watchlistIterator = watchlistSet.iterator();
+        for (int i = 0; i < watchlistSet.size(); i++) {
+            boolean displayedInWatchlist = false;
+            String ticker = watchlistIterator.next();
+            for (int j = 0; j < watchlistRows.size(); j++) {
+                if (watchlistRows.get(j).getTicker().equals(ticker)) {
+                    displayedInWatchlist = true;
+                    break;
+                }
+            }
+            if (!displayedInWatchlist) {
+                new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
+            }
+        }
+
         for (int i = 0; i < positionsRows.size(); i++) {
             if (prefs.getInt(positionsRows.get(i).getTicker(), 0) == 0) {
                 watchlistRows.add(positionsRows.get(i));
@@ -150,6 +167,10 @@ public class MainActivity extends AppCompatActivity {
             if (prefs.getInt(watchlistRows.get(i).getTicker(), 0) > 0) {
                 positionsRows.add(watchlistRows.get(i));
                 positionsAdapter.notifyDataSetChanged();
+                watchlistRows.remove(i);
+                watchlistAdapter.notifyDataSetChanged();
+            }
+            else if (!watchlistSet.contains(watchlistRows.get(i).getTicker())) {
                 watchlistRows.remove(i);
                 watchlistAdapter.notifyDataSetChanged();
             }
@@ -265,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
                 HttpURLConnection urlConnection;
                 do {
                     urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setConnectTimeout(0);
                 }
                 while (urlConnection.getResponseCode() >= 400);
                 try {

@@ -101,7 +101,7 @@ public class StockInfoActivity extends AppCompatActivity {
 
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + ticker);
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
-        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=c&q=" + ticker);
+        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=d,c&q=" + ticker);
 
         RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         radioGroup.check(R.id.radio1D);
@@ -465,14 +465,16 @@ public class StockInfoActivity extends AppCompatActivity {
                     for (int i = 0; i < 7; i++) {
                         bufferedReader.readLine();
                     }
+                    line = bufferedReader.readLine();
+                    String[] array = line.split(",");
+                    entries.add(new Entry(0, Float.valueOf(array[1])));
                     while ((line = bufferedReader.readLine()) != null) {
-                        entries.add(new Entry(entries.size(), Float.valueOf(line)));
+                        array = line.split(",");
+                        entries.add(new Entry(Integer.valueOf(array[0]), Float.valueOf(array[1])));
                     }
                     bufferedReader.close();
                     xAxis.setAxisMaximum(78);
-                    if (entries.size() == 78) {
-                        xAxis.setAxisMaximum(77);
-                    }
+
                     dataSet = new LineDataSet(entries, "Label");
                     dataSet.setDrawHorizontalHighlightIndicator(false);
                     dataSet.setDrawCircles(false);
