@@ -17,7 +17,9 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private float portfolioValue;
     private SharedPreferences prefs;
     private int positionsCount;
+    private MenuItem searchMenuItem;
 
     @SuppressLint("DefaultLocale")
     @Override
@@ -129,6 +132,8 @@ public class MainActivity extends AppCompatActivity {
         if (positionsCount == 0) {
             showPortfolioValue();
         }
+
+        setupUI(findViewById(R.id.mainActivity));
     }
 
     @Override
@@ -200,10 +205,22 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.refresh_menu, menu);
         inflater.inflate(R.menu.search_menu, menu);
 
+        searchMenuItem = menu.findItem(R.id.search);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return false;
+            }
 
+            @Override
+            public boolean onSuggestionClick(int position) {
+                searchMenuItem.collapseActionView();
+                return false;
+            }
+        });
         return true;
     }
 
@@ -214,6 +231,24 @@ public class MainActivity extends AppCompatActivity {
             startActivity(getIntent());
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void setupUI(View view) {
+        if(!(view instanceof SearchView)) {
+            view.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    searchMenuItem.collapseActionView();
+                    return false;
+                }
+            });
+        }
+        //If a layout container, iterate over children and seed recursion.
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setupUI(innerView);
+            }
+        }
     }
 
     private void hideKeyboard(View view) {
