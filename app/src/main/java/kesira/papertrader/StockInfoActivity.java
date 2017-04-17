@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
@@ -43,7 +44,9 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 public class StockInfoActivity extends AppCompatActivity {
 
@@ -60,6 +63,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private float stockPrice;
     private int taskCounter = 0;
     private boolean done = false;
+    private Menu menu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,8 +163,21 @@ public class StockInfoActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.refresh_menu, menu);
+
+        Set<String> watchlistSet = prefs.getStringSet("watchlist", new HashSet<String>());
+        if (prefs.getInt(ticker, 0) == 0) {
+            inflater.inflate(R.menu.watchlist_menu, menu);
+            if (!watchlistSet.contains(ticker)) {
+                hideOption(R.id.remove);
+            }
+            else {
+                hideOption(R.id.add);
+            }
+        }
 
         return true;
     }
@@ -171,7 +188,38 @@ public class StockInfoActivity extends AppCompatActivity {
             finish();
             startActivity(getIntent());
         }
-        return true;
+        else if (item.getItemId() == R.id.add) {
+            SharedPreferences.Editor editor = prefs.edit();
+            Set<String> watchlistSet = new HashSet<>(prefs.getStringSet("watchlist", new HashSet<String>()));
+            watchlistSet.add(ticker);
+            editor.putStringSet("watchlist", watchlistSet);
+            editor.apply();
+            showOption(R.id.remove);
+            hideOption(R.id.add);
+            Toast.makeText(this, "Stock added to watchlist", Toast.LENGTH_LONG).show();
+        }
+        else if (item.getItemId() == R.id.remove) {
+            SharedPreferences.Editor editor = prefs.edit();
+            Set<String> watchlistSet = new HashSet<>(prefs.getStringSet("watchlist", new HashSet<String>()));
+            watchlistSet.remove(ticker);
+            editor.putStringSet("watchlist", watchlistSet);
+            editor.apply();
+            showOption(R.id.add);
+            hideOption(R.id.remove);
+            Toast.makeText(this, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void hideOption(int id) {
+        MenuItem item = menu.findItem(id);
+        item.setVisible(false);
+    }
+
+    private void showOption(int id) {
+        MenuItem item = menu.findItem(id);
+        item.setVisible(true);
     }
 
     public void buy(View view) {

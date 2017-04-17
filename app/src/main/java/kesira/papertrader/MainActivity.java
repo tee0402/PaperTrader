@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
             startActivity(getIntent());
         }
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     private void hideKeyboard(View view) {
