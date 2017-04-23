@@ -1,173 +1,260 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/scrollView"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <LinearLayout
-        android:orientation="vertical"
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp">
-        <TextView
-            android:id="@+id/stockName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25sp" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/adView">
         <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/stockPrice"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="44sp" />
-            <TextView
-                android:id="@+id/stockPercentChange"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:textSize="44sp" />
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/extendedHours"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/extendedHoursChange"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:textSize="14sp" />
-        </LinearLayout>
-        <kesira.papertrader.CustomLineChart
-            android:id="@+id/chart"
-            android:layout_width="match_parent"
-            android:layout_height="250dp" />
-        <RadioGroup
-            android:id="@+id/radioGroup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <RadioButton
-                android:id="@+id/radio1D"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/rbtn_selector"
-                android:button="@null"
-                android:checked="true"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/button_1d"
-                android:textColor="@drawable/rbtn_textcolor_selector" />
-            <RadioButton
-                android:id="@+id/radio1W"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/rbtn_selector"
-                android:button="@null"
-                android:checked="true"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/button_1w"
-                android:textColor="@drawable/rbtn_textcolor_selector" />
-            <RadioButton
-                android:id="@+id/radio1M"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/rbtn_selector"
-                android:button="@null"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/button_1m"
-                android:textColor="@drawable/rbtn_textcolor_selector" />
-            <RadioButton
-                android:id="@+id/radio3M"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/rbtn_selector"
-                android:button="@null"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/button_3m"
-                android:textColor="@drawable/rbtn_textcolor_selector" />
-            <RadioButton
-                android:id="@+id/radio1Y"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/rbtn_selector"
-                android:button="@null"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/button_1y"
-                android:textColor="@drawable/rbtn_textcolor_selector" />
-            <RadioButton
-                android:id="@+id/radio5Y"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/rbtn_selector"
-                android:button="@null"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/button_5y"
-                android:textColor="@drawable/rbtn_textcolor_selector" />
-            <RadioButton
-                android:id="@+id/radioMax"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/rbtn_selector"
-                android:button="@null"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/button_max"
-                android:textColor="@drawable/rbtn_textcolor_selector" />
-        </RadioGroup>
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
-            <Button
-                android:id="@+id/buy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/button_buy"
-                android:enabled="false"
-                android:onClick="buy" />
-            <Button
-                android:id="@+id/sell"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/button_sell"
-                android:enabled="false"
-                android:onClick="sell" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/position"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone">
+            android:padding="10dp">
+            <TextView
+                android:id="@+id/stockName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="25sp" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/stockPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="44sp" />
+                <TextView
+                    android:id="@+id/stockPercentChange"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:textSize="44sp" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/extendedHours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/extendedHoursChange"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:textSize="14sp" />
+            </LinearLayout>
+            <kesira.papertrader.CustomLineChart
+                android:id="@+id/chart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp" />
+            <RadioGroup
+                android:id="@+id/radioGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+                <RadioButton
+                    android:id="@+id/radio1D"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rbtn_selector"
+                    android:button="@null"
+                    android:checked="true"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="@string/button_1d"
+                    android:textColor="@drawable/rbtn_textcolor_selector" />
+                <RadioButton
+                    android:id="@+id/radio1W"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rbtn_selector"
+                    android:button="@null"
+                    android:checked="true"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="@string/button_1w"
+                    android:textColor="@drawable/rbtn_textcolor_selector" />
+                <RadioButton
+                    android:id="@+id/radio1M"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rbtn_selector"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="@string/button_1m"
+                    android:textColor="@drawable/rbtn_textcolor_selector" />
+                <RadioButton
+                    android:id="@+id/radio3M"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rbtn_selector"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="@string/button_3m"
+                    android:textColor="@drawable/rbtn_textcolor_selector" />
+                <RadioButton
+                    android:id="@+id/radio1Y"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rbtn_selector"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="@string/button_1y"
+                    android:textColor="@drawable/rbtn_textcolor_selector" />
+                <RadioButton
+                    android:id="@+id/radio5Y"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rbtn_selector"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="@string/button_5y"
+                    android:textColor="@drawable/rbtn_textcolor_selector" />
+                <RadioButton
+                    android:id="@+id/radioMax"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rbtn_selector"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="@string/button_max"
+                    android:textColor="@drawable/rbtn_textcolor_selector" />
+            </RadioGroup>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp">
+                <Button
+                    android:id="@+id/buy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/button_buy"
+                    android:enabled="false"
+                    android:onClick="buy" />
+                <Button
+                    android:id="@+id/sell"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/button_sell"
+                    android:enabled="false"
+                    android:onClick="sell" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/position"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone">
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@android:color/darker_gray" />
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false">
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/shares_owned"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/sharesOwned"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:textSize="25sp"
+                            android:textColor="@color/colorPrimary" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/cost_basis"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/costBasis"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="25sp"
+                            android:textColor="@color/colorPrimary" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/position_value"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/positionValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:textSize="25sp"
+                            android:textColor="@color/colorPrimary" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/percentage_of_portfolio"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/percentageOfPortfolio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:textSize="25sp"
+                            android:textColor="@color/colorPrimary" />
+                    </LinearLayout>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/position_performance"
+                    android:textSize="16sp" />
+                <TextView
+                    android:id="@+id/positionPerformance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="25sp"
+                    android:textColor="@color/colorPrimary" />
+            </LinearLayout>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -186,24 +273,27 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/shares_owned"
+                        android:text="@string/exchange"
                         android:textSize="16sp" />
                     <TextView
-                        android:id="@+id/sharesOwned"
+                        android:id="@+id/exchange"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:textSize="25sp"
                         android:textColor="@color/colorPrimary" />
                     <TextView
+                        android:id="@+id/dividendYieldText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/cost_basis"
+                        android:visibility="gone"
+                        android:text="@string/dividend_yield"
                         android:textSize="16sp" />
                     <TextView
-                        android:id="@+id/costBasis"
+                        android:id="@+id/dividendYield"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:visibility="gone"
                         android:textSize="25sp"
                         android:textColor="@color/colorPrimary" />
                 </LinearLayout>
@@ -215,100 +305,25 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/position_value"
+                        android:text="@string/market_cap"
                         android:textSize="16sp" />
                     <TextView
-                        android:id="@+id/positionValue"
+                        android:id="@+id/stockMarketCap"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:textSize="25sp"
-                        android:textColor="@color/colorPrimary" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/percentage_of_portfolio"
-                        android:textSize="16sp" />
-                    <TextView
-                        android:id="@+id/percentageOfPortfolio"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
                         android:textSize="25sp"
                         android:textColor="@color/colorPrimary" />
                 </LinearLayout>
             </LinearLayout>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/position_performance"
-                android:textSize="16sp" />
-            <TextView
-                android:id="@+id/positionPerformance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="25sp"
-                android:textColor="@color/colorPrimary" />
         </LinearLayout>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginBottom="10dp"
-            android:background="@android:color/darker_gray" />
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:baselineAligned="false">
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/exchange"
-                    android:textSize="16sp" />
-                <TextView
-                    android:id="@+id/exchange"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:textSize="25sp"
-                    android:textColor="@color/colorPrimary" />
-                <TextView
-                    android:id="@+id/dividendYieldText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/dividend_yield"
-                    android:textSize="16sp" />
-                <TextView
-                    android:id="@+id/dividendYield"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:textSize="25sp"
-                    android:textColor="@color/colorPrimary" />
-            </LinearLayout>
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/market_cap"
-                    android:textSize="16sp" />
-                <TextView
-                    android:id="@+id/stockMarketCap"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="25sp"
-                    android:textColor="@color/colorPrimary" />
-            </LinearLayout>
-        </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/banner_ad_unit_id">
+    </com.google.android.gms.ads.AdView>
+</RelativeLayout>

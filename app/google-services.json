@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1009923331227",
+    "firebase_url": "https://papertrader-19cbc.firebaseio.com",
+    "project_id": "papertrader-19cbc",
+    "storage_bucket": "papertrader-19cbc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009923331227:android:498b9a15e56aa3c6",
+        "android_client_info": {
+          "package_name": "kesira.papertrader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1009923331227-k6tenmktcrih4ui543mtle7u2tmutofm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "kesira.papertrader",
+            "certificate_hash": "0a0a1c1a6ad81b6cef17246b62fcda1996b47ccd"
+          }
+        },
+        {
+          "client_id": "1009923331227-n12ss822fhj6she3e58682iho4qmbt7j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3Kjgl-h_0gbsTHs3G9NeJCDlDSSJ85sY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1009923331227-n12ss822fhj6she3e58682iho4qmbt7j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
