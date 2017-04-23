@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ListView positions = (ListView) findViewById(R.id.positions);
+        NonScrollListView positions = (NonScrollListView) findViewById(R.id.positions);
         positionsAdapter = new PositionsAdapter(getBaseContext(), positionsRows);
         positions.setAdapter(positionsAdapter);
         positions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ListView watchlist = (ListView) findViewById(R.id.watchlist);
+        NonScrollListView watchlist = (NonScrollListView) findViewById(R.id.watchlist);
         registerForContextMenu(watchlist);
         watchlistAdapter = new WatchlistAdapter(getBaseContext(), watchlistRows);
         watchlist.setAdapter(watchlistAdapter);
