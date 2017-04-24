@@ -141,6 +141,9 @@ public class MainActivity extends AppCompatActivity {
         if (positionsCount == 0) {
             showPortfolioValue();
         }
+        else {
+            findViewById(R.id.positionsText).setVisibility(View.VISIBLE);
+        }
 
         setupUI(findViewById(R.id.mainActivity));
     }

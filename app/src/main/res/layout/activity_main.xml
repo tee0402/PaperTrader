@@ -13,6 +13,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="10dp"
+            android:clipToPadding="false"
             android:descendantFocusability="beforeDescendants"
             android:clickable="true"
             android:focusable="true"
@@ -90,15 +91,28 @@
                     android:onClick="addToWatchlist" />
             </LinearLayout>
             <TextView
+                android:id="@+id/positionsText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:text="@string/positions"
-                android:textSize="30sp" />
+                android:textSize="20sp" />
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="-10dp"
+                android:layout_marginStart="-10dp"
+                android:layout_marginRight="-10dp"
+                android:layout_marginEnd="-10dp"
                 android:layout_marginBottom="10dp"
                 android:gravity="center">
+                <kesira.papertrader.NonScrollListView
+                    android:id="@+id/positions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#E8EAF6"
+                    android:divider="@null"
+                    android:dividerHeight="0dp" />
                 <ProgressBar
                     android:id="@+id/progressBarPositions"
                     android:layout_width="wrap_content"
@@ -106,26 +120,28 @@
                     android:indeterminate="true"
                     android:layout_centerHorizontal="true"
                     android:visibility="gone" />
-                <kesira.papertrader.NonScrollListView
-                    android:id="@+id/positions"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
             </RelativeLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="10dp"
-                android:background="@android:color/darker_gray" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/watchlist"
-                android:textSize="30sp" />
+                android:textSize="20sp" />
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="-10dp"
+                android:layout_marginStart="-10dp"
+                android:layout_marginRight="-10dp"
+                android:layout_marginEnd="-10dp"
                 android:layout_marginBottom="10dp"
                 android:gravity="center">
+                <kesira.papertrader.NonScrollListView
+                    android:id="@+id/watchlist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#E8EAF6"
+                    android:divider="@null"
+                    android:dividerHeight="0dp" />
                 <ProgressBar
                     android:id="@+id/progressBarWatchlist"
                     android:layout_width="wrap_content"
@@ -133,10 +149,6 @@
                     android:indeterminate="true"
                     android:layout_centerHorizontal="true"
                     android:visibility="gone" />
-                <kesira.papertrader.NonScrollListView
-                    android:id="@+id/watchlist"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
             </RelativeLayout>
         </LinearLayout>
     </ScrollView>
