@@ -3,7 +3,6 @@ package kesira.papertrader;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -87,6 +86,7 @@ public class SellDialogFragment extends DialogFragment {
                             else {
                                 ((TextView) getActivity().findViewById(R.id.sharesOwned)).setText(String.valueOf(sharesOwned - quantity));
                                 ((TextView) getActivity().findViewById(R.id.positionValue)).setText(NumberFormat.getCurrencyInstance().format((sharesOwned - quantity) * stockPrice));
+                                ((TextView) getActivity().findViewById(R.id.percentageOfPortfolio)).setText(new DecimalFormat("0.00").format((sharesOwned - quantity) * stockPrice / prefs.getFloat("portfolioValue", 0) * 100) + "%");
                                 float costBasis = prefs.getFloat(ticker + "_cost", 0);
                                 if (stockPrice - costBasis >= 0) {
                                     ((TextView) getActivity().findViewById(R.id.positionPerformance)).setText("+" + NumberFormat.getCurrencyInstance().format((sharesOwned - quantity) * (stockPrice - costBasis)) + " (+" + new DecimalFormat("0.00").format((stockPrice - costBasis) / costBasis * 100) + "%)");

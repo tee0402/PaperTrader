@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             findViewById(R.id.positionsText).setVisibility(View.VISIBLE);
+            findViewById(R.id.positionsList).setVisibility(View.VISIBLE);
         }
 
         setupUI(findViewById(R.id.mainActivity));
@@ -152,25 +153,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
+        if (prefs.getStringSet("positions", new HashSet<String>()).size() == 0) {
+            findViewById(R.id.positionsText).setVisibility(View.GONE);
+            findViewById(R.id.positionsList).setVisibility(View.GONE);
+        }
+        else {
+            findViewById(R.id.positionsText).setVisibility(View.VISIBLE);
+            findViewById(R.id.positionsList).setVisibility(View.VISIBLE);
+        }
+
         cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
 
         positionsAdapter.notifyDataSetChanged();
 
         Set<String> watchlistSet = prefs.getStringSet("watchlist", new HashSet<String>());
         Iterator<String> watchlistIterator = watchlistSet.iterator();
-        for (int i = 0; i < watchlistSet.size(); i++) {
-            boolean displayedInWatchlist = false;
-            String ticker = watchlistIterator.next();
-            for (int j = 0; j < watchlistRows.size(); j++) {
-                if (watchlistRows.get(j).getTicker().equals(ticker)) {
-                    displayedInWatchlist = true;
-                    break;
-                }
-            }
-            if (!displayedInWatchlist) {
-                new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
-            }
-        }
 
         for (int i = 0; i < positionsRows.size(); i++) {
             if (prefs.getInt(positionsRows.get(i).getTicker(), 0) == 0) {
@@ -190,6 +187,20 @@ public class MainActivity extends AppCompatActivity {
             else if (!watchlistSet.contains(watchlistRows.get(i).getTicker())) {
                 watchlistRows.remove(i);
                 watchlistAdapter.notifyDataSetChanged();
+            }
+        }
+
+        for (int i = 0; i < watchlistSet.size(); i++) {
+            boolean displayedInWatchlist = false;
+            String ticker = watchlistIterator.next();
+            for (int j = 0; j < watchlistRows.size(); j++) {
+                if (watchlistRows.get(j).getTicker().equals(ticker)) {
+                    displayedInWatchlist = true;
+                    break;
+                }
+            }
+            if (!displayedInWatchlist) {
+                new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
             }
         }
     }
@@ -294,11 +305,11 @@ public class MainActivity extends AppCompatActivity {
 
         TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
         if (portfolioValue / 10000 - 1 >= 0) {
-            portfolioValuePerformanceText.setText("+" + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (+" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+            portfolioValuePerformanceText.setText(" +" + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (+" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
             portfolioValuePerformanceText.setTextColor(Color.parseColor("#33CC33"));
         }
         else {
-            portfolioValuePerformanceText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+            portfolioValuePerformanceText.setText(" " + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
             portfolioValuePerformanceText.setTextColor(Color.RED);
         }
 
@@ -311,7 +322,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-            findViewById(R.id.progressBarPositions).setVisibility(View.VISIBLE);
+            if (positionsCount > 0) {
+                findViewById(R.id.progressBarPositions).setVisibility(View.VISIBLE);
+            }
             findViewById(R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
         }
 

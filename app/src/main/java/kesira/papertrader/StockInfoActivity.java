@@ -417,7 +417,7 @@ public class StockInfoActivity extends AppCompatActivity {
                             findViewById(R.id.dividendYield).setVisibility(View.VISIBLE);
                             findViewById(R.id.dividendYieldText).setVisibility(View.VISIBLE);
                             if (jsonObject.getString("yld").equals("")) {
-                                ((TextView) findViewById(R.id.dividendYield)).setText("0.00%");
+                                ((TextView) findViewById(R.id.dividendYield)).setText("N/A");
                             }
                             else {
                                 ((TextView) findViewById(R.id.dividendYield)).setText(jsonObject.getString("yld") + "%");
@@ -427,7 +427,7 @@ public class StockInfoActivity extends AppCompatActivity {
                             findViewById(R.id.extendedHours).setVisibility(View.VISIBLE);
                             findViewById(R.id.extendedHoursChange).setVisibility(View.VISIBLE);
                             if (Float.valueOf(jsonObject.getString("ecp")) > 0) {
-                                ((TextView) findViewById(R.id.extendedHours)).setText("Extended Hours: " + jsonObject.getString("el") + " ");
+                                ((TextView) findViewById(R.id.extendedHours)).setText("Extended Hours: $" + jsonObject.getString("el") + " ");
                                 ((TextView) findViewById(R.id.extendedHoursChange)).setText(jsonObject.getString("ec") + " (+" + jsonObject.getString("ecp") + "%)");
                                 ((TextView) findViewById(R.id.extendedHoursChange)).setTextColor(Color.parseColor("#33CC33"));
                             }

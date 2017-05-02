@@ -32,7 +32,7 @@
                         android:id="@+id/portfolioValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="45sp" />
+                        android:textSize="40sp" />
                     <LinearLayout
                         android:orientation="horizontal"
                         android:layout_width="match_parent"
@@ -40,15 +40,13 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginRight="10dp"
-                            android:layout_marginEnd="10dp"
                             android:text="@string/portfolio_value"
-                            android:textSize="15sp" />
+                            android:textSize="13sp" />
                         <TextView
                             android:id="@+id/portfolioValuePerformance"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="15sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
                 <LinearLayout
@@ -62,12 +60,12 @@
                         android:id="@+id/cash"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="20sp" />
+                        android:textSize="17sp" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/cash"
-                        android:textSize="15sp" />
+                        android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout
@@ -97,6 +95,7 @@
                 android:text="@string/positions"
                 android:textSize="20sp" />
             <RelativeLayout
+                android:id="@+id/positionsList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="-10dp"
@@ -104,6 +103,7 @@
                 android:layout_marginRight="-10dp"
                 android:layout_marginEnd="-10dp"
                 android:layout_marginBottom="10dp"
+                android:visibility="gone"
                 android:gravity="center">
                 <kesira.papertrader.NonScrollListView
                     android:id="@+id/positions"
