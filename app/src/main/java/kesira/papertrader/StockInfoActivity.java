@@ -119,7 +119,7 @@ public class StockInfoActivity extends AppCompatActivity {
                 switch (i) {
                     case R.id.radio1D:
                         leftAxis.addLimitLine(limitLine);
-                        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=c&q=" + ticker);
+                        new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=d,c&q=" + ticker);
                         break;
                     case R.id.radio1W:
                         leftAxis.removeLimitLine(limitLine);
