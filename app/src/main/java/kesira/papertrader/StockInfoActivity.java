@@ -495,7 +495,7 @@ public class StockInfoActivity extends AppCompatActivity {
                 Log.e("Exception", e.getMessage());
             }
             taskCounter--;
-            if (!done && taskCounter == 0) {
+            if (!done && taskCounter == 0 && dataSet != null) {
                 done = true;
                 dataSet.setColor(((TextView) findViewById(R.id.stockPercentChange)).getCurrentTextColor());
                 LineData lineData = new LineData(dataSet);
