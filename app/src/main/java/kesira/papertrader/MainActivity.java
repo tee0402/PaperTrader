@@ -25,10 +25,14 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.reward.RewardItem;
+import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,7 +48,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RewardedVideoAdListener {
 
     private final ArrayList<CustomRow> positionsRows = new ArrayList<>();
     private final ArrayList<CustomRow> watchlistRows = new ArrayList<>();
@@ -56,12 +60,17 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private int positionsCount;
     private MenuItem searchMenuItem;
+    private RewardedVideoAd mAd;
 
     @SuppressLint("DefaultLocale")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAd = MobileAds.getRewardedVideoAdInstance(this);
+        mAd.setRewardedVideoAdListener(this);
+        mAd.loadAd("ca-app-pub-4071292763824495/4372652960", new AdRequest.Builder().build());
 
         MobileAds.initialize(getApplicationContext(), "ca-app-pub-4071292763824495~6413389765");
         AdView mAdView = (AdView) findViewById(R.id.adView);
@@ -206,6 +215,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onResume() {
+        mAd.resume(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        mAd.pause(this);
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        mAd.destroy(this);
+        super.onDestroy();
+    }
+
+    @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getMenuInflater();
@@ -243,6 +270,52 @@ public class MainActivity extends AppCompatActivity {
             startActivity(getIntent());
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRewardedVideoAdLoaded() {
+
+    }
+
+    @Override
+    public void onRewardedVideoAdOpened() {
+
+    }
+
+    @Override
+    public void onRewardedVideoStarted() {
+
+    }
+
+    @Override
+    public void onRewardedVideoAdClosed() {
+        Toast.makeText(this, "Enjoy your extra $500!", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewarded(RewardItem rewardItem) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putFloat("cash", prefs.getFloat("cash", -1) + 500);
+        editor.putFloat("startingAmount", prefs.getFloat("startingAmount", 10000) + 500);
+        editor.apply();
+        cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
+        portfolioValue += 500;
+    }
+
+    @Override
+    public void onRewardedVideoAdLeftApplication() {
+
+    }
+
+    @Override
+    public void onRewardedVideoAdFailedToLoad(int i) {
+
+    }
+
+    public void showAd(View view) {
+        if (mAd.isLoaded()) {
+            mAd.show();
+        }
     }
 
     public void setupUI(View view) {
@@ -301,15 +374,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void showPortfolioValue() {
         TextView portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
+        float startingAmount = prefs.getFloat("startingAmount", 10000);
+
         portfolioValueText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
 
         TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
-        if (portfolioValue / 10000 - 1 >= 0) {
-            portfolioValuePerformanceText.setText(" +" + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (+" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+        if (portfolioValue / startingAmount - 1 >= 0) {
+            portfolioValuePerformanceText.setText(" +" + NumberFormat.getCurrencyInstance().format(portfolioValue - startingAmount) + " (+" + new DecimalFormat("0.00").format((portfolioValue / startingAmount - 1) * 100) + "%)");
             portfolioValuePerformanceText.setTextColor(Color.parseColor("#33CC33"));
         }
         else {
-            portfolioValuePerformanceText.setText(" " + NumberFormat.getCurrencyInstance().format(portfolioValue - 10000) + " (" + new DecimalFormat("0.00").format((portfolioValue / 10000 - 1) * 100) + "%)");
+            portfolioValuePerformanceText.setText(" " + NumberFormat.getCurrencyInstance().format(portfolioValue - startingAmount) + " (" + new DecimalFormat("0.00").format((portfolioValue / startingAmount - 1) * 100) + "%)");
             portfolioValuePerformanceText.setTextColor(Color.RED);
         }
 
