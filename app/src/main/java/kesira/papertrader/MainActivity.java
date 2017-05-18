@@ -289,17 +289,26 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
 
     @Override
     public void onRewardedVideoAdClosed() {
-        Toast.makeText(this, "Enjoy your extra $500!", Toast.LENGTH_SHORT).show();
+
     }
 
     @Override
     public void onRewarded(RewardItem rewardItem) {
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putFloat("cash", prefs.getFloat("cash", -1) + 500);
-        editor.putFloat("startingAmount", prefs.getFloat("startingAmount", 10000) + 500);
-        editor.apply();
-        cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
-        portfolioValue += 500;
+        if (Constants.ad1Clicked) {
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putFloat("cash", prefs.getFloat("cash", -1) + 5000);
+            editor.putFloat("startingAmount", prefs.getFloat("startingAmount", 10000) + 5000);
+            editor.apply();
+            cash.setText(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)));
+            portfolioValue += 5000;
+            Toast.makeText(this, "Enjoy your extra $5000!", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.clear();
+            editor.apply();
+            Toast.makeText(this, "Enjoy!", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -312,7 +321,15 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
 
     }
 
-    public void showAd(View view) {
+    public void showAd1(View view) {
+        Constants.ad1Clicked = true;
+        if (mAd.isLoaded()) {
+            mAd.show();
+        }
+    }
+
+    public void showAd2(View view) {
+        Constants.ad1Clicked = false;
         if (mAd.isLoaded()) {
             mAd.show();
         }

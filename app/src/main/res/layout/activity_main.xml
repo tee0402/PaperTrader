@@ -102,7 +102,7 @@
                 android:layout_marginStart="-10dp"
                 android:layout_marginRight="-10dp"
                 android:layout_marginEnd="-10dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="20dp"
                 android:visibility="gone"
                 android:gravity="center">
                 <kesira.papertrader.NonScrollListView
@@ -132,7 +132,7 @@
                 android:layout_marginStart="-10dp"
                 android:layout_marginRight="-10dp"
                 android:layout_marginEnd="-10dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="20dp"
                 android:gravity="center">
                 <kesira.papertrader.NonScrollListView
                     android:id="@+id/watchlist"
@@ -153,10 +153,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:textAllCaps="false"
+                android:text="@string/button_watch_an_ad_to_increase_your_starting_amount_by_5000"
+                android:onClick="showAd1" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginBottom="50dp"
                 android:textAllCaps="false"
-                android:text="@string/button_watch_an_ad_to_get_an_extra_500"
-                android:onClick="showAd" />
+                android:text="@string/button_watch_an_ad_to_start_over"
+                android:onClick="showAd2" />
         </LinearLayout>
     </ScrollView>
     <com.google.android.gms.ads.AdView
