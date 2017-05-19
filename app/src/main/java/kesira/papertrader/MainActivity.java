@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
 
         mAd = MobileAds.getRewardedVideoAdInstance(this);
         mAd.setRewardedVideoAdListener(this);
-        mAd.loadAd("ca-app-pub-4071292763824495/4372652960", new AdRequest.Builder().build());
+        mAd.loadAd("ca-app-pub-4071292763824495/4372652960", new AdRequest.Builder().addTestDevice("4A9CA16A6BD94883A6FAB491F8FA22E9").build());
 
         EditText editText = (EditText) findViewById(R.id.editText);
         editText.setOnKeyListener(new View.OnKeyListener() {

@@ -150,7 +150,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textAllCaps="false"
-            android:text="@string/button_watch_an_ad_to_increase_your_starting_amount_by_5000"
+            android:textColor="@color/colorPrimary"
+            android:text="@string/button_watch_a_video_to_increase_your_starting_amount_by_5000"
             android:onClick="showAd1" />
         <Button
             android:layout_width="wrap_content"
@@ -158,7 +159,8 @@
             android:layout_gravity="center"
             android:layout_marginBottom="20dp"
             android:textAllCaps="false"
-            android:text="@string/button_watch_an_ad_to_start_over"
+            android:textColor="@color/colorPrimary"
+            android:text="@string/button_watch_a_video_to_start_over"
             android:onClick="showAd2" />
     </LinearLayout>
 </ScrollView>
