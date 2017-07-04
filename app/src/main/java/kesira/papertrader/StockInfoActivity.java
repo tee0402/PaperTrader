@@ -70,7 +70,7 @@ public class StockInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stock_info);
 
-        chart = (CustomLineChart) findViewById(R.id.chart);
+        chart = findViewById(R.id.chart);
         chart.setNoDataText("Loading...");
         chart.setScaleEnabled(false);
         chart.setDrawGridBackground(true);
@@ -103,7 +103,7 @@ public class StockInfoActivity extends AppCompatActivity {
         new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
         new RetrieveFeedTask().execute("https://www.google.com/finance/getprices?i=300&p=1d&f=d,c&q=" + ticker);
 
-        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
+        RadioGroup radioGroup = findViewById(R.id.radioGroup);
         radioGroup.check(R.id.radio1D);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -141,7 +141,7 @@ public class StockInfoActivity extends AppCompatActivity {
             }
         });
 
-        TextView stockPrice = (TextView) findViewById(R.id.stockPrice);
+        TextView stockPrice = findViewById(R.id.stockPrice);
         stockPrice.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {

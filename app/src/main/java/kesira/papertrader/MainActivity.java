@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
         mAd.setRewardedVideoAdListener(this);
         mAd.loadAd("ca-app-pub-4071292763824495/4372652960", new AdRequest.Builder().addTestDevice("4A9CA16A6BD94883A6FAB491F8FA22E9").build());
 
-        EditText editText = (EditText) findViewById(R.id.editText);
+        EditText editText = findViewById(R.id.editText);
         editText.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
             }
         });
 
-        NonScrollListView positions = (NonScrollListView) findViewById(R.id.positions);
+        NonScrollListView positions = findViewById(R.id.positions);
         positionsAdapter = new PositionsAdapter(getBaseContext(), positionsRows);
         positions.setAdapter(positionsAdapter);
         positions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
             }
         });
 
-        NonScrollListView watchlist = (NonScrollListView) findViewById(R.id.watchlist);
+        NonScrollListView watchlist = findViewById(R.id.watchlist);
         registerForContextMenu(watchlist);
         watchlistAdapter = new WatchlistAdapter(getBaseContext(), watchlistRows);
         watchlist.setAdapter(watchlistAdapter);
@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
             }
         });
 
-        cash = (TextView) findViewById(R.id.cash);
+        cash = findViewById(R.id.cash);
         prefs = getSharedPreferences("Save", Context.MODE_PRIVATE);
         if (prefs.getFloat("cash", -1) == -1) {
             SharedPreferences.Editor editor = prefs.edit();
@@ -353,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
     }
 
     public void addToWatchlist(View view) {
-        EditText editText = (EditText) findViewById(R.id.editText);
+        EditText editText = findViewById(R.id.editText);
         String ticker = editText.getText().toString();
         if (!containsTicker(ticker)) {
             new RetrieveFeedTask().execute("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + ticker);
@@ -384,12 +384,12 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
     }
 
     private void showPortfolioValue() {
-        TextView portfolioValueText = (TextView) findViewById(R.id.portfolioValue);
+        TextView portfolioValueText = findViewById(R.id.portfolioValue);
         float startingAmount = prefs.getFloat("startingAmount", 10000);
 
         portfolioValueText.setText(NumberFormat.getCurrencyInstance().format(portfolioValue));
 
-        TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
+        TextView portfolioValuePerformanceText = findViewById(R.id.portfolioValuePerformance);
         if (portfolioValue / startingAmount - 1 >= 0) {
             portfolioValuePerformanceText.setText(" +" + NumberFormat.getCurrencyInstance().format(portfolioValue - startingAmount) + " (+" + new DecimalFormat("0.00").format((portfolioValue / startingAmount - 1) * 100) + "%)");
             portfolioValuePerformanceText.setTextColor(Color.parseColor("#33CC33"));
