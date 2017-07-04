@@ -41,36 +41,13 @@ public class BuyDialogFragment extends DialogFragment {
 
         ((TextView) view.findViewById(R.id.shares)).setText("You can buy " + sharesCanAfford + " shares.");
         amount.setHint(NumberFormat.getCurrencyInstance().format(prefs.getFloat("cash", -1)) + " available");
-        editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if (editText.getText().toString().equals("") || !(Integer.valueOf(editText.getText().toString()) > 0)) {
-                    amount.setText("");
-                }
-                else {
-                    amount.setText(NumberFormat.getCurrencyInstance().format(Integer.valueOf(editText.getText().toString()) * stockPrice));
-                }
-            }
-        });
         builder.setView(view)
                 .setPositiveButton(R.string.button_buy, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         int quantity = Integer.valueOf(editText.getText().toString());
-                        if (quantity < 1) {
-                            Toast.makeText(getActivity(), "Please enter a valid number of shares", Toast.LENGTH_LONG).show();
-                        }
-                        else if (quantity > sharesCanAfford) {
+                        if (quantity > sharesCanAfford) {
                             Toast.makeText(getActivity(), "You can only afford " + sharesCanAfford + " shares", Toast.LENGTH_LONG).show();
                         }
                         else {
@@ -111,10 +88,36 @@ public class BuyDialogFragment extends DialogFragment {
                         BuyDialogFragment.this.getDialog().cancel();
                     }
                 });
-        AlertDialog dialog = builder.create();
+        final AlertDialog dialog = builder.create();
         //noinspection ConstantConditions
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (editText.getText().toString().equals("") || !(Integer.valueOf(editText.getText().toString()) > 0)) {
+                    amount.setText("");
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                }
+                else {
+                    amount.setText(NumberFormat.getCurrencyInstance().format(Integer.valueOf(editText.getText().toString()) * stockPrice));
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                }
+            }
+        });
+
         return dialog;
     }
 }
