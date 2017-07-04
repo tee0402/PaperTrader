@@ -33,8 +33,8 @@ public class SellDialogFragment extends DialogFragment {
         final View view = inflater.inflate(R.layout.dialog_sell, null);
         final String ticker = getArguments().getString("ticker");
         final float stockPrice = getArguments().getFloat("stockPrice");
-        final EditText editText = view.findViewById(R.id.quantity);
-        final TextView amount = view.findViewById(R.id.amountValue);
+        final EditText editText = (EditText) view.findViewById(R.id.quantity);
+        final TextView amount = (TextView) view.findViewById(R.id.amountValue);
         final SharedPreferences prefs = getActivity().getSharedPreferences("Save", Context.MODE_PRIVATE);
         final int sharesOwned = prefs.getInt(ticker, 0);
 

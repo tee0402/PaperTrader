@@ -53,10 +53,10 @@ class PositionsAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.positions_row, null);
             holder = new ViewHolder();
-            holder.textView1 = convertView.findViewById(R.id.ticker);
-            holder.textView2 = convertView.findViewById(R.id.quote);
-            holder.textView3 = convertView.findViewById(R.id.percentChange);
-            holder.textView4 = convertView.findViewById(R.id.shares);
+            holder.textView1 = (TextView) convertView.findViewById(R.id.ticker);
+            holder.textView2 = (TextView) convertView.findViewById(R.id.quote);
+            holder.textView3 = (TextView) convertView.findViewById(R.id.percentChange);
+            holder.textView4 = (TextView) convertView.findViewById(R.id.shares);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
