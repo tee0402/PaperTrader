@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -308,18 +309,34 @@ public class StockInfoActivity extends AppCompatActivity {
                         SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMM YYYY", Locale.ENGLISH);
                         SimpleDateFormat yearFormat = new SimpleDateFormat("YYYY", Locale.ENGLISH);
                         if (dates.length() < 100) {
+                            if (dates.length() < 10) {
+                                ((TextView) findViewById(R.id.historical)).setText("Past Week: ");
+                            }
+                            else if (dates.length() < 40) {
+                                ((TextView) findViewById(R.id.historical)).setText("Past Month: ");
+                            }
+                            else {
+                                ((TextView) findViewById(R.id.historical)).setText("Past 3 Months: ");
+                            }
                             for (int i = 0; i < dates.length(); i++) {
                                 Date date = datesFormat.parse(dates.get(i).toString());
                                 dates.put(i, monthDayFormat.format(date));
                             }
                         }
-                        else if (dates.length() >= 100 && dates.length() < 365) {
+                        else if (dates.length() >= 100 && dates.length() < 300) {
+                            ((TextView) findViewById(R.id.historical)).setText("Past Year: ");
                             for (int i = 0; i < dates.length(); i++) {
                                 Date date = datesFormat.parse(dates.get(i).toString());
                                 dates.put(i, monthYearFormat.format(date));
                             }
                         }
                         else {
+                            if (dates.length() < 1300) {
+                                ((TextView) findViewById(R.id.historical)).setText("Past 5 Years: ");
+                            }
+                            else {
+                                ((TextView) findViewById(R.id.historical)).setText("Since " + yearFormat.format(datesFormat.parse(dates.get(0).toString())) + ": ");
+                            }
                             for (int i = 0; i < dates.length(); i++) {
                                 Date date = datesFormat.parse(dates.get(i).toString());
                                 dates.put(i, yearFormat.format(date));
@@ -352,7 +369,23 @@ public class StockInfoActivity extends AppCompatActivity {
                         dataSet.setDrawCircles(false);
                         dataSet.setLineWidth(2);
                         if (entries.size() >= 2) {
-                            if (entries.get(0).getY() <= entries.get(entries.size() - 1).getY()) {
+                            float startPrice = entries.get(0).getY();
+                            float endPrice = entries.get(entries.size() - 1).getY();
+                            float historicalChange = stockPrice - startPrice;
+                            float historicalChangePercent = historicalChange / startPrice * 100;
+
+                            findViewById(R.id.historical).setVisibility(View.VISIBLE);
+                            findViewById(R.id.historicalChange).setVisibility(View.VISIBLE);
+                            if (historicalChange >= 0) {
+                                ((TextView) findViewById(R.id.historicalChange)).setText("+" + NumberFormat.getCurrencyInstance().format(historicalChange) + " (+" + new DecimalFormat("#,###,##0.00").format(historicalChangePercent) + "%)");
+                                ((TextView) findViewById(R.id.historicalChange)).setTextColor(Color.parseColor("#33CC33"));
+                            }
+                            else {
+                                ((TextView) findViewById(R.id.historicalChange)).setText(NumberFormat.getCurrencyInstance().format(historicalChange) + " (" + new DecimalFormat("#,###,##0.00").format(historicalChangePercent) + "%)");
+                                ((TextView) findViewById(R.id.historicalChange)).setTextColor(Color.RED);
+                            }
+
+                            if (startPrice <= endPrice) {
                                 dataSet.setColor(Color.parseColor("#33CC33"));
                             }
                             else {
@@ -479,6 +512,9 @@ public class StockInfoActivity extends AppCompatActivity {
                     dataSet.setDrawHorizontalHighlightIndicator(false);
                     dataSet.setDrawCircles(false);
                     dataSet.setLineWidth(2);
+
+                    findViewById(R.id.historical).setVisibility(View.GONE);
+                    findViewById(R.id.historicalChange).setVisibility(View.GONE);
 
                     done = false;
                 }

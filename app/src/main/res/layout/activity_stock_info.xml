@@ -48,6 +48,24 @@
                 android:visibility="gone"
                 android:textSize="13sp" />
         </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
+            <TextView
+                android:id="@+id/historical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textSize="13sp" />
+            <TextView
+                android:id="@+id/historicalChange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textSize="13sp" />
+        </LinearLayout>
         <kesira.papertrader.CustomLineChart
             android:id="@+id/chart"
             android:layout_width="match_parent"
