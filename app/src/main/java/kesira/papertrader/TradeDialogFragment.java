@@ -56,11 +56,7 @@ public class TradeDialogFragment extends DialogFragment {
                     enterQuantity.setText(quantityString.replaceFirst("^0+", ""));
                 }
                 quantity = quantityString.equals("") ? 0 : Integer.parseInt(quantityString);
-                if (quantity > 0) {
-                    totalText.setText(Portfolio.formatCurrency(new BigDecimal(quantity).multiply(stockPrice)));
-                } else {
-                    totalText.setText("");
-                }
+                totalText.setText(quantity > 0 ? Portfolio.formatCurrency(new BigDecimal(quantity).multiply(stockPrice)) : "");
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(quantity > 0 && quantity <= (buy ? sharesCanAfford : sharesOwned));
             }
         });

@@ -4,5 +4,5 @@
     <item android:id="@+id/refresh"
         android:title="@string/refresh_title"
         android:icon="@drawable/ic_refresh"
-        app:showAsAction="collapseActionView|ifRoom" />
+        app:showAsAction="ifRoom|collapseActionView" />
 </menu>

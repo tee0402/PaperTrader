@@ -16,12 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 public class MyCustomSuggestionProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
@@ -32,40 +26,20 @@ public class MyCustomSuggestionProvider extends ContentProvider {
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         MatrixCursor matrixCursor = new MatrixCursor(new String[] {BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2, SearchManager.SUGGEST_COLUMN_INTENT_DATA});
-        String query = uri.getLastPathSegment();
+        String query = uri.getLastPathSegment().toUpperCase();
         System.out.println("uri:" + uri);
         System.out.println("last:" + query);
-        if (!query.equals("search_suggest_query")) {
+        if (!query.equals("SEARCH_SUGGEST_QUERY")) {
+            String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?search=" + query + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
             try {
-                URL url = new URL("https://api.polygon.io/v3/reference/tickers?search=" + query + "&active=true&sort=ticker&order=asc&limit=10&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
-                HttpURLConnection urlConnection;
-                do {
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                } while (urlConnection.getResponseCode() >= 400);
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                    StringBuilder result = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        result.append(line).append("\n");
-                    }
-                    bufferedReader.close();
-                    try {
-                        JSONArray jsonArray = new JSONObject(result.toString()).getJSONArray("results");
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject jsonObject = jsonArray.getJSONObject(i);
-                            String ticker = jsonObject.getString("ticker");
-                            matrixCursor.addRow(new Object[]{i, ticker, jsonObject.getString("name"), ticker});
-                        }
-                    } catch (JSONException e) {
-                        Log.e("Exception", e.getMessage());
-                    }
-                } finally {
-                    urlConnection.disconnect();
+                JSONArray jsonArray = new JSONObject(result).getJSONArray("results");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    String ticker = jsonObject.getString("ticker");
+                    matrixCursor.addRow(new Object[]{i, ticker, jsonObject.getString("name"), ticker});
                 }
-            } catch (IOException e) {
-                Log.e("Exception", e.toString());
-                return null;
+            } catch (JSONException e) {
+                Log.e("Exception", e.getMessage());
             }
         }
         return matrixCursor;

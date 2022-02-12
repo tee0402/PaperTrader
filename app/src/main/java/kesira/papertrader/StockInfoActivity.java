@@ -30,13 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -54,14 +48,10 @@ public class StockInfoActivity extends AppCompatActivity {
     private static final long MILLION = 1000000L;
     private static final long BILLION = 1000000000L;
     private static final long TRILLION = 1000000000000L;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
     private CustomLineChart chart;
     private XAxis xAxis;
     private YAxis leftAxis;
-    private LimitLine limitLine;
-    private LineDataSet dataSet;
-    private float prevClose;
-    private int taskCounter = 0;
-    private boolean done = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +59,7 @@ public class StockInfoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_stock_info);
 
         ticker = getIntent().getStringExtra("ticker");
+        getTickerDetails();
         stockPrice = Portfolio.getQuote(ticker);
         if (stockPrice != null) {
             ((TextView) findViewById(R.id.stockPrice)).setText(Portfolio.formatCurrency(stockPrice));
@@ -99,61 +90,39 @@ public class StockInfoActivity extends AppCompatActivity {
         Description description = new Description();
         description.setText("MPAndroidChart by Philipp Jahoda");
         chart.setDescription(description);
-
-        getTickerDetails();
+        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+//            if (checkedId == R.id.radio1D) {
+//                getPreviousClose();
+//                leftAxis.addLimitLine(limitLine);
+//            } else {
+//                leftAxis.removeLimitLine(limitLine);
+//            }
+            getBars(checkedId);
+        });
 
         findViewById(R.id.buy).setOnClickListener(v -> showTradeDialogFragment(true));
         findViewById(R.id.sell).setOnClickListener(v -> showTradeDialogFragment(false));
 
         updatePosition();
-
-        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        radioGroup.check(R.id.radio1D);
-        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.radio1D) {
-                leftAxis.addLimitLine(limitLine);
-            } else {
-                leftAxis.removeLimitLine(limitLine);
-            }
-//            getBars(checkedId);
-        });
     }
 
     private void getTickerDetails() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
+            String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers/" + ticker + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
             try {
-                URL u = new URL("https://api.polygon.io/v3/reference/tickers/" + ticker + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
-                HttpURLConnection urlConnection;
-                do {
-                    urlConnection = (HttpURLConnection) u.openConnection();
-                } while (urlConnection.getResponseCode() >= 400);
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                    StringBuilder stockInfo = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stockInfo.append(line).append("\n");
-                    }
-                    bufferedReader.close();
-                    try {
-                        JSONObject jsonObject = new JSONObject(stockInfo.toString()).getJSONObject("results");
-                        String name = jsonObject.getString("name");
-                        String exchange = jsonObject.getString("primary_exchange").replace("XNYS", "NYSE").replace("XNAS", "NASDAQ");
-                        String marketCap = createMarketCapString(jsonObject.getDouble("market_cap"));
-                        handler.post(() -> {
-                            ((TextView) findViewById(R.id.stockName)).setText(name);
-                            ((TextView) findViewById(R.id.exchange)).setText(exchange);
-                            ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
-                        });
-                    } catch (JSONException e) {
-                        Log.e("Exception", e.getMessage());
-                    }
-                } finally {
-                    urlConnection.disconnect();
-                }
-            } catch (IOException e) {
+                JSONObject jsonObject = new JSONObject(result).getJSONObject("results");
+                String name = jsonObject.getString("name");
+                String exchange = jsonObject.getString("primary_exchange").replace("XNYS", "NYSE").replace("XNAS", "NASDAQ");
+                String marketCap = createMarketCapString(jsonObject.getDouble("market_cap"));
+                handler.post(() -> {
+                    ((TextView) findViewById(R.id.stockName)).setText(name);
+                    ((TextView) findViewById(R.id.exchange)).setText(exchange);
+                    ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
+                });
+            } catch (JSONException e) {
                 Log.e("Exception", e.getMessage());
             }
         });
@@ -227,212 +196,125 @@ public class StockInfoActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void getPreviousClose() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(() -> {
+            String result = APIHelper.get("https://api.polygon.io/v1/open-close/" + ticker + "/" + subDate(Calendar.DAY_OF_WEEK, 1) + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+            try {
+                JSONObject jsonObject = new JSONObject(result).getJSONObject("results");
+                String previousClose = jsonObject.getString("close");
+                handler.post(() -> {
+                    LimitLine limitLine = new LimitLine(Float.parseFloat(previousClose));
+                    limitLine.setLineColor(Color.parseColor("#3F51B5"));
+                    limitLine.setLineWidth(1);
+                    limitLine.enableDashedLine(30, 30, 0);
+                    leftAxis.addLimitLine(limitLine);
+                });
+            } catch (JSONException e) {
+                Log.e("Exception", e.getMessage());
+            }
+        });
+    }
+
+    private String subDate(int field, int amount) {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        if (dayOfWeek == Calendar.SATURDAY) {
+            calendar.add(Calendar.DAY_OF_WEEK, -1);
+        } else if (dayOfWeek == Calendar.SUNDAY) {
+            calendar.add(Calendar.DAY_OF_WEEK, -2);
+        }
+        calendar.add(field, -amount);
+        return dateFormat.format(calendar.getTime());
+    }
+
     private void getBars(int checkedId) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(() -> {
             String url = "https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/";
-            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
-            int year = calendar.get(Calendar.YEAR);
-            int month = calendar.get(Calendar.MONTH);
-            int date = calendar.get(Calendar.DATE);
-            calendar.set(year, month, date);
             if (checkedId == R.id.radio1D) {
-                url += "5/minute/2022-02-08/2022-02-08";
+                url += "5/minute/" + subDate(Calendar.DAY_OF_WEEK, 0);
             } else if (checkedId == R.id.radio1W) {
-                url += "30/minute/2022-02-02/2022-02-08";
+                url += "30/minute/" + subDate(Calendar.DAY_OF_WEEK, 7);
             } else if (checkedId == R.id.radio1M) {
-                url += "1/day/2022-01-09/2022-02-08";
+                url += "1/day/" + subDate(Calendar.MONTH, 1);
             } else if (checkedId == R.id.radio3M) {
-                url += "1/day/2021-11-09/2022-02-08";
+                url += "1/day/" + subDate(Calendar.MONTH, 3);
             } else if (checkedId == R.id.radio1Y) {
-                url += "1/day/2021-02-09/2022-02-08";
+                url += "1/day/" + subDate(Calendar.YEAR, 1);
             } else if (checkedId == R.id.radio2Y) {
-                url += "1/week/2020-02-09/2022-02-08";
+                url += "1/day/" + subDate(Calendar.YEAR, 2);
             }
-            url += "?adjusted=true&sort=asc&limit=120&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up";
+            url += "/" + subDate(Calendar.DAY_OF_WEEK, 0) + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up";
+            System.out.println(url);
+            String result = APIHelper.get(url);
             try {
-                URL u = new URL(url);
-                HttpURLConnection urlConnection;
-                do {
-                    urlConnection = (HttpURLConnection) u.openConnection();
-                } while (urlConnection.getResponseCode() >= 400);
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                    StringBuilder stockInfo = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stockInfo.append(line).append("\n");
-                    }
-                    bufferedReader.close();
-                    try {
-                        JSONObject jsonObject = new JSONObject(stockInfo.toString()).getJSONObject("results");
-                        String name = jsonObject.getString("name");
-                        String exchange = jsonObject.getString("primary_exchange").replace("XNYS", "NYSE").replace("XNAS", "NASDAQ");
-                        String marketCap = createMarketCapString(jsonObject.getDouble("market_cap"));
-                        handler.post(() -> {
-                            ((TextView) findViewById(R.id.stockName)).setText(name);
-                            ((TextView) findViewById(R.id.exchange)).setText(exchange);
-                            ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
-                        });
-                    } catch (JSONException e) {
-                        Log.e("Exception", e.getMessage());
-                    }
-                } finally {
-                    urlConnection.disconnect();
+                JSONArray jsonArray = new JSONObject(result).getJSONArray("results");
+                int length = jsonArray.length();
+                ArrayList<Entry> entries = new ArrayList<>();
+                ArrayList<String> xAxisValues = new ArrayList<>();
+                Calendar calendar = Calendar.getInstance();
+                SimpleDateFormat xAxisFormat = new SimpleDateFormat(checkedId == R.id.radio1D ? "h:mm a" : (checkedId == R.id.radio1W || checkedId == R.id.radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
+                xAxisFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+                for (int i = 0; i < length; i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    entries.add(i, new Entry(i, Float.parseFloat(jsonObject.getString("c"))));
+                    calendar.setTimeInMillis(jsonObject.getLong("t"));
+                    xAxisValues.add(xAxisFormat.format(calendar.getTime()));
                 }
-            } catch (IOException e) {
+                xAxis.setValueFormatter(new ValueFormatter() {
+                    @Override
+                    public String getFormattedValue(float value) {
+                        return xAxisValues.get((int) value);
+                    }
+                });
+                LineDataSet lineDataSet = new LineDataSet(entries, "Quotes");
+                lineDataSet.setDrawHorizontalHighlightIndicator(false);
+                lineDataSet.setDrawValues(false);
+                lineDataSet.setDrawCircles(false);
+                lineDataSet.setLineWidth(2);
+                lineDataSet.setColor(entries.get(0).getY() <= entries.get(length - 1).getY() ? Color.parseColor("#33CC33") : Color.RED);
+//                if (prevClose >= lineData.getYMax()) {
+//                    leftAxis.setAxisMaximum(prevClose + 0.1f * (prevClose - lineData.getYMin()));
+//                } else if (prevClose <= lineData.getYMin()) {
+//                    leftAxis.setAxisMinimum(prevClose - 0.1f * (lineData.getYMax() - prevClose));
+//                }
+                LineData lineData = new LineData(lineDataSet);
+                chart.setData(lineData);
+                handler.post(() -> chart.animateX(1000));
+            } catch (JSONException e) {
                 Log.e("Exception", e.getMessage());
             }
         });
     }
 
     private void getBars() {
-        taskCounter++;
-        new Thread(() -> {
-            try {
-                URL u = new URL("");
-                HttpURLConnection urlConnection;
-                do {
-                    urlConnection = (HttpURLConnection) u.openConnection();
-                } while (urlConnection.getResponseCode() >= 400);
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                    StringBuilder stockInfo = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stockInfo.append(line).append("\n");
-                    }
-                    bufferedReader.close();
-                    try {
-                        String result = stockInfo.toString().replaceAll("// ", "");
-                        Object json = new JSONTokener(result).nextValue();
-                        if (json instanceof JSONObject) {
-                            JSONObject jsonObject = new JSONObject(result);
-                            if (!jsonObject.isNull("Positions")) {
-                                final JSONArray dates = jsonObject.getJSONArray("Dates");
-                                SimpleDateFormat datesFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
-                                SimpleDateFormat monthDayFormat = new SimpleDateFormat("MMM d", Locale.ENGLISH);
-                                SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMM yyyy", Locale.ENGLISH);
-                                SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy", Locale.ENGLISH);
-                                if (dates.length() < 100) {
-                                    for (int i = 0; i < dates.length(); i++) {
-                                        dates.put(i, monthDayFormat.format(Objects.requireNonNull(datesFormat.parse(dates.get(i).toString()))));
-                                    }
-                                } else if (dates.length() >= 100 && dates.length() < 365) {
-                                    for (int i = 0; i < dates.length(); i++) {
-                                        dates.put(i, monthYearFormat.format(Objects.requireNonNull(datesFormat.parse(dates.get(i).toString()))));
-                                    }
-                                } else {
-                                    for (int i = 0; i < dates.length(); i++) {
-                                        dates.put(i, yearFormat.format(Objects.requireNonNull(datesFormat.parse(dates.get(i).toString()))));
-                                    }
-                                }
-                                xAxis.setValueFormatter(new ValueFormatter() {
-                                    @Override
-                                    public String getFormattedValue(float value) {
-                                        try {
-                                            return dates.get((int) value).toString();
-                                        } catch (JSONException e) {
-                                            Log.e("Exception", e.getMessage());
-                                        }
-                                        return null;
-                                    }
-                                });
-                                xAxis.resetAxisMaximum();
-                                leftAxis.resetAxisMaximum();
-                                leftAxis.resetAxisMinimum();
-
-                                JSONArray values = jsonObject.getJSONArray("Elements").getJSONObject(0).getJSONObject("DataSeries").getJSONObject("close").getJSONArray("values");
-                                ArrayList<Entry> entries = new ArrayList<>();
-                                for (int i = 0; i < dates.length(); i++) {
-                                    entries.add(new Entry(i, Float.parseFloat(String.valueOf(values.get(i)))));
-                                }
-                                LineDataSet dataSet = new LineDataSet(entries, "Label");
-                                dataSet.setDrawHorizontalHighlightIndicator(false);
-                                dataSet.setDrawCircles(false);
-                                dataSet.setLineWidth(2);
-                                if (entries.size() >= 2) {
-                                    if (entries.get(0).getY() <= entries.get(entries.size() - 1).getY()) {
-                                        dataSet.setColor(Color.parseColor("#33CC33"));
-                                    } else {
-                                        dataSet.setColor(Color.RED);
-                                    }
-                                }
-                                LineData lineData = new LineData(dataSet);
-                                lineData.setDrawValues(false);
-                                chart.setData(lineData);
-                                chart.animateX(1000);
-                                chart.invalidate();
-                            }
-                        } else if (json instanceof JSONArray) {
-                            JSONObject jsonObject = new JSONArray(result).getJSONObject(0);
-                            prevClose = Float.parseFloat(jsonObject.getString("pcls_fix"));
-                            limitLine = new LimitLine(Float.parseFloat(jsonObject.getString("pcls_fix")));
-                            limitLine.setLineColor(Color.parseColor("#3F51B5"));
-                            limitLine.setLineWidth(1);
-                            limitLine.enableDashedLine(30, 30, 0);
-                            leftAxis.addLimitLine(limitLine);
-                        } else {
-                            final ArrayList<String> dates = new ArrayList<>();
-                            SimpleDateFormat minFormat = new SimpleDateFormat("mmm", Locale.ENGLISH);
-                            SimpleDateFormat hourMinFormat = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
-                            for (int i = 570; i <= 960; i += 5) {
-                                dates.add(hourMinFormat.format(Objects.requireNonNull(minFormat.parse("" + i))));
-                            }
-                            xAxis.setValueFormatter(new ValueFormatter() {
-                                @Override
-                                public String getFormattedValue(float value) {
-                                    return dates.get((int) value);
-                                }
-                            });
-
-                            bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
-                            ArrayList<Entry> entries = new ArrayList<>();
-                            for (int i = 0; i < 7; i++) {
-                                bufferedReader.readLine();
-                            }
-                            line = bufferedReader.readLine();
-                            String[] array = line.split(",");
-                            entries.add(new Entry(0, Float.parseFloat(array[1])));
-                            while ((line = bufferedReader.readLine()) != null) {
-                                array = line.split(",");
-                                entries.add(new Entry(Integer.parseInt(array[0]), Float.parseFloat(array[1])));
-                            }
-                            bufferedReader.close();
-                            xAxis.setAxisMaximum(78);
-
-                            dataSet = new LineDataSet(entries, "Label");
-                            dataSet.setDrawHorizontalHighlightIndicator(false);
-                            dataSet.setDrawCircles(false);
-                            dataSet.setLineWidth(2);
-
-                            done = false;
-                        }
-                    } catch (IOException | JSONException | ParseException e) {
-                        Log.e("Exception", e.getMessage());
-                    }
-                } finally {
-                    urlConnection.disconnect();
+        try {
+            String result = "".replaceAll("// ", "");
+            Object json = new JSONTokener(result).nextValue();
+            if (json instanceof JSONObject) {
+                xAxis.resetAxisMaximum();
+                leftAxis.resetAxisMaximum();
+                leftAxis.resetAxisMinimum();
+            } else {
+                final ArrayList<String> dates = new ArrayList<>();
+                SimpleDateFormat minFormat = new SimpleDateFormat("mmm", Locale.ENGLISH);
+                SimpleDateFormat hourMinFormat = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
+                for (int i = 570; i <= 960; i += 5) {
+                    dates.add(hourMinFormat.format(Objects.requireNonNull(minFormat.parse("" + i))));
                 }
-            } catch (IOException e) {
-                Log.e("Exception", e.toString());
+                xAxis.setValueFormatter(new ValueFormatter() {
+                    @Override
+                    public String getFormattedValue(float value) {
+                        return dates.get((int) value);
+                    }
+                });
+                xAxis.setAxisMaximum(78);
             }
-            taskCounter--;
-            if (!done && taskCounter == 0 && dataSet != null) {
-                done = true;
-                dataSet.setColor(((TextView) findViewById(R.id.stockPercentChange)).getCurrentTextColor());
-                LineData lineData = new LineData(dataSet);
-                lineData.setDrawValues(false);
-                if (prevClose >= lineData.getYMax()) {
-                    leftAxis.setAxisMaximum(prevClose + 0.1f * (prevClose - lineData.getYMin()));
-                } else if (prevClose <= lineData.getYMin()) {
-                    leftAxis.setAxisMinimum(prevClose - 0.1f * (lineData.getYMax() - prevClose));
-                }
-                chart.setData(lineData);
-                chart.animateX(1000);
-                chart.invalidate();
-            }
-        }).start();
+        } catch (JSONException | ParseException e) {
+            Log.e("Exception", e.getMessage());
+        }
     }
 }

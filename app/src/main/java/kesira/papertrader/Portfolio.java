@@ -17,14 +17,9 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -351,13 +346,15 @@ class Portfolio {
         }
 
         private void refresh() {
-            mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
-            quotesReady = 0;
-            for (Stock stock : stocks) {
-                stock.setQuote(null);
-                stock.setCost(null);
-                adapter.notifyDataSetChanged();
-                getData(stock);
+            if (size() > 0) {
+                mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
+                quotesReady = 0;
+                for (Stock stock : stocks) {
+                    stock.setQuote(null);
+                    stock.setPercentChange(null);
+                    adapter.notifyDataSetChanged();
+                    getData(stock);
+                }
             }
         }
 
@@ -365,39 +362,20 @@ class Portfolio {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             Handler handler = new Handler(Looper.getMainLooper());
             executor.execute(() -> {
+                String result = APIHelper.get("https://api.polygon.io/v2/aggs/ticker/" + stock.getTicker() + "/prev?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                 try {
-                    URL u = new URL("https://api.polygon.io/v2/aggs/ticker/" + stock.getTicker() + "/prev?adjusted=true&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
-                    HttpURLConnection urlConnection;
-                    do {
-                        urlConnection = (HttpURLConnection) u.openConnection();
-                    } while (urlConnection.getResponseCode() >= 400);
-                    try {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                        StringBuilder stockInfo = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stockInfo.append(line).append("\n");
-                        }
-                        bufferedReader.close();
-                        try {
-                            JSONObject jsonObject = new JSONObject(stockInfo.toString()).getJSONArray("results").getJSONObject(0);
-                            BigDecimal close = new BigDecimal(jsonObject.getString("c"));
-                            stock.setQuote(close);
-                            quotesReady++;
-                            BigDecimal open = new BigDecimal(jsonObject.getString("o"));
-                            stock.setPercentChange(roundPercentage(divide(close.subtract(open), open)));
-                            handler.post(() -> {
-                                adapter.notifyDataSetChanged();
-                                mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.GONE);
-                                showPortfolioValueIfReady();
-                            });
-                        } catch (JSONException e) {
-                            Log.e("Exception", e.getMessage());
-                        }
-                    } finally {
-                        urlConnection.disconnect();
-                    }
-                } catch (IOException e) {
+                    JSONObject jsonObject = new JSONObject(result).getJSONArray("results").getJSONObject(0);
+                    BigDecimal close = new BigDecimal(jsonObject.getString("c"));
+                    stock.setQuote(close);
+                    quotesReady++;
+                    BigDecimal open = new BigDecimal(jsonObject.getString("o"));
+                    stock.setPercentChange(roundPercentage(divide(close.subtract(open), open)));
+                    handler.post(() -> {
+                        adapter.notifyDataSetChanged();
+                        mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.GONE);
+                        showPortfolioValueIfReady();
+                    });
+                } catch (JSONException e) {
                     Log.e("Exception", e.getMessage());
                 }
             });
@@ -431,11 +409,11 @@ class Portfolio {
                 Stock stock = getItem(position);
                 textViews[0].setText(stock.getTicker());
                 BigDecimal quote = stock.getQuote();
-                if (quote != null) {
-                    textViews[1].setText(formatCurrency(stock.getQuote()));
-                }
+                textViews[1].setText(quote == null ? "" : formatCurrency(stock.getQuote()));
                 BigDecimal percentChange = stock.getPercentChange();
-                if (percentChange != null) {
+                if (percentChange == null) {
+                    textViews[2].setText("");
+                } else {
                     boolean percentChangePositive = percentChange.compareTo(BigDecimal.ZERO) >= 0;
                     textViews[2].setText((percentChangePositive ? "+" : "") + formatPercentage(percentChange));
                     textViews[2].setTextColor(percentChangePositive ? Color.parseColor("#33CC33") : Color.RED);

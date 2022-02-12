@@ -21,10 +21,9 @@ public class CustomLineChart extends LineChart {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        super.onTouchEvent(event);
         performClick();
         getParent().requestDisallowInterceptTouchEvent(true);
-        return true;
+        return super.onTouchEvent(event);
     }
 
     @Override

@@ -1,8 +1,6 @@
 package kesira.papertrader;
 
 import android.app.Activity;
-import android.app.SearchManager;
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -11,11 +9,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.EditText;
-import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -96,36 +92,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.refresh_menu, menu);
         inflater.inflate(R.menu.search_menu, menu);
-
-        MenuItem searchMenuItem = menu.findItem(R.id.search);
-        collapseSearchOnTouch(findViewById(R.id.mainActivity), searchMenuItem);
-        ((SearchView) searchMenuItem.getActionView()).setSearchableInfo(((SearchManager) getSystemService(Context.SEARCH_SERVICE)).getSearchableInfo(getComponentName()));
-
+        inflater.inflate(R.menu.refresh_menu, menu);
         return true;
-    }
-
-    private void collapseSearchOnTouch(View view, MenuItem searchMenuItem) {
-        if (!(view instanceof SearchView)) {
-            view.setOnTouchListener((v, event) -> {
-                v.performClick();
-                searchMenuItem.collapseActionView();
-                return false;
-            });
-        }
-        if (view instanceof ViewGroup) {
-            ViewGroup viewGroup = (ViewGroup) view;
-            int childCount = viewGroup.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                collapseSearchOnTouch(viewGroup.getChildAt(i), searchMenuItem);
-            }
-        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.refresh) {
+        if (item.getItemId() == R.id.search) {
+            onSearchRequested();
+        } else if (item.getItemId() == R.id.refresh) {
             Portfolio.refresh();
         }
         return super.onOptionsItemSelected(item);
