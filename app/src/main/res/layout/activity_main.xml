@@ -1,163 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:ads="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <ScrollView
-        android:id="@+id/mainActivity"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:clipToPadding="false"
+        android:descendantFocusability="beforeDescendants"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode ="true">
         <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="10dp"
-            android:clipToPadding="false"
-            android:descendantFocusability="beforeDescendants"
-            android:clickable="true"
-            android:focusable="true"
-            android:focusableInTouchMode ="true">
+            android:layout_marginBottom="10dp"
+            android:baselineAligned="false">
             <LinearLayout
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:baselineAligned="false">
-                <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
+                android:layout_weight="1">
+                <TextView
+                    android:id="@+id/portfolioValue"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <TextView
-                        android:id="@+id/portfolioValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="40sp" />
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/portfolio_value"
-                            android:textSize="13sp" />
-                        <TextView
-                            android:id="@+id/portfolioValuePerformance"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
+                    android:textSize="40sp" />
                 <LinearLayout
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:layout_gravity="bottom"
-                    android:gravity="end">
-                    <TextView
-                        android:id="@+id/cash"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="17sp" />
+                    android:layout_height="match_parent">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/cash"
+                        android:text="@string/portfolio_value"
+                        android:textSize="13sp" />
+                    <TextView
+                        android:id="@+id/portfolioValuePerformance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="10dp">
-                <EditText
-                    android:id="@+id/editText"
-                    android:inputType="textCapCharacters"
-                    android:hint="@string/stock_ticker_symbol"
-                    android:layout_width="match_parent"
+                android:layout_weight="2"
+                android:layout_gravity="bottom"
+                android:gravity="end">
+                <TextView
+                    android:id="@+id/cash"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-                <Button
-                    android:layout_width="match_parent"
+                    android:textSize="17sp" />
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:text="@string/button_add"
-                    android:onClick="addToWatchlist" />
+                    android:text="@string/cash"
+                    android:textSize="13sp" />
             </LinearLayout>
-            <TextView
-                android:id="@+id/positionsText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text="@string/positions"
-                android:textSize="20sp" />
-            <RelativeLayout
-                android:id="@+id/positionsList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="-10dp"
-                android:layout_marginStart="-10dp"
-                android:layout_marginRight="-10dp"
-                android:layout_marginEnd="-10dp"
-                android:layout_marginBottom="10dp"
-                android:visibility="gone"
-                android:gravity="center">
-                <kesira.papertrader.NonScrollListView
-                    android:id="@+id/positions"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#E8EAF6"
-                    android:divider="@null"
-                    android:dividerHeight="0dp" />
-                <ProgressBar
-                    android:id="@+id/progressBarPositions"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="true"
-                    android:layout_centerHorizontal="true"
-                    android:visibility="gone" />
-            </RelativeLayout>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/watchlist"
-                android:textSize="20sp" />
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="-10dp"
-                android:layout_marginStart="-10dp"
-                android:layout_marginRight="-10dp"
-                android:layout_marginEnd="-10dp"
-                android:layout_marginBottom="60dp"
-                android:gravity="center">
-                <kesira.papertrader.NonScrollListView
-                    android:id="@+id/watchlist"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#E8EAF6"
-                    android:divider="@null"
-                    android:dividerHeight="0dp" />
-                <ProgressBar
-                    android:id="@+id/progressBarWatchlist"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="true"
-                    android:layout_centerHorizontal="true"
-                    android:visibility="gone" />
-            </RelativeLayout>
         </LinearLayout>
-    </ScrollView>
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/adView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id">
-    </com.google.android.gms.ads.AdView>
-</RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+            <EditText
+                android:id="@+id/enterTicker"
+                android:inputType="textCapCharacters"
+                android:hint="@string/ticker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:autofillHints="" />
+            <Button
+                android:id="@+id/addTicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="@string/button_add" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/positionsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/positions"
+            android:textSize="20sp" />
+        <RelativeLayout
+            android:id="@+id/positionList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="-10dp"
+            android:layout_marginStart="-10dp"
+            android:layout_marginEnd="-10dp"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone"
+            android:gravity="center">
+            <kesira.papertrader.NonScrollListView
+                android:id="@+id/positions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#E8EAF6"
+                android:divider="@null"
+                android:dividerHeight="0dp" />
+            <ProgressBar
+                android:id="@+id/progressBarPositions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:layout_centerHorizontal="true"
+                android:visibility="visible" />
+        </RelativeLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/watchlist"
+            android:textSize="20sp" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="-10dp"
+            android:layout_marginStart="-10dp"
+            android:layout_marginEnd="-10dp"
+            android:layout_marginBottom="60dp"
+            android:gravity="center">
+            <kesira.papertrader.NonScrollListView
+                android:id="@+id/watchlist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#E8EAF6"
+                android:divider="@null"
+                android:dividerHeight="0dp" />
+            <ProgressBar
+                android:id="@+id/progressBarWatchlist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:layout_centerHorizontal="true"
+                android:visibility="gone" />
+        </RelativeLayout>
+    </LinearLayout>
+</ScrollView>

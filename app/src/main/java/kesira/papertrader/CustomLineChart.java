@@ -7,7 +7,6 @@ import android.view.MotionEvent;
 import com.github.mikephil.charting.charts.LineChart;
 
 public class CustomLineChart extends LineChart {
-
     public CustomLineChart(Context context) {
         super(context);
     }
@@ -22,8 +21,14 @@ public class CustomLineChart extends LineChart {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        getParent().requestDisallowInterceptTouchEvent(true);
         super.onTouchEvent(event);
+        performClick();
+        getParent().requestDisallowInterceptTouchEvent(true);
         return true;
+    }
+
+    @Override
+    public boolean performClick() {
+        return super.performClick();
     }
 }

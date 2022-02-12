@@ -1,8 +1,6 @@
 package kesira.papertrader;
 
 import android.app.SearchManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -11,17 +9,20 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 
 public class MyCustomSuggestionProvider extends ContentProvider {
-
     @Override
     public boolean onCreate() {
         return false;
@@ -29,50 +30,43 @@ public class MyCustomSuggestionProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] strings, @Nullable String s, @Nullable String[] strings1, @Nullable String s1) {
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+        MatrixCursor matrixCursor = new MatrixCursor(new String[] {BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2, SearchManager.SUGGEST_COLUMN_INTENT_DATA});
         String query = uri.getLastPathSegment();
-        MatrixCursor matrixCursor = new MatrixCursor(new String[]{BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2, SearchManager.SUGGEST_COLUMN_INTENT_DATA});
-        String result;
-        try {
-            URL url = new URL("http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + query);
-            HttpURLConnection urlConnection;
-            do {
-                urlConnection = (HttpURLConnection) url.openConnection();
-            }
-            while (urlConnection.getResponseCode() >= 400);
+        System.out.println("uri:" + uri);
+        System.out.println("last:" + query);
+        if (!query.equals("search_suggest_query")) {
             try {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                result = "";
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    result += line + "\n";
+                URL url = new URL("https://api.polygon.io/v3/reference/tickers?search=" + query + "&active=true&sort=ticker&order=asc&limit=10&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+                HttpURLConnection urlConnection;
+                do {
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                } while (urlConnection.getResponseCode() >= 400);
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        result.append(line).append("\n");
+                    }
+                    bufferedReader.close();
+                    try {
+                        JSONArray jsonArray = new JSONObject(result.toString()).getJSONArray("results");
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            String ticker = jsonObject.getString("ticker");
+                            matrixCursor.addRow(new Object[]{i, ticker, jsonObject.getString("name"), ticker});
+                        }
+                    } catch (JSONException e) {
+                        Log.e("Exception", e.getMessage());
+                    }
+                } finally {
+                    urlConnection.disconnect();
                 }
-                bufferedReader.close();
+            } catch (IOException e) {
+                Log.e("Exception", e.toString());
+                return null;
             }
-            finally {
-                urlConnection.disconnect();
-            }
-        }
-        catch (Exception e) {
-            Log.e("Exception", e.toString());
-            return null;
-        }
-        Log.i("INFO", result);
-        try {
-            ArrayList<String> arrayList = new ArrayList<>();
-            JSONArray jsonArray = new JSONArray(result);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                if (arrayList.contains(jsonObject.getString("Symbol"))) {
-                    continue;
-                }
-                arrayList.add(jsonObject.getString("Symbol"));
-                matrixCursor.addRow(new Object[] {i, jsonObject.getString("Symbol"), jsonObject.getString("Name"), jsonObject.getString("Symbol")});
-            }
-
-        }
-        catch (Exception e) {
-            Log.e("Exception", e.getMessage());
         }
         return matrixCursor;
     }
@@ -85,17 +79,17 @@ public class MyCustomSuggestionProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         return null;
     }
 
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
     }
 
     @Override
-    public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
+    public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
     }
 }

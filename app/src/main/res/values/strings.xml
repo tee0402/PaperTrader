@@ -1,30 +1,27 @@
 <resources>
     <string name="app_name">Paper Trader</string>
-    <string name="banner_ad_unit_id">ca-app-pub-4071292763824495/9366856166</string>
     <string name="refresh_title">Refresh</string>
     <string name="add_title">Add to watchlist</string>
     <string name="remove_title">Remove from watchlist</string>
-    <string name="search_title">Search for stocks</string>
-    <string name="search_hint">Enter stock ticker or name</string>
+    <string name="search_title">Search for stocks to add to watchlist</string>
+    <string name="search_hint">Search tickers and company names</string>
     <string name="context_menu_item1">Remove from watchlist</string>
     <string name="portfolio_value">Portfolio Value</string>
     <string name="cash">Cash</string>
     <string name="positions">Positions</string>
     <string name="watchlist">Watchlist</string>
-    <string name="stock_ticker_symbol">Stock ticker symbol</string>
+    <string name="ticker">Ticker</string>
     <string name="button_add">Add</string>
     <string name="button_1d">1D</string>
     <string name="button_1w">1W</string>
     <string name="button_1m">1M</string>
     <string name="button_3m">3M</string>
     <string name="button_1y">1Y</string>
-    <string name="button_5y">5Y</string>
-    <string name="button_max">MAX</string>
+    <string name="button_2y">2Y</string>
     <string name="button_buy">Buy</string>
     <string name="button_sell">Sell</string>
     <string name="quantity">Quantity</string>
-    <string name="cost">Cost:</string>
-    <string name="amount">Amount:</string>
+    <string name="total">Total:</string>
     <string name="cancel">Cancel</string>
     <string name="shares_owned">Shares Owned</string>
     <string name="position_value">Position Value</string>
@@ -33,5 +30,4 @@
     <string name="position_performance">Position Performance</string>
     <string name="exchange">Exchange</string>
     <string name="market_cap">Market Cap</string>
-    <string name="dividend_yield">Dividend Yield</string>
 </resources>
