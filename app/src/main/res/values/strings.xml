@@ -12,6 +12,8 @@
     <string name="watchlist">Watchlist</string>
     <string name="ticker">Ticker</string>
     <string name="button_add">Add</string>
+    <string name="button_watch_a_video_to_increase_your_starting_amount_by_5000">Watch a video to increase your starting amount by $5000</string>
+    <string name="button_watch_a_video_to_start_over">Watch a video to start over</string>
     <string name="button_1d">1D</string>
     <string name="button_1w">1W</string>
     <string name="button_1m">1M</string>
