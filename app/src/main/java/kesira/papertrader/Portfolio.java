@@ -23,6 +23,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -76,11 +77,29 @@ class Portfolio {
         return positions.getCost(ticker);
     }
 
+    static BigDecimal getPreviousClose(String ticker) {
+        if (inPositions(ticker)) {
+            return positions.getPreviousClose(ticker);
+        } else if (inWatchlist(ticker)) {
+            return watchlist.getPreviousClose(ticker);
+        }
+        return null;
+    }
+
     static BigDecimal getQuote(String ticker) {
         if (inPositions(ticker)) {
             return positions.getQuote(ticker);
         } else if (inWatchlist(ticker)) {
             return watchlist.getQuote(ticker);
+        }
+        return null;
+    }
+
+    static BigDecimal getChange(String ticker) {
+        if (inPositions(ticker)) {
+            return positions.getChange(ticker);
+        } else if (inWatchlist(ticker)) {
+            return watchlist.getChange(ticker);
         }
         return null;
     }
@@ -96,7 +115,7 @@ class Portfolio {
 
     static void add(String ticker) {
         if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
-            watchlist.add(ticker);
+            watchlist.addIfValid(ticker);
         }
     }
 
@@ -218,10 +237,26 @@ class Portfolio {
             return null;
         }
 
+        private BigDecimal getPreviousClose(String ticker) {
+            Stock stock = getStock(ticker);
+            if (stock != null) {
+                return stock.getPreviousClose();
+            }
+            return null;
+        }
+
         private BigDecimal getQuote(String ticker) {
             Stock stock = getStock(ticker);
             if (stock != null) {
                 return stock.getQuote();
+            }
+            return null;
+        }
+
+        private BigDecimal getChange(String ticker) {
+            Stock stock = getStock(ticker);
+            if (stock != null) {
+                return stock.getChange();
             }
             return null;
         }
@@ -234,13 +269,23 @@ class Portfolio {
             return null;
         }
 
-        private void add(String ticker) {
+        private void addIfValid(String ticker) {
             if (!contains(ticker)) {
-                stockSet.add(ticker);
-                writeTickers();
-                Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
-                stocks.add(stock);
-                getData(stock);
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.execute(() -> {
+                    String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?ticker=" + ticker + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+                    try {
+                        if (new JSONObject(result).getJSONArray("results").length() == 1) {
+                            stockSet.add(ticker);
+                            writeTickers();
+                            Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
+                            stocks.add(stock);
+                            getData(stock);
+                        }
+                    } catch (JSONException e) {
+                        Log.e("Exception", e.getMessage());
+                    }
+                });
             }
         }
 
@@ -291,7 +336,7 @@ class Portfolio {
             if (buy && stock == null) {
                 stockSet.add(ticker);
                 writeTickers();
-                stock = new Stock(ticker, shares, price, watchlistStock.getQuote(), watchlistStock.getPercentChange());
+                stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
                 stocks.add(stock);
                 writePosition(stock);
                 quotesReady++;
@@ -351,6 +396,7 @@ class Portfolio {
                 quotesReady = 0;
                 for (Stock stock : stocks) {
                     stock.setQuote(null);
+                    stock.setChange(null);
                     stock.setPercentChange(null);
                     adapter.notifyDataSetChanged();
                     getData(stock);
@@ -362,14 +408,24 @@ class Portfolio {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             Handler handler = new Handler(Looper.getMainLooper());
             executor.execute(() -> {
-                String result = APIHelper.get("https://api.polygon.io/v2/aggs/ticker/" + stock.getTicker() + "/prev?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+                String result = APIHelper.get("https://api.polygon.io/v1/open-close/" + stock.getTicker() + "/" + APIHelper.subDate(Calendar.DAY_OF_WEEK, 1) + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+                try {
+                    stock.setPreviousClose(new BigDecimal(new JSONObject(result).getString("close")));
+                } catch (JSONException e) {
+                    Log.e("Exception", e.getMessage());
+                }
+                result = APIHelper.get("https://api.polygon.io/v2/aggs/ticker/" + stock.getTicker() + "/prev?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                 try {
                     JSONObject jsonObject = new JSONObject(result).getJSONArray("results").getJSONObject(0);
                     BigDecimal close = new BigDecimal(jsonObject.getString("c"));
                     stock.setQuote(close);
                     quotesReady++;
-                    BigDecimal open = new BigDecimal(jsonObject.getString("o"));
-                    stock.setPercentChange(roundPercentage(divide(close.subtract(open), open)));
+                    BigDecimal previousClose = stock.getPreviousClose();
+                    if (previousClose != null) {
+                        BigDecimal change = close.subtract(previousClose);
+                        stock.setChange(roundCurrency(change));
+                        stock.setPercentChange(roundPercentage(divide(change, previousClose)));
+                    }
                     handler.post(() -> {
                         adapter.notifyDataSetChanged();
                         mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.GONE);

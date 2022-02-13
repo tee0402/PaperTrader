@@ -6,7 +6,9 @@ class Stock {
     private final String ticker;
     private int shares;
     private BigDecimal cost;
+    private BigDecimal previousClose;
     private BigDecimal quote;
+    private BigDecimal change;
     private BigDecimal percentChange;
 
     Stock(String ticker, int shares, BigDecimal cost) {
@@ -15,11 +17,13 @@ class Stock {
         this.cost = cost;
     }
 
-    Stock(String ticker, int shares, BigDecimal cost, BigDecimal quote, BigDecimal percentChange) {
+    Stock(String ticker, int shares, BigDecimal cost, BigDecimal previousClose, BigDecimal quote, BigDecimal change, BigDecimal percentChange) {
         this.ticker = ticker;
         this.shares = shares;
         this.cost = cost;
+        this.previousClose = previousClose;
         this.quote = quote;
+        this.change = change;
         this.percentChange = percentChange;
     }
 
@@ -46,6 +50,20 @@ class Stock {
     }
     void setQuote(BigDecimal quote) {
         this.quote = quote;
+    }
+
+    BigDecimal getPreviousClose() {
+        return previousClose;
+    }
+    void setPreviousClose(BigDecimal previousClose) {
+        this.previousClose = previousClose;
+    }
+
+    BigDecimal getChange() {
+        return change;
+    }
+    void setChange(BigDecimal change) {
+        this.change = change;
     }
 
     BigDecimal getPercentChange() {
