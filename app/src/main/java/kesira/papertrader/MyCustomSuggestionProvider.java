@@ -36,7 +36,7 @@ public class MyCustomSuggestionProvider extends ContentProvider {
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     String ticker = jsonObject.getString("ticker");
-                    matrixCursor.addRow(new Object[]{i, ticker, jsonObject.getString("name"), ticker});
+                    matrixCursor.addRow(new Object[] {i, ticker, jsonObject.getString("name"), ticker});
                 }
             } catch (JSONException e) {
                 Log.e("Exception", e.getMessage());

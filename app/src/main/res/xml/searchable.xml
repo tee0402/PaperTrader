@@ -3,4 +3,5 @@
     android:label="@string/app_name"
     android:hint="@string/search_hint"
     android:searchSuggestAuthority="kesira.papertrader.MyCustomSuggestionProvider"
+    android:searchSuggestThreshold="1"
     android:searchSuggestIntentAction="android.intent.action.VIEW" />

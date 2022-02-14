@@ -1,6 +1,8 @@
 package kesira.papertrader;
 
 import android.app.Activity;
+import android.app.SearchManager;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -15,6 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 
 public class MainActivity extends AppCompatActivity {
     private EditText enterTicker;
@@ -94,14 +97,13 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.search_menu, menu);
         inflater.inflate(R.menu.refresh_menu, menu);
+        ((SearchView) menu.findItem(R.id.search).getActionView()).setSearchableInfo(((SearchManager) getSystemService(Context.SEARCH_SERVICE)).getSearchableInfo(getComponentName()));
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.search) {
-            onSearchRequested();
-        } else if (item.getItemId() == R.id.refresh) {
+        if (item.getItemId() == R.id.refresh) {
             Portfolio.refresh();
         }
         return super.onOptionsItemSelected(item);
