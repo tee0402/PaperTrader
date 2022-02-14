@@ -146,19 +146,19 @@ public class StockInfoActivity extends AppCompatActivity {
             executor.execute(() -> {
                 String url = "https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/";
                 if (checkedId == R.id.radio1D) {
-                    url += "5/minute/" + APIHelper.subDate(Calendar.DAY_OF_WEEK, 0);
+                    url += "5/minute/" + APIHelper.subToday(Calendar.DAY_OF_WEEK, 0);
                 } else if (checkedId == R.id.radio1W) {
-                    url += "30/minute/" + APIHelper.subDate(Calendar.DAY_OF_WEEK, 7);
+                    url += "30/minute/" + APIHelper.subToday(Calendar.DAY_OF_WEEK, 7);
                 } else if (checkedId == R.id.radio1M) {
-                    url += "1/day/" + APIHelper.subDate(Calendar.MONTH, 1);
+                    url += "1/day/" + APIHelper.subToday(Calendar.MONTH, 1);
                 } else if (checkedId == R.id.radio3M) {
-                    url += "1/day/" + APIHelper.subDate(Calendar.MONTH, 3);
+                    url += "1/day/" + APIHelper.subToday(Calendar.MONTH, 3);
                 } else if (checkedId == R.id.radio1Y) {
-                    url += "1/day/" + APIHelper.subDate(Calendar.YEAR, 1);
+                    url += "1/day/" + APIHelper.subToday(Calendar.YEAR, 1);
                 } else if (checkedId == R.id.radio2Y) {
-                    url += "1/day/" + APIHelper.subDate(Calendar.YEAR, 2);
+                    url += "1/day/" + APIHelper.subToday(Calendar.YEAR, 2);
                 }
-                url += "/" + APIHelper.subDate(Calendar.DAY_OF_WEEK, 0) + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up";
+                url += "/" + APIHelper.subToday(Calendar.DAY_OF_WEEK, 0) + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up";
                 String result = APIHelper.get(url);
                 try {
                     JSONArray jsonArray = new JSONObject(result).getJSONArray("results");

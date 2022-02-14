@@ -16,7 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MyCustomSuggestionProvider extends ContentProvider {
+public class SuggestionProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         return false;

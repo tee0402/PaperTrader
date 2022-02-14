@@ -11,8 +11,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <provider android:name="kesira.papertrader.MyCustomSuggestionProvider"
-            android:authorities="kesira.papertrader.MyCustomSuggestionProvider"
+        <provider android:name="kesira.papertrader.SuggestionProvider"
+            android:authorities="kesira.papertrader.SuggestionProvider"
             android:exported="false" />
         <activity android:name="kesira.papertrader.MainActivity"
             android:screenOrientation="nosensor"

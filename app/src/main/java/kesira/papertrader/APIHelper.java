@@ -32,10 +32,13 @@ class APIHelper {
         return result.toString();
     }
 
-    static String subDate(int field, int amount) {
+    static String subToday(int field, int amount) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
+        if (calendar.get(Calendar.HOUR_OF_DAY) < 19) {
+            calendar.add(Calendar.DAY_OF_WEEK, -1);
+        }
         int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
         if (dayOfWeek == Calendar.SATURDAY) {
             calendar.add(Calendar.DAY_OF_WEEK, -1);
