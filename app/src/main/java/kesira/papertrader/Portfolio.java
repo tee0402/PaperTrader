@@ -24,17 +24,15 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 class Portfolio {
     private final MainActivity mainActivity;
-    private final BigDecimal initialCash = new BigDecimal(10000);
     private static SharedPreferences prefs;
+    private final BigDecimal initialCash = new BigDecimal(10000);
     private static BigDecimal cash;
     private static StockCollection positions;
     private static StockCollection watchlist;
@@ -115,9 +113,15 @@ class Portfolio {
         return null;
     }
 
-    static void add(String ticker) {
+    static void addIfValid(String ticker) {
         if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
             watchlist.addIfValid(ticker);
+        }
+    }
+
+    static void add(String ticker) {
+        if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
+            watchlist.add(ticker);
         }
     }
 
@@ -205,7 +209,6 @@ class Portfolio {
     private class StockCollection {
         private final boolean positions;
         private final StockArrayAdapter adapter;
-        private final Set<String> tickers = new LinkedHashSet<>();
         private final ArrayList<Stock> stocks = new ArrayList<>();
         private int quotesReady = 0;
 
@@ -220,31 +223,40 @@ class Portfolio {
             });
             Scanner scanner = new Scanner(prefs.getString(positions ? "positions" : "watchlist", ""));
             while (scanner.hasNext()) {
-                tickers.add(scanner.next());
+                String ticker = scanner.next();
+                stocks.add(new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0"))));
             }
+            scanner.close();
             if (positions) {
                 mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
             }
             if (isNonEmpty()) {
                 mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
             }
-            for (String ticker : tickers) {
-                Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
-                stocks.add(stock);
+            for (Stock stock : stocks) {
                 getData(stock);
             }
         }
 
         private int size() {
-            return tickers.size();
+            return stocks.size();
         }
 
         private boolean isNonEmpty() {
             return size() > 0;
         }
 
+        private Stock getStock(String ticker) {
+            for (Stock stock : stocks) {
+                if (stock.getTicker().equals(ticker)) {
+                    return stock;
+                }
+            }
+            return null;
+        }
+
         private boolean contains(String ticker) {
-            return tickers.contains(ticker);
+            return getStock(ticker) != null;
         }
 
         private int getShares(String ticker) {
@@ -302,11 +314,7 @@ class Portfolio {
                     String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?ticker=" + ticker + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                     try {
                         if (new JSONObject(result).getJSONArray("results").length() == 1) {
-                            tickers.add(ticker);
-                            writeTickers();
-                            Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
-                            stocks.add(stock);
-                            getData(stock);
+                            add(ticker);
                         }
                     } catch (JSONException e) {
                         Log.e("Exception", e.getMessage());
@@ -315,12 +323,20 @@ class Portfolio {
             }
         }
 
+        private void add(String ticker) {
+            if (!contains(ticker)) {
+                Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
+                stocks.add(stock);
+                writeTickers();
+                getData(stock);
+            }
+        }
+
         private void add(Stock stock) {
             String ticker = stock.getTicker();
             if (!contains(ticker)) {
-                tickers.add(ticker);
-                writeTickers();
                 stocks.add(stock);
+                writeTickers();
                 quotesReady++;
                 adapter.notifyDataSetChanged();
             }
@@ -328,13 +344,12 @@ class Portfolio {
 
         private Stock remove(String ticker) {
             if (contains(ticker)) {
-                tickers.remove(ticker);
-                writeTickers();
                 int numStocks = stocks.size();
                 for (int i = 0; i < numStocks; i++) {
                     Stock stock = stocks.get(i);
                     if (stock.getTicker().equals(ticker)) {
                         stocks.remove(i);
+                        writeTickers();
                         quotesReady--;
                         adapter.notifyDataSetChanged();
                         return stock;
@@ -345,30 +360,20 @@ class Portfolio {
         }
 
         private void writeTickers() {
-            StringBuilder result = new StringBuilder();
-            for (String ticker : tickers) {
-                result.append(ticker).append(" ");
-            }
-            prefs.edit().putString(positions ? "positions" : "watchlist", result.toString()).apply();
-        }
-
-        private Stock getStock(String ticker) {
+            StringBuilder tickers = new StringBuilder();
             for (Stock stock : stocks) {
-                if (stock.getTicker().equals(ticker)) {
-                    return stock;
-                }
+                tickers.append(stock.getTicker()).append(" ");
             }
-            return null;
+            prefs.edit().putString(positions ? "positions" : "watchlist", tickers.toString()).apply();
         }
 
         private Stock changePosition(boolean buy, String ticker, int shares, BigDecimal price, Stock watchlistStock) {
             Stock stock = getStock(ticker);
             // New or existing position
             if (buy && stock == null) {
-                tickers.add(ticker);
-                writeTickers();
                 stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
                 stocks.add(stock);
+                writeTickers();
                 writePosition(stock);
                 quotesReady++;
                 adapter.notifyDataSetChanged();

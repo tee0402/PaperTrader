@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private void addToWatchlist(View v) {
         String ticker = enterTicker.getText().toString();
         if (!ticker.equals("")) {
-            Portfolio.add(ticker);
+            Portfolio.addIfValid(ticker);
             enterTicker.getText().clear();
             enterTicker.clearFocus();
             v.requestFocus();

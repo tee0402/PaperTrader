@@ -275,7 +275,9 @@ public class StockInfoActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.refresh_menu, menu);
-        inflater.inflate(Portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
+        if (!Portfolio.inPositions(ticker)) {
+            inflater.inflate(Portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
+        }
         return true;
     }
 
