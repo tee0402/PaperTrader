@@ -3,7 +3,6 @@ package kesira.papertrader;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -43,14 +42,10 @@ public class MainActivity extends AppCompatActivity {
         });
         findViewById(R.id.addTicker).setOnClickListener(this::addToWatchlist);
 
-        NonScrollListView watchlist = findViewById(R.id.watchlist);
+        NonScrollListView watchlist = findViewById(R.id.watchlistView);
         registerForContextMenu(watchlist);
-        new Portfolio(this, findViewById(R.id.positions), watchlist);
+        new Portfolio(this, findViewById(R.id.positionsView), watchlist);
         setCashText();
-        showOrHidePositions();
-        if (Portfolio.containsWatchlist()) {
-            findViewById(R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
-        }
     }
 
     private void addToWatchlist(View v) {
@@ -67,17 +62,10 @@ public class MainActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.cash)).setText(Portfolio.getCashString());
     }
 
-    private void showOrHidePositions() {
-        int visibility = Portfolio.containsPositions() ? View.VISIBLE : View.GONE;
-        findViewById(R.id.positionsText).setVisibility(visibility);
-        findViewById(R.id.positionList).setVisibility(visibility);
-    }
-
     @Override
     protected void onRestart() {
         super.onRestart();
         setCashText();
-        showOrHidePositions();
     }
 
     @Override
@@ -107,12 +95,5 @@ public class MainActivity extends AppCompatActivity {
             Portfolio.refresh();
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    void showPortfolioValue(String portfolioValue, String portfolioValueChange, String portfolioValueChangePercentage, boolean positive) {
-        ((TextView) findViewById(R.id.portfolioValue)).setText(portfolioValue);
-        TextView portfolioValuePerformanceText = (TextView) findViewById(R.id.portfolioValuePerformance);
-        portfolioValuePerformanceText.setText((positive ? " +" : " ") + portfolioValueChange + (positive ? " (+" : " (") + portfolioValueChangePercentage + ")");
-        portfolioValuePerformanceText.setTextColor(positive ? Color.parseColor("#33CC33") : Color.RED);
     }
 }

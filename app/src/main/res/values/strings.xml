@@ -25,11 +25,11 @@
     <string name="quantity">Quantity</string>
     <string name="total">Total:</string>
     <string name="cancel">Cancel</string>
-    <string name="shares_owned">Shares Owned</string>
-    <string name="position_value">Position Value</string>
-    <string name="cost_basis">Cost Basis</string>
+    <string name="shares">Shares</string>
+    <string name="total_value">Total Value</string>
+    <string name="average_cost">Average Cost</string>
     <string name="percentage_of_portfolio">Percentage of Portfolio</string>
-    <string name="position_performance">Position Performance</string>
+    <string name="performance">Performance</string>
     <string name="exchange">Exchange</string>
     <string name="market_cap">Market Cap</string>
 </resources>

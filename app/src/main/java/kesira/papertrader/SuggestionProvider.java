@@ -27,8 +27,6 @@ public class SuggestionProvider extends ContentProvider {
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         MatrixCursor matrixCursor = new MatrixCursor(new String[] {BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2, SearchManager.SUGGEST_COLUMN_INTENT_DATA});
         String query = uri.getLastPathSegment().toUpperCase();
-        System.out.println("uri:" + uri);
-        System.out.println("last:" + query);
         if (!query.equals("SEARCH_SUGGEST_QUERY")) {
             String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?search=" + query + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
             try {

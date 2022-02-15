@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
@@ -12,7 +11,7 @@
             android:id="@+id/stockName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="22sp" />
+            android:textSize="20sp" />
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -22,14 +21,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="40sp" />
+                android:textSize="30sp" />
             <TextView
                 android:id="@+id/stockChange"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textSize="22sp" />
+                android:textSize="18sp" />
         </LinearLayout>
         <kesira.papertrader.CustomLineChart
             android:id="@+id/chart"
@@ -146,8 +145,7 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone">
+            android:layout_marginBottom="10dp">
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -157,6 +155,7 @@
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:baselineAligned="false">
                 <LinearLayout
                     android:orientation="vertical"
@@ -166,10 +165,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/shares_owned"
+                        android:text="@string/shares"
                         android:textSize="16sp" />
                     <TextView
-                        android:id="@+id/sharesOwned"
+                        android:id="@+id/shares"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
@@ -178,10 +177,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/cost_basis"
+                        android:text="@string/total_value"
                         android:textSize="16sp" />
                     <TextView
-                        android:id="@+id/costBasis"
+                        android:id="@+id/totalValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="25sp"
@@ -195,10 +194,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/position_value"
+                        android:text="@string/average_cost"
                         android:textSize="16sp" />
                     <TextView
-                        android:id="@+id/positionValue"
+                        android:id="@+id/averageCost"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
@@ -213,7 +212,6 @@
                         android:id="@+id/percentageOfPortfolio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
                         android:textSize="25sp"
                         android:textColor="@color/colorPrimary" />
                 </LinearLayout>
@@ -221,10 +219,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/position_performance"
+                android:text="@string/performance"
                 android:textSize="16sp" />
             <TextView
-                android:id="@+id/positionPerformance"
+                android:id="@+id/performance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="25sp"
@@ -239,7 +237,6 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="50dp"
             android:baselineAligned="false">
             <LinearLayout
                 android:orientation="vertical"
@@ -255,7 +252,6 @@
                     android:id="@+id/exchange"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
                     android:textSize="25sp"
                     android:textColor="@color/colorPrimary" />
             </LinearLayout>
@@ -273,7 +269,6 @@
                     android:id="@+id/marketCap"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
                     android:textSize="25sp"
                     android:textColor="@color/colorPrimary" />
             </LinearLayout>

@@ -1,23 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/mainActivity"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:descendantFocusability="beforeDescendants"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="10dp"
-        android:clipToPadding="false"
-        android:descendantFocusability="beforeDescendants"
-        android:clickable="true"
-        android:focusable="true"
-        android:focusableInTouchMode="true">
+        android:orientation="vertical">
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:padding="10dp"
             android:baselineAligned="false">
             <LinearLayout
                 android:orientation="vertical"
@@ -68,6 +65,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
             android:layout_marginBottom="10dp">
             <EditText
                 android:id="@+id/enterTicker"
@@ -84,65 +82,67 @@
                 android:layout_weight="3"
                 android:text="@string/button_add" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/positionsText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/positions"
-            android:textSize="20sp" />
-        <RelativeLayout
-            android:id="@+id/positionList"
+        <LinearLayout
+            android:id="@+id/positions"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="-10dp"
-            android:layout_marginStart="-10dp"
-            android:layout_marginEnd="-10dp"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone"
-            android:gravity="center">
-            <kesira.papertrader.NonScrollListView
-                android:id="@+id/positions"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#E8EAF6"
-                android:divider="@null"
-                android:dividerHeight="0dp" />
-            <ProgressBar
-                android:id="@+id/progressBarPositions"
+            android:layout_marginBottom="10dp">
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:indeterminate="true"
-                android:layout_centerHorizontal="true"
-                android:visibility="visible" />
-        </RelativeLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/watchlist"
-            android:textSize="20sp" />
-        <RelativeLayout
+                android:paddingHorizontal="10dp"
+                android:text="@string/positions"
+                android:textSize="20sp" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center">
+                <kesira.papertrader.NonScrollListView
+                    android:id="@+id/positionsView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#E8EAF6"
+                    android:divider="@null"
+                    android:dividerHeight="0dp" />
+                <ProgressBar
+                    android:id="@+id/progressBarPositions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    android:layout_centerHorizontal="true"
+                    android:visibility="gone" />
+            </RelativeLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="-10dp"
-            android:layout_marginStart="-10dp"
-            android:layout_marginEnd="-10dp"
-            android:layout_marginBottom="60dp"
-            android:gravity="center">
-            <kesira.papertrader.NonScrollListView
-                android:id="@+id/watchlist"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#E8EAF6"
-                android:divider="@null"
-                android:dividerHeight="0dp" />
-            <ProgressBar
-                android:id="@+id/progressBarWatchlist"
+            android:layout_height="wrap_content">
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:indeterminate="true"
-                android:layout_centerHorizontal="true"
-                android:visibility="gone" />
-        </RelativeLayout>
+                android:paddingHorizontal="10dp"
+                android:text="@string/watchlist"
+                android:textSize="20sp" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center">
+                <kesira.papertrader.NonScrollListView
+                    android:id="@+id/watchlistView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#E8EAF6"
+                    android:divider="@null"
+                    android:dividerHeight="0dp" />
+                <ProgressBar
+                    android:id="@+id/progressBarWatchlist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    android:layout_centerHorizontal="true"
+                    android:visibility="gone" />
+            </RelativeLayout>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

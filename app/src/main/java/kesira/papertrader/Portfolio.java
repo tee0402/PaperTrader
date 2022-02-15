@@ -26,11 +26,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 class Portfolio {
+    private final MainActivity mainActivity;
     private final BigDecimal initialCash = new BigDecimal(10000);
     private static SharedPreferences prefs;
     private static BigDecimal cash;
@@ -40,10 +42,14 @@ class Portfolio {
     private static final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
 
     Portfolio(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
+        this.mainActivity = mainActivity;
         prefs = mainActivity.getSharedPreferences("Save", Context.MODE_PRIVATE);
         cash = new BigDecimal(prefs.getString("cash", initialCash.toPlainString()));
-        positions = new StockCollection(true, mainActivity, positionsView);
-        watchlist = new StockCollection(false, mainActivity, watchlistView);
+        positions = new StockCollection(true, positionsView);
+        watchlist = new StockCollection(false, watchlistView);
+        if (!containsPositions()) {
+            showPortfolioValueIfReady();
+        }
     }
 
     static BigDecimal getCash() {
@@ -54,11 +60,7 @@ class Portfolio {
     }
 
     static boolean containsPositions() {
-        return positions.size() > 0;
-    }
-
-    static boolean containsWatchlist() {
-        return watchlist.size() > 0;
+        return positions.isNonEmpty();
     }
 
     static boolean inPositions(String ticker) {
@@ -129,16 +131,14 @@ class Portfolio {
         BigDecimal total = new BigDecimal(shares).multiply(price);
         int sharesOwned = positions.getShares(ticker);
         if (buy && cash.compareTo(total) >= 0) {
-            Stock stock = watchlist.remove(ticker);
-            positions.changePosition(true, ticker, shares, price, stock);
+            Stock watchlistStock = watchlist.remove(ticker);
+            positions.changePosition(true, ticker, shares, price, watchlistStock);
             cash = roundCurrency(cash.subtract(total));
             writeCash();
         } else if (!buy && shares <= sharesOwned) {
             Stock stock = positions.changePosition(false, ticker, shares, price, null);
-            if (shares == sharesOwned) {
-                if (stock != null) {
-                    watchlist.add(stock);
-                }
+            if (shares == sharesOwned && stock != null) {
+                watchlist.add(stock);
             }
             cash = roundCurrency(cash.add(total));
             writeCash();
@@ -149,17 +149,29 @@ class Portfolio {
         prefs.edit().putString("cash", cash.toPlainString()).apply();
     }
 
+    private void showPortfolioValueIfReady() {
+        if (isPortfolioValueReady()) {
+            BigDecimal portfolioValue = getPortfolioValue();
+            BigDecimal portfolioValueChange = roundCurrency(portfolioValue.subtract(initialCash));
+            ((TextView) mainActivity.findViewById(R.id.portfolioValue)).setText(formatCurrency(portfolioValue));
+            TextView portfolioValuePerformanceText = (TextView) mainActivity.findViewById(R.id.portfolioValuePerformance);
+            boolean positive = isPositive(portfolioValueChange);
+            portfolioValuePerformanceText.setText((positive ? " +" : " ") + formatCurrency(portfolioValueChange) + (positive ? " (+" : " (") + createPercentage(portfolioValueChange, initialCash) + ")");
+            portfolioValuePerformanceText.setTextColor(positive ? Color.parseColor("#33CC33") : Color.RED);
+        }
+    }
+
+    static boolean isPortfolioValueReady() {
+        return positions.isPositionsValueReady();
+    }
+
+    static BigDecimal getPortfolioValue() {
+        return roundCurrency(cash.add(positions.getPositionsValue()));
+    }
+
     static void refresh() {
         positions.refresh();
         watchlist.refresh();
-    }
-
-    static boolean valueReady() {
-        return positions.ready();
-    }
-
-    static BigDecimal getValue() {
-        return roundCurrency(cash.add(positions.getPositionsValue()));
     }
 
     static BigDecimal divide(BigDecimal dividend, BigDecimal divisor) {
@@ -186,27 +198,37 @@ class Portfolio {
         return percentage.setScale(4, RoundingMode.HALF_EVEN);
     }
 
+    static boolean isPositive(BigDecimal value) {
+        return value.compareTo(BigDecimal.ZERO) >= 0;
+    }
+
     private class StockCollection {
         private final boolean positions;
-        private final MainActivity mainActivity;
         private final StockArrayAdapter adapter;
-        private final Set<String> stockSet;
+        private final Set<String> tickers = new LinkedHashSet<>();
         private final ArrayList<Stock> stocks = new ArrayList<>();
         private int quotesReady = 0;
 
-        private StockCollection(boolean positions, MainActivity mainActivity, ListView listView) {
+        private StockCollection(boolean positions, ListView listView) {
             this.positions = positions;
-            this.mainActivity = mainActivity;
             adapter = new StockArrayAdapter(positions);
             listView.setAdapter(adapter);
-            listView.setOnItemClickListener((adapterView, view, i, l) -> {
+            listView.setOnItemClickListener((parent, view, position, id) -> {
                 Intent intent = new Intent(mainActivity, StockInfoActivity.class);
-                intent.putExtra("ticker", stocks.get(i).getTicker());
+                intent.putExtra("ticker", stocks.get(position).getTicker());
                 mainActivity.startActivity(intent);
             });
-            stockSet = new LinkedHashSet<>(prefs.getStringSet(positions ? "positions" : "watchlist", new LinkedHashSet<>()));
-            showPortfolioValueIfReady();
-            for (String ticker : stockSet) {
+            Scanner scanner = new Scanner(prefs.getString(positions ? "positions" : "watchlist", ""));
+            while (scanner.hasNext()) {
+                tickers.add(scanner.next());
+            }
+            if (positions) {
+                mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+            }
+            if (isNonEmpty()) {
+                mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
+            }
+            for (String ticker : tickers) {
                 Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
                 stocks.add(stock);
                 getData(stock);
@@ -214,11 +236,15 @@ class Portfolio {
         }
 
         private int size() {
-            return stockSet.size();
+            return tickers.size();
+        }
+
+        private boolean isNonEmpty() {
+            return size() > 0;
         }
 
         private boolean contains(String ticker) {
-            return stockSet.contains(ticker);
+            return tickers.contains(ticker);
         }
 
         private int getShares(String ticker) {
@@ -276,7 +302,7 @@ class Portfolio {
                     String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?ticker=" + ticker + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                     try {
                         if (new JSONObject(result).getJSONArray("results").length() == 1) {
-                            stockSet.add(ticker);
+                            tickers.add(ticker);
                             writeTickers();
                             Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
                             stocks.add(stock);
@@ -292,16 +318,17 @@ class Portfolio {
         private void add(Stock stock) {
             String ticker = stock.getTicker();
             if (!contains(ticker)) {
-                stockSet.add(ticker);
+                tickers.add(ticker);
                 writeTickers();
                 stocks.add(stock);
                 quotesReady++;
+                adapter.notifyDataSetChanged();
             }
         }
 
         private Stock remove(String ticker) {
             if (contains(ticker)) {
-                stockSet.remove(ticker);
+                tickers.remove(ticker);
                 writeTickers();
                 int numStocks = stocks.size();
                 for (int i = 0; i < numStocks; i++) {
@@ -318,7 +345,11 @@ class Portfolio {
         }
 
         private void writeTickers() {
-            prefs.edit().putStringSet(positions ? "positions" : "watchlist", stockSet).apply();
+            StringBuilder result = new StringBuilder();
+            for (String ticker : tickers) {
+                result.append(ticker).append(" ");
+            }
+            prefs.edit().putString(positions ? "positions" : "watchlist", result.toString()).apply();
         }
 
         private Stock getStock(String ticker) {
@@ -334,17 +365,20 @@ class Portfolio {
             Stock stock = getStock(ticker);
             // New or existing position
             if (buy && stock == null) {
-                stockSet.add(ticker);
+                tickers.add(ticker);
                 writeTickers();
                 stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
                 stocks.add(stock);
                 writePosition(stock);
                 quotesReady++;
+                adapter.notifyDataSetChanged();
+                mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
             } else if (stock != null) {
                 int sharesOwned = stock.getShares();
                 int newSharesOwned = buy ? sharesOwned + shares : sharesOwned - shares;
                 if (newSharesOwned >= 0) {
                     stock.setShares(newSharesOwned);
+                    adapter.notifyDataSetChanged();
                     if (buy) {
                         stock.setCost(roundCurrency(divide(new BigDecimal(sharesOwned).multiply(stock.getCost()).add(new BigDecimal(shares).multiply(price)), new BigDecimal(newSharesOwned))));
                     } else if (newSharesOwned == 0) {
@@ -353,6 +387,7 @@ class Portfolio {
                     writePosition(stock);
                     if (!buy && newSharesOwned == 0) {
                         remove(ticker);
+                        mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
                         return stock;
                     }
                 }
@@ -370,8 +405,8 @@ class Portfolio {
             }
         }
 
-        private boolean ready() {
-            return quotesReady == stockSet.size();
+        private boolean isPositionsValueReady() {
+            return quotesReady == size();
         }
 
         private BigDecimal getPositionsValue() {
@@ -382,16 +417,8 @@ class Portfolio {
             return value;
         }
 
-        private void showPortfolioValueIfReady() {
-            if (positions && ready()) {
-                BigDecimal portfolioValue = roundCurrency(cash.add(getPositionsValue()));
-                BigDecimal portfolioValueChange = roundCurrency(portfolioValue.subtract(initialCash));
-                mainActivity.showPortfolioValue(formatCurrency(portfolioValue), formatCurrency(portfolioValueChange), createPercentage(portfolioValueChange, initialCash), portfolioValueChange.compareTo(BigDecimal.ZERO) >= 0);
-            }
-        }
-
         private void refresh() {
-            if (size() > 0) {
+            if (isNonEmpty()) {
                 mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
                 quotesReady = 0;
                 for (Stock stock : stocks) {
@@ -429,7 +456,9 @@ class Portfolio {
                     handler.post(() -> {
                         adapter.notifyDataSetChanged();
                         mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.GONE);
-                        showPortfolioValueIfReady();
+                        if (positions) {
+                            showPortfolioValueIfReady();
+                        }
                     });
                 } catch (JSONException e) {
                     Log.e("Exception", e.getMessage());
@@ -470,7 +499,7 @@ class Portfolio {
                 if (percentChange == null) {
                     textViews[2].setText("");
                 } else {
-                    boolean percentChangePositive = percentChange.compareTo(BigDecimal.ZERO) >= 0;
+                    boolean percentChangePositive = isPositive(percentChange);
                     textViews[2].setText((percentChangePositive ? "+" : "") + formatPercentage(percentChange));
                     textViews[2].setTextColor(percentChangePositive ? Color.parseColor("#33CC33") : Color.RED);
                 }
