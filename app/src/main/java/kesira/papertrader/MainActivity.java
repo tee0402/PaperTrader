@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
@@ -42,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
         NonScrollListView watchlist = findViewById(R.id.watchlistView);
         registerForContextMenu(watchlist);
         new Portfolio(this, findViewById(R.id.positionsView), watchlist);
-        setCashText();
     }
 
     private void addToWatchlist(View v) {
@@ -53,10 +51,6 @@ public class MainActivity extends AppCompatActivity {
             enterTicker.clearFocus();
             v.requestFocus();
         }
-    }
-
-    private void setCashText() {
-        ((TextView) findViewById(R.id.cash)).setText(Portfolio.getCashString());
     }
 
     @Override
@@ -73,12 +67,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return super.dispatchTouchEvent(ev);
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        setCashText();
     }
 
     @Override

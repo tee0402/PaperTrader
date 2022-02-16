@@ -32,8 +32,7 @@ import java.util.concurrent.Executors;
 class Portfolio {
     private final MainActivity mainActivity;
     private static SharedPreferences prefs;
-    private final BigDecimal initialCash = new BigDecimal(10000);
-    private static BigDecimal cash;
+    private static Cash cash;
     private static StockCollection positions;
     private static StockCollection watchlist;
     private static final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
@@ -42,7 +41,7 @@ class Portfolio {
     Portfolio(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
         this.mainActivity = mainActivity;
         prefs = mainActivity.getSharedPreferences("Save", Context.MODE_PRIVATE);
-        cash = new BigDecimal(prefs.getString("cash", initialCash.toPlainString()));
+        cash = new Cash();
         positions = new StockCollection(true, positionsView);
         watchlist = new StockCollection(false, watchlistView);
         if (!containsPositions()) {
@@ -51,10 +50,10 @@ class Portfolio {
     }
 
     static BigDecimal getCash() {
-        return cash;
+        return cash.get();
     }
     static String getCashString() {
-        return formatCurrency(cash);
+        return cash.getString();
     }
 
     static boolean containsPositions() {
@@ -134,28 +133,23 @@ class Portfolio {
     static void changePosition(boolean buy, String ticker, int shares, BigDecimal price) {
         BigDecimal total = new BigDecimal(shares).multiply(price);
         int sharesOwned = positions.getShares(ticker);
-        if (buy && cash.compareTo(total) >= 0) {
+        if (buy && cash.has(total)) {
             Stock watchlistStock = watchlist.remove(ticker);
             positions.changePosition(true, ticker, shares, price, watchlistStock);
-            cash = roundCurrency(cash.subtract(total));
-            writeCash();
+            cash.change(false, total);
         } else if (!buy && shares <= sharesOwned) {
             Stock stock = positions.changePosition(false, ticker, shares, price, null);
             if (shares == sharesOwned && stock != null) {
                 watchlist.add(stock);
             }
-            cash = roundCurrency(cash.add(total));
-            writeCash();
+            cash.change(true, total);
         }
-    }
-
-    private static void writeCash() {
-        prefs.edit().putString("cash", cash.toPlainString()).apply();
     }
 
     private void showPortfolioValueIfReady() {
         if (isPortfolioValueReady()) {
             BigDecimal portfolioValue = getPortfolioValue();
+            BigDecimal initialCash = cash.getInitial();
             BigDecimal portfolioValueChange = roundCurrency(portfolioValue.subtract(initialCash));
             ((TextView) mainActivity.findViewById(R.id.portfolioValue)).setText(formatCurrency(portfolioValue));
             TextView portfolioValuePerformanceText = (TextView) mainActivity.findViewById(R.id.portfolioValuePerformance);
@@ -170,7 +164,7 @@ class Portfolio {
     }
 
     static BigDecimal getPortfolioValue() {
-        return roundCurrency(cash.add(positions.getPositionsValue()));
+        return roundCurrency(cash.get().add(positions.getPositionsValue()));
     }
 
     static void refresh() {
@@ -204,6 +198,40 @@ class Portfolio {
 
     static boolean isPositive(BigDecimal value) {
         return value.compareTo(BigDecimal.ZERO) >= 0;
+    }
+
+    private class Cash {
+        private final BigDecimal initialCash = new BigDecimal(10000);
+        private BigDecimal cash = new BigDecimal(prefs.getString("cash", initialCash.toPlainString()));
+
+        private Cash() {
+            ((TextView) mainActivity.findViewById(R.id.cash)).setText(getString());
+        }
+
+        private BigDecimal getInitial() {
+            return initialCash;
+        }
+
+        private BigDecimal get() {
+            return cash;
+        }
+        private String getString() {
+            return formatCurrency(cash);
+        }
+
+        private boolean has(BigDecimal amount) {
+            return cash.compareTo(amount) >= 0;
+        }
+
+        private void change(boolean add, BigDecimal amount) {
+            cash = roundCurrency(add ? cash.add(amount) : cash.subtract(amount));
+            write();
+            ((TextView) mainActivity.findViewById(R.id.cash)).setText(getString());
+        }
+
+        private void write() {
+            prefs.edit().putString("cash", cash.toPlainString()).apply();
+        }
     }
 
     private class StockCollection {
