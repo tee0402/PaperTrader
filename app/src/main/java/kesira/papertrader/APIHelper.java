@@ -32,6 +32,10 @@ class APIHelper {
         return result.toString();
     }
 
+    static String getToday() {
+        return subToday(Calendar.DAY_OF_WEEK, 0);
+    }
+
     static String subToday(int field, int amount) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
@@ -40,6 +44,9 @@ class APIHelper {
             calendar.add(Calendar.DAY_OF_WEEK, -1);
         }
         calendar.add(field, -amount);
+        if (field == Calendar.WEEK_OF_MONTH || field == Calendar.MONTH || field == Calendar.YEAR) {
+            calendar.add(Calendar.DAY_OF_WEEK, 1);
+        }
         int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
         if (dayOfWeek == Calendar.SATURDAY) {
             calendar.add(Calendar.DAY_OF_WEEK, -1);

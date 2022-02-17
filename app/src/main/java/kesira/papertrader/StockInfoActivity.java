@@ -14,7 +14,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
 
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.LimitLine;
@@ -131,8 +130,8 @@ public class StockInfoActivity extends AppCompatActivity {
 
     private void setChange(BigDecimal change, BigDecimal percentChange) {
         if (change != null && percentChange != null) {
-            boolean changePositive = Portfolio.isPositive(change);
             TextView changeText = findViewById(R.id.stockChange);
+            boolean changePositive = Portfolio.isPositive(change);
             changeText.setText((changePositive ? "+" : "") + Portfolio.formatCurrency(change) + (changePositive ? " (+" : " (") + Portfolio.formatPercentage(percentChange) + ")");
             changeText.setTextColor(changePositive ? Color.parseColor("#33CC33") : Color.RED);
         }
@@ -145,10 +144,11 @@ public class StockInfoActivity extends AppCompatActivity {
             Handler handler = new Handler(Looper.getMainLooper());
             executor.execute(() -> {
                 String url = "https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/";
-                if (checkedId == R.id.radio1D) {
-                    url += "5/minute/" + APIHelper.subToday(Calendar.DAY_OF_WEEK, 0);
+                boolean radio1D = checkedId == R.id.radio1D;
+                if (radio1D) {
+                    url += "5/minute/" + APIHelper.getToday();
                 } else if (checkedId == R.id.radio1W) {
-                    url += "30/minute/" + APIHelper.subToday(Calendar.DAY_OF_WEEK, 7);
+                    url += "30/minute/" + APIHelper.subToday(Calendar.WEEK_OF_MONTH, 1);
                 } else if (checkedId == R.id.radio1M) {
                     url += "1/day/" + APIHelper.subToday(Calendar.MONTH, 1);
                 } else if (checkedId == R.id.radio3M) {
@@ -158,17 +158,17 @@ public class StockInfoActivity extends AppCompatActivity {
                 } else if (checkedId == R.id.radio2Y) {
                     url += "1/day/" + APIHelper.subToday(Calendar.YEAR, 2);
                 }
-                url += "/" + APIHelper.subToday(Calendar.DAY_OF_WEEK, 0) + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up";
+                url += "/" + APIHelper.getToday() + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up";
                 String result = APIHelper.get(url);
                 try {
                     JSONArray jsonArray = new JSONObject(result).getJSONArray("results");
-                    int length = jsonArray.length();
                     ArrayList<Entry> entries = new ArrayList<>();
                     ArrayList<String> xAxisValues = new ArrayList<>();
                     Calendar calendar = Calendar.getInstance();
-                    SimpleDateFormat xAxisFormat = new SimpleDateFormat(checkedId == R.id.radio1D ? "h:mm a" : (checkedId == R.id.radio1W || checkedId == R.id.radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
+                    SimpleDateFormat xAxisFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (checkedId == R.id.radio1W || checkedId == R.id.radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
                     xAxisFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-                    for (int i = 0; i < length; i++) {
+                    int numResults = jsonArray.length();
+                    for (int i = 0; i < numResults; i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
                         entries.add(i, new Entry(i, Float.parseFloat(jsonObject.getString("c"))));
                         calendar.setTimeInMillis(jsonObject.getLong("t"));
@@ -180,17 +180,17 @@ public class StockInfoActivity extends AppCompatActivity {
                     lineDataSet.setDrawCircles(false);
                     lineDataSet.setLineWidth(2);
                     BigDecimal open = BigDecimal.valueOf(entries.get(0).getY());
-                    BigDecimal change = BigDecimal.valueOf(entries.get(length - 1).getY()).subtract(open);
-                    lineDataSet.setColor((checkedId == R.id.radio1D ? Portfolio.isPositive(stockChange) : Portfolio.isPositive(change)) ? Color.parseColor("#33CC33") : Color.RED);
+                    BigDecimal change = BigDecimal.valueOf(entries.get(numResults - 1).getY()).subtract(open);
+                    lineDataSet.setColor((radio1D ? Portfolio.isPositive(stockChange) : Portfolio.isPositive(change)) ? Color.parseColor("#33CC33") : Color.RED);
                     LineData lineData = new LineData(lineDataSet);
-                    ChartSetting setting = new ChartSetting(lineData, xAxisValues, checkedId == R.id.radio1D ? stockChange : Portfolio.roundCurrency(change), checkedId == R.id.radio1D ? stockPercentChange : Portfolio.roundPercentage(Portfolio.divide(change, open)));
-                    if (checkedId == R.id.radio1D) {
+                    ChartSetting setting = new ChartSetting(lineData, xAxisValues, radio1D ? stockChange : Portfolio.roundCurrency(change), radio1D ? stockPercentChange : Portfolio.roundPercentage(Portfolio.divide(change, open)));
+                    if (radio1D) {
                         BigDecimal previousClose = Portfolio.getPreviousClose(ticker);
                         if (previousClose != null) {
                             LimitLine limitLine = new LimitLine(previousClose.floatValue());
-                            limitLine.setLineColor(Color.parseColor("#3F51B5"));
+                            limitLine.setLineColor(Color.BLACK);
                             limitLine.setLineWidth(1);
-                            limitLine.enableDashedLine(30, 30, 0);
+                            limitLine.enableDashedLine(10, 10, 0);
                             limitLine.setLabel("Previous close " + Portfolio.formatCurrency(previousClose));
                             setting.setLimitLine(limitLine);
                         }
@@ -243,10 +243,10 @@ public class StockInfoActivity extends AppCompatActivity {
     }
 
     private void showTradeDialogFragment(boolean buy) {
-        DialogFragment tradeDialogFragment = new TradeDialogFragment(buy);
         Bundle args = new Bundle();
         args.putString("ticker", ticker);
         args.putString("stockPrice", stockPrice.toPlainString());
+        TradeDialogFragment tradeDialogFragment = new TradeDialogFragment(buy);
         tradeDialogFragment.setArguments(args);
         tradeDialogFragment.show(getSupportFragmentManager(), buy ? "buy" : "sell");
     }
