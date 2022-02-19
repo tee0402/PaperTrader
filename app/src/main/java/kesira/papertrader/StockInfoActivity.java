@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioGroup;
@@ -148,15 +147,15 @@ public class StockInfoActivity extends AppCompatActivity {
                 if (radio1D) {
                     url += "5/minute/" + APIHelper.getToday();
                 } else if (checkedId == R.id.radio1W) {
-                    url += "30/minute/" + APIHelper.subToday(Calendar.WEEK_OF_MONTH, 1);
+                    url += "30/minute/" + APIHelper.getRangeStart(Calendar.WEEK_OF_MONTH, 1);
                 } else if (checkedId == R.id.radio1M) {
-                    url += "1/day/" + APIHelper.subToday(Calendar.MONTH, 1);
+                    url += "1/day/" + APIHelper.getRangeStart(Calendar.MONTH, 1);
                 } else if (checkedId == R.id.radio3M) {
-                    url += "1/day/" + APIHelper.subToday(Calendar.MONTH, 3);
+                    url += "1/day/" + APIHelper.getRangeStart(Calendar.MONTH, 3);
                 } else if (checkedId == R.id.radio1Y) {
-                    url += "1/day/" + APIHelper.subToday(Calendar.YEAR, 1);
+                    url += "1/day/" + APIHelper.getRangeStart(Calendar.YEAR, 1);
                 } else if (checkedId == R.id.radio2Y) {
-                    url += "1/day/" + APIHelper.subToday(Calendar.YEAR, 2);
+                    url += "1/day/" + APIHelper.getRangeStart(Calendar.YEAR, 2);
                 }
                 url += "/" + APIHelper.getToday() + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up";
                 String result = APIHelper.get(url);

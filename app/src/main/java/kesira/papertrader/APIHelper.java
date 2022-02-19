@@ -32,27 +32,45 @@ class APIHelper {
         return result.toString();
     }
 
-    static String getToday() {
-        return subToday(Calendar.DAY_OF_WEEK, 0);
-    }
-
-    static String subToday(int field, int amount) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+    private static Calendar getTodayCalendar() {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
         if (calendar.get(Calendar.HOUR_OF_DAY) < 17) {
             calendar.add(Calendar.DAY_OF_WEEK, -1);
         }
-        calendar.add(field, -amount);
-        if (field == Calendar.WEEK_OF_MONTH || field == Calendar.MONTH || field == Calendar.YEAR) {
-            calendar.add(Calendar.DAY_OF_WEEK, 1);
-        }
+        toFridayIfWeekend(calendar);
+        return calendar;
+    }
+
+    private static void toFridayIfWeekend(Calendar calendar) {
         int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
         if (dayOfWeek == Calendar.SATURDAY) {
             calendar.add(Calendar.DAY_OF_WEEK, -1);
         } else if (dayOfWeek == Calendar.SUNDAY) {
             calendar.add(Calendar.DAY_OF_WEEK, -2);
         }
+    }
+
+    static String getToday() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+        return dateFormat.format(getTodayCalendar().getTime());
+    }
+
+    static String getPreviousDay() {
+        Calendar calendar = getTodayCalendar();
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
+        toFridayIfWeekend(calendar);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+        return dateFormat.format(calendar.getTime());
+    }
+
+    static String getRangeStart(int field, int amount) {
+        Calendar calendar = getTodayCalendar();
+        calendar.add(field, -amount);
+        calendar.add(Calendar.DAY_OF_WEEK, 1);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         return dateFormat.format(calendar.getTime());
     }
 }

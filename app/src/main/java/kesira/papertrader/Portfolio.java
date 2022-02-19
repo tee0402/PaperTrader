@@ -468,7 +468,7 @@ class Portfolio {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             Handler handler = new Handler(Looper.getMainLooper());
             executor.execute(() -> {
-                String result = APIHelper.get("https://api.polygon.io/v1/open-close/" + stock.getTicker() + "/" + APIHelper.subToday(Calendar.DAY_OF_WEEK, 1) + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+                String result = APIHelper.get("https://api.polygon.io/v1/open-close/" + stock.getTicker() + "/" + APIHelper.getPreviousDay() + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                 try {
                     stock.setPreviousClose(new BigDecimal(new JSONObject(result).getString("close")));
                 } catch (JSONException e) {
