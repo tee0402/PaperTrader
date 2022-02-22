@@ -23,10 +23,8 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Locale;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 class Portfolio {
@@ -337,8 +335,7 @@ class Portfolio {
 
         private void addIfValid(String ticker) {
             if (!contains(ticker)) {
-                ExecutorService executor = Executors.newSingleThreadExecutor();
-                executor.execute(() -> {
+                Executors.newSingleThreadExecutor().execute(() -> {
                     String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?ticker=" + ticker + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                     try {
                         if (new JSONObject(result).getJSONArray("results").length() == 1) {
@@ -465,9 +462,7 @@ class Portfolio {
         }
 
         private void getData(Stock stock) {
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            Handler handler = new Handler(Looper.getMainLooper());
-            executor.execute(() -> {
+            Executors.newSingleThreadExecutor().execute(() -> {
                 String result = APIHelper.get("https://api.polygon.io/v1/open-close/" + stock.getTicker() + "/" + APIHelper.getPreviousDay() + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                 try {
                     stock.setPreviousClose(new BigDecimal(new JSONObject(result).getString("close")));
@@ -486,7 +481,7 @@ class Portfolio {
                         stock.setChange(roundCurrency(change));
                         stock.setPercentChange(roundPercentage(divide(change, previousClose)));
                     }
-                    handler.post(() -> {
+                    new Handler(Looper.getMainLooper()).post(() -> {
                         adapter.notifyDataSetChanged();
                         mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.GONE);
                         if (positions) {

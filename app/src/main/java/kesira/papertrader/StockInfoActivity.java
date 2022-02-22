@@ -35,7 +35,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class StockInfoActivity extends AppCompatActivity {
@@ -94,16 +93,14 @@ public class StockInfoActivity extends AppCompatActivity {
     }
 
     private void getTickerDetails() {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executor.execute(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers/" + ticker + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
             try {
                 JSONObject jsonObject = new JSONObject(result).getJSONObject("results");
                 String name = jsonObject.getString("name");
                 String exchange = jsonObject.getString("primary_exchange").replace("XNYS", "NYSE").replace("XNAS", "NASDAQ");
                 String marketCap = createMarketCapString(jsonObject.getDouble("market_cap"));
-                handler.post(() -> {
+                new Handler(Looper.getMainLooper()).post(() -> {
                     ((TextView) findViewById(R.id.stockName)).setText(name);
                     ((TextView) findViewById(R.id.exchange)).setText(exchange);
                     ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
@@ -139,9 +136,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private void getChartData(int checkedId) {
         ChartSetting chartSetting = chartSettings.get(checkedId);
         if (chartSetting == null) {
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            Handler handler = new Handler(Looper.getMainLooper());
-            executor.execute(() -> {
+            Executors.newSingleThreadExecutor().execute(() -> {
                 String url = "https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/";
                 boolean radio1D = checkedId == R.id.radio1D;
                 if (radio1D) {
@@ -196,7 +191,7 @@ public class StockInfoActivity extends AppCompatActivity {
                     }
                     chartSettings.put(checkedId, setting);
                     setChart(setting);
-                    handler.post(() -> chart.animateX(500));
+                    new Handler(Looper.getMainLooper()).post(() -> chart.animateX(500));
                 } catch (JSONException e) {
                     Log.e("Exception", e.getMessage());
                 }
