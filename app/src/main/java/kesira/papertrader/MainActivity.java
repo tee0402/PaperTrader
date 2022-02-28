@@ -49,8 +49,12 @@ public class MainActivity extends AppCompatActivity {
             Portfolio.addIfValid(ticker);
             enterTicker.getText().clear();
             enterTicker.clearFocus();
-            v.requestFocus();
+            hideSoftInput(v);
         }
+    }
+
+    private void hideSoftInput(View v) {
+        ((InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(), 0);
     }
 
     @Override
@@ -62,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                 v.getGlobalVisibleRect(outRect);
                 if (!outRect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
                     v.clearFocus();
-                    ((InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    hideSoftInput(v);
                 }
             }
         }
