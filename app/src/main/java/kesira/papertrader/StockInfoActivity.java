@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -46,6 +48,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private static final long BILLION = 1000000000L;
     private static final long TRILLION = 1000000000000L;
     private CustomLineChart chart;
+    private CustomMarker marker;
     private XAxis xAxis;
     private YAxis yAxis;
     private final HashMap<Integer, ChartSetting> chartSettings = new HashMap<>();
@@ -72,6 +75,16 @@ public class StockInfoActivity extends AppCompatActivity {
         chart.setDrawGridBackground(true);
         chart.getLegend().setEnabled(false);
         chart.getAxisRight().setEnabled(false);
+        chart.setOnTouchListener((v, event) -> {
+            v.performClick();
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                chart.highlightValues(null);
+            }
+            return super.onTouchEvent(event);
+        });
+        marker = new CustomMarker(this);
+        marker.setChartView(chart);
+        chart.setMarker(marker);
         Description description = new Description();
         description.setText("MPAndroidChart by Philipp Jahoda");
         chart.setDescription(description);
@@ -158,15 +171,20 @@ public class StockInfoActivity extends AppCompatActivity {
                     JSONArray jsonArray = new JSONObject(result).getJSONArray("results");
                     ArrayList<Entry> entries = new ArrayList<>();
                     ArrayList<String> xAxisValues = new ArrayList<>();
+                    ArrayList<String> markerDates = new ArrayList<>();
                     Calendar calendar = Calendar.getInstance();
                     SimpleDateFormat xAxisFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (checkedId == R.id.radio1W || checkedId == R.id.radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
                     xAxisFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+                    SimpleDateFormat markerDateFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (checkedId == R.id.radio1W ? "EEE, MMM d h:mm a" : (checkedId == R.id.radio1M ? "EEE, MMM d" : "MMM d, yyyy")), Locale.ENGLISH);
+                    markerDateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
                     int numResults = jsonArray.length();
                     for (int i = 0; i < numResults; i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
                         entries.add(i, new Entry(i, Float.parseFloat(jsonObject.getString("c"))));
                         calendar.setTimeInMillis(jsonObject.getLong("t"));
-                        xAxisValues.add(xAxisFormat.format(calendar.getTime()));
+                        Date date = calendar.getTime();
+                        xAxisValues.add(xAxisFormat.format(date));
+                        markerDates.add(markerDateFormat.format(date));
                     }
                     LineDataSet lineDataSet = new LineDataSet(entries, "Quotes");
                     lineDataSet.setDrawHorizontalHighlightIndicator(false);
@@ -177,7 +195,7 @@ public class StockInfoActivity extends AppCompatActivity {
                     BigDecimal change = BigDecimal.valueOf(entries.get(numResults - 1).getY()).subtract(open);
                     lineDataSet.setColor((radio1D ? Portfolio.isPositive(stockChange) : Portfolio.isPositive(change)) ? Color.parseColor("#33CC33") : Color.RED);
                     LineData lineData = new LineData(lineDataSet);
-                    ChartSetting setting = new ChartSetting(lineData, xAxisValues, radio1D ? stockChange : Portfolio.roundCurrency(change), radio1D ? stockPercentChange : Portfolio.roundPercentage(Portfolio.divide(change, open)));
+                    ChartSetting setting = new ChartSetting(lineData, xAxisValues, markerDates, radio1D ? stockChange : Portfolio.roundCurrency(change), radio1D ? stockPercentChange : Portfolio.roundPercentage(Portfolio.divide(change, open)));
                     if (radio1D) {
                         BigDecimal previousClose = Portfolio.getPreviousClose(ticker);
                         if (previousClose != null) {
@@ -185,7 +203,7 @@ public class StockInfoActivity extends AppCompatActivity {
                             limitLine.setLineColor(Color.BLACK);
                             limitLine.setLineWidth(1);
                             limitLine.enableDashedLine(10, 10, 0);
-                            limitLine.setLabel("Previous close " + Portfolio.formatCurrency(previousClose));
+                            limitLine.setLabel("Previous close " + Portfolio.formatSimpleCurrency(previousClose));
                             setting.setLimitLine(limitLine);
                         }
                     }
@@ -234,6 +252,7 @@ public class StockInfoActivity extends AppCompatActivity {
                 return "";
             }
         });
+        marker.setMarkerDates(chartSetting.getMarkerDates());
     }
 
     private void showTradeDialogFragment(boolean buy) {

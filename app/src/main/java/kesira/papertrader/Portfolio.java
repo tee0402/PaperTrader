@@ -34,6 +34,7 @@ class Portfolio {
     private static StockCollection positions;
     private static StockCollection watchlist;
     private static final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+    private static final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
     private static final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
 
     Portfolio(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
@@ -180,6 +181,10 @@ class Portfolio {
 
     static String formatCurrency(BigDecimal value) {
         return currencyFormat.format(value);
+    }
+
+    static String formatSimpleCurrency(BigDecimal value) {
+        return simpleCurrencyFormat.format(value);
     }
 
     static String formatPercentage(BigDecimal value) {

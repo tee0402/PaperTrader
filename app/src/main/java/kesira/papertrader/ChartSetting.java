@@ -9,13 +9,15 @@ import java.util.ArrayList;
 class ChartSetting {
     private final LineData lineData;
     private final ArrayList<String> xAxisValues;
+    private final ArrayList<String> markerDates;
     private final BigDecimal change;
     private final BigDecimal percentChange;
     private LimitLine limitLine;
 
-    ChartSetting(LineData lineData, ArrayList<String> xAxisValues, BigDecimal change, BigDecimal percentChange) {
+    ChartSetting(LineData lineData, ArrayList<String> xAxisValues, ArrayList<String> markerDates, BigDecimal change, BigDecimal percentChange) {
         this.lineData = lineData;
         this.xAxisValues = xAxisValues;
+        this.markerDates = markerDates;
         this.change = change;
         this.percentChange = percentChange;
     }
@@ -26,6 +28,10 @@ class ChartSetting {
 
     ArrayList<String> getXAxisValues() {
         return xAxisValues;
+    }
+
+    ArrayList<String> getMarkerDates() {
+        return markerDates;
     }
 
     BigDecimal getChange() {
