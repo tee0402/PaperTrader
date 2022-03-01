@@ -34,7 +34,7 @@ class APIHelper {
 
     private static Calendar getTodayCalendar() {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
-        if (calendar.get(Calendar.HOUR_OF_DAY) < 17) {
+        if (calendar.get(Calendar.HOUR_OF_DAY) < 16) {
             calendar.add(Calendar.DAY_OF_WEEK, -1);
         }
         toFridayIfWeekend(calendar);

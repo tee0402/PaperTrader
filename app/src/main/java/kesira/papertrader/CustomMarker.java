@@ -1,7 +1,6 @@
 package kesira.papertrader;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.components.MarkerView;
@@ -38,11 +37,5 @@ class CustomMarker extends MarkerView {
     @Override
     public MPPointF getOffset() {
         return new MPPointF(-(getWidth() / 2f), -(2 * getHeight()));
-    }
-
-    @Override
-    public void draw(Canvas canvas, float posX, float posY) {
-        super.draw(canvas, posX, posY);
-        getOffsetForDrawingAtPoint(posX, posY);
     }
 }
