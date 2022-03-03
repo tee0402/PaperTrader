@@ -12,7 +12,7 @@ class ChartSetting {
     private final ArrayList<String> markerDates;
     private final BigDecimal change;
     private final BigDecimal percentChange;
-    private LimitLine limitLine;
+    private LimitLine previousCloseLimitLine;
 
     ChartSetting(LineData lineData, ArrayList<String> xAxisValues, ArrayList<String> markerDates, BigDecimal change, BigDecimal percentChange) {
         this.lineData = lineData;
@@ -42,10 +42,10 @@ class ChartSetting {
         return percentChange;
     }
 
-    LimitLine getLimitLine() {
-        return limitLine;
+    LimitLine getPreviousCloseLimitLine() {
+        return previousCloseLimitLine;
     }
-    void setLimitLine(LimitLine limitLine) {
-        this.limitLine = limitLine;
+    void setPreviousCloseLimitLine(LimitLine previousCloseLimitLine) {
+        this.previousCloseLimitLine = previousCloseLimitLine;
     }
 }

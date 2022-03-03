@@ -172,40 +172,91 @@ public class StockInfoActivity extends AppCompatActivity {
                     ArrayList<Entry> entries = new ArrayList<>();
                     ArrayList<String> xAxisValues = new ArrayList<>();
                     ArrayList<String> markerDates = new ArrayList<>();
-                    Calendar calendar = Calendar.getInstance();
+                    Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
                     SimpleDateFormat xAxisFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (checkedId == R.id.radio1W || checkedId == R.id.radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
                     xAxisFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
                     SimpleDateFormat markerDateFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (checkedId == R.id.radio1W ? "EEE, MMM d h:mm a" : (checkedId == R.id.radio1M ? "EEE, MMM d" : "MMM d, yyyy")), Locale.ENGLISH);
                     markerDateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+                    ChartSetting setting;
                     int numResults = jsonArray.length();
-                    for (int i = 0; i < numResults; i++) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        entries.add(i, new Entry(i, Float.parseFloat(jsonObject.getString("c"))));
-                        calendar.setTimeInMillis(jsonObject.getLong("t"));
-                        Date date = calendar.getTime();
-                        xAxisValues.add(xAxisFormat.format(date));
-                        markerDates.add(markerDateFormat.format(date));
-                    }
-                    LineDataSet lineDataSet = new LineDataSet(entries, "Quotes");
-                    lineDataSet.setDrawHorizontalHighlightIndicator(false);
-                    lineDataSet.setDrawValues(false);
-                    lineDataSet.setDrawCircles(false);
-                    lineDataSet.setLineWidth(2);
-                    BigDecimal open = BigDecimal.valueOf(entries.get(0).getY());
-                    BigDecimal change = BigDecimal.valueOf(entries.get(numResults - 1).getY()).subtract(open);
-                    lineDataSet.setColor((radio1D ? Portfolio.isPositive(stockChange) : Portfolio.isPositive(change)) ? Color.parseColor("#33CC33") : Color.RED);
-                    LineData lineData = new LineData(lineDataSet);
-                    ChartSetting setting = new ChartSetting(lineData, xAxisValues, markerDates, radio1D ? stockChange : Portfolio.roundCurrency(change), radio1D ? stockPercentChange : Portfolio.roundPercentage(Portfolio.divide(change, open)));
                     if (radio1D) {
+                        ArrayList<Entry> premarketEntries = new ArrayList<>();
+                        ArrayList<Entry> afterHoursEntries = new ArrayList<>();
+                        int skipped = 0;
+                        for (int i = 0; i < numResults; i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            Entry entry = new Entry(i - skipped, Float.parseFloat(jsonObject.getString("c")));
+                            calendar.setTimeInMillis(jsonObject.getLong("t"));
+                            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                            if (hour < 8) {
+                                skipped++;
+                                continue;
+                            }
+                            int minute = calendar.get(Calendar.MINUTE);
+                            if (hour < 9 || (hour == 9 && minute <= 30)) {
+                                premarketEntries.add(entry);
+                                if (hour == 9 && minute == 30) {
+                                    entries.add(entry);
+                                }
+                            } else if (hour >= 16) {
+                                afterHoursEntries.add(entry);
+                                if (hour == 16 && minute == 0) {
+                                    entries.add(entry);
+                                }
+                            } else {
+                                entries.add(entry);
+                            }
+                            Date date = calendar.getTime();
+                            xAxisValues.add(xAxisFormat.format(date));
+                            markerDates.add(markerDateFormat.format(date));
+                        }
+                        int color = Portfolio.isPositive(stockChange) ? Color.parseColor("#33CC33") : Color.RED;
+                        LineDataSet premarketDataSet = new LineDataSet(premarketEntries, "Premarket");
+                        premarketDataSet.setHighlightEnabled(false);
+                        premarketDataSet.setDrawValues(false);
+                        premarketDataSet.setDrawCircles(false);
+                        premarketDataSet.setColor(color);
+                        LineDataSet afterHoursDataSet = new LineDataSet(afterHoursEntries, "After Hours");
+                        afterHoursDataSet.setHighlightEnabled(false);
+                        afterHoursDataSet.setDrawValues(false);
+                        afterHoursDataSet.setDrawCircles(false);
+                        afterHoursDataSet.setColor(color);
+                        LineDataSet lineDataSet = new LineDataSet(entries, "Quotes");
+                        lineDataSet.setDrawHorizontalHighlightIndicator(false);
+                        lineDataSet.setDrawValues(false);
+                        lineDataSet.setDrawCircles(false);
+                        lineDataSet.setLineWidth(2);
+                        lineDataSet.setColor(color);
+                        LineData lineData = new LineData(premarketDataSet, lineDataSet, afterHoursDataSet);
+                        setting = new ChartSetting(lineData, xAxisValues, markerDates, stockChange, stockPercentChange);
                         BigDecimal previousClose = Portfolio.getPreviousClose(ticker);
                         if (previousClose != null) {
-                            LimitLine limitLine = new LimitLine(previousClose.floatValue());
-                            limitLine.setLineColor(Color.BLACK);
-                            limitLine.setLineWidth(1);
-                            limitLine.enableDashedLine(10, 10, 0);
-                            limitLine.setLabel("Previous close " + Portfolio.formatSimpleCurrency(previousClose));
-                            setting.setLimitLine(limitLine);
+                            LimitLine previousCloseLimitLine = new LimitLine(previousClose.floatValue());
+                            previousCloseLimitLine.setLineColor(Color.BLACK);
+                            previousCloseLimitLine.setLineWidth(1);
+                            previousCloseLimitLine.enableDashedLine(10, 10, 0);
+                            previousCloseLimitLine.setLabel("Previous close " + Portfolio.formatSimpleCurrency(previousClose));
+                            setting.setPreviousCloseLimitLine(previousCloseLimitLine);
                         }
+                    } else {
+                        for (int i = 0; i < numResults; i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            entries.add(new Entry(i, Float.parseFloat(jsonObject.getString("c"))));
+                            calendar.setTimeInMillis(jsonObject.getLong("t"));
+                            Date date = calendar.getTime();
+                            xAxisValues.add(xAxisFormat.format(date));
+                            markerDates.add(markerDateFormat.format(date));
+                        }
+                        BigDecimal open = BigDecimal.valueOf(entries.get(0).getY());
+                        BigDecimal change = BigDecimal.valueOf(entries.get(numResults - 1).getY()).subtract(open);
+                        LineDataSet lineDataSet = new LineDataSet(entries, "Quotes");
+                        lineDataSet.setDrawHorizontalHighlightIndicator(false);
+                        lineDataSet.setDrawValues(false);
+                        lineDataSet.setDrawCircles(false);
+                        lineDataSet.setLineWidth(2);
+                        lineDataSet.setColor(Portfolio.isPositive(change) ? Color.parseColor("#33CC33") : Color.RED);
+                        LineData lineData = new LineData(lineDataSet);
+                        setting = new ChartSetting(lineData, xAxisValues, markerDates, Portfolio.roundCurrency(change), Portfolio.roundPercentage(Portfolio.divide(change, open)));
                     }
                     chartSettings.put(checkedId, setting);
                     setChart(setting);
@@ -223,14 +274,14 @@ public class StockInfoActivity extends AppCompatActivity {
     private void setChart(ChartSetting chartSetting) {
         setChange(chartSetting.getChange(), chartSetting.getPercentChange());
         LineData lineData = chartSetting.getLineData();
-        LimitLine limitLine = chartSetting.getLimitLine();
-        if (limitLine == null) {
+        LimitLine previousCloseLimitLine = chartSetting.getPreviousCloseLimitLine();
+        if (previousCloseLimitLine == null) {
             yAxis.removeAllLimitLines();
             yAxis.resetAxisMaximum();
             yAxis.resetAxisMinimum();
         } else {
-            yAxis.addLimitLine(limitLine);
-            float previousClose = limitLine.getLimit();
+            yAxis.addLimitLine(previousCloseLimitLine);
+            float previousClose = previousCloseLimitLine.getLimit();
             float yMax = lineData.getYMax();
             float yMin = lineData.getYMin();
             if (previousClose >= yMax) {
