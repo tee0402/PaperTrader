@@ -113,10 +113,12 @@ public class StockInfoActivity extends AppCompatActivity {
                 String name = jsonObject.getString("name");
                 String exchange = jsonObject.getString("primary_exchange").replace("XNYS", "NYSE").replace("XNAS", "NASDAQ");
                 String marketCap = createMarketCapString(jsonObject.getDouble("market_cap"));
+                String description = jsonObject.getString("description");
                 new Handler(Looper.getMainLooper()).post(() -> {
                     ((TextView) findViewById(R.id.stockName)).setText(name);
                     ((TextView) findViewById(R.id.exchange)).setText(exchange);
                     ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
+                    ((TextView) findViewById(R.id.description)).setText(description);
                 });
             } catch (JSONException e) {
                 Log.e("Exception", e.getMessage());

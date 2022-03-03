@@ -30,4 +30,5 @@
     <string name="performance">Performance</string>
     <string name="exchange">Exchange</string>
     <string name="market_cap">Market Cap</string>
+    <string name="description">Description</string>
 </resources>
