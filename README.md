@@ -1,4 +1,4 @@
-# PaperTrader
+# Paper Trader
 Paper trading app for Android
 
 ![papertrader1](https://user-images.githubusercontent.com/6325719/160227004-64101a10-68d4-4cba-8980-73b80239a3e9.png)
