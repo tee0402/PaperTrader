@@ -35,7 +35,7 @@ public class TradeDialogFragment extends DialogFragment {
         String ticker = args.getString("ticker");
         BigDecimal stockPrice = new BigDecimal(args.getString("stockPrice"));
 
-        TextView totalText = (TextView) v.findViewById(R.id.total);
+        TextView totalText = v.findViewById(R.id.total);
         int sharesOwned = Portfolio.getShares(ticker);
         totalText.setHint(buy ? Portfolio.getCashString() + " available" : sharesOwned + " shares available");
         int sharesCanAfford = Portfolio.divide(Portfolio.getCash(), stockPrice).intValue();
@@ -43,7 +43,7 @@ public class TradeDialogFragment extends DialogFragment {
             ((TextView) v.findViewById(R.id.shares)).setText("You can afford " + sharesCanAfford + " shares.");
         }
 
-        EditText enterQuantity = (EditText) v.findViewById(R.id.quantity);
+        EditText enterQuantity = v.findViewById(R.id.quantity);
         enterQuantity.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}

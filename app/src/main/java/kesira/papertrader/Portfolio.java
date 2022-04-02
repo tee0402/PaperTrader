@@ -151,7 +151,7 @@ class Portfolio {
             BigDecimal initialCash = cash.getInitial();
             BigDecimal portfolioValueChange = roundCurrency(portfolioValue.subtract(initialCash));
             ((TextView) mainActivity.findViewById(R.id.portfolioValue)).setText(formatCurrency(portfolioValue));
-            TextView portfolioValuePerformanceText = (TextView) mainActivity.findViewById(R.id.portfolioValuePerformance);
+            TextView portfolioValuePerformanceText = mainActivity.findViewById(R.id.portfolioValuePerformance);
             boolean positive = isPositive(portfolioValueChange);
             portfolioValuePerformanceText.setText((positive ? " +" : " ") + formatCurrency(portfolioValueChange) + (positive ? " (+" : " (") + createPercentage(portfolioValueChange, initialCash) + ")");
             portfolioValuePerformanceText.setTextColor(positive ? Color.parseColor("#33CC33") : Color.RED);

@@ -68,7 +68,7 @@ public class StockInfoActivity extends AppCompatActivity {
         stockPercentChange = Portfolio.getPercentChange(ticker);
         setChange(stockChange, stockPercentChange);
 
-        chart = (CustomLineChart) findViewById(R.id.chart);
+        chart = findViewById(R.id.chart);
         chart.setNoDataText("Loading...");
         chart.setDragYEnabled(false);
         chart.setScaleYEnabled(false);
@@ -95,7 +95,7 @@ public class StockInfoActivity extends AppCompatActivity {
         xAxis.setLabelCount(4, false);
         yAxis = chart.getAxisLeft();
         yAxis.setDrawAxisLine(false);
-        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
+        RadioGroup radioGroup = findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> getChartData(checkedId));
         getChartData(R.id.radio1D);
 
@@ -331,7 +331,7 @@ public class StockInfoActivity extends AppCompatActivity {
             ((TextView) findViewById(R.id.averageCost)).setText(Portfolio.formatCurrency(averageCost));
             BigDecimal priceChange = stockPrice.subtract(averageCost);
             boolean priceChangePositive = Portfolio.isPositive(priceChange);
-            TextView performanceText = (TextView) findViewById(R.id.performance);
+            TextView performanceText = findViewById(R.id.performance);
             performanceText.setText((priceChangePositive ? "+" : "") + Portfolio.formatCurrency(Portfolio.roundCurrency(shares.multiply(priceChange))) + (priceChangePositive ? " (+" : " (") + Portfolio.createPercentage(priceChange, averageCost) + ")");
             performanceText.setTextColor(priceChangePositive ? Color.parseColor("#33CC33") : Color.RED);
         }

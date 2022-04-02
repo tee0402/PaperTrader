@@ -21,7 +21,7 @@ class CustomMarker extends MarkerView {
 
     private CustomMarker(Context context, int layoutResource) {
         super(context, layoutResource);
-        textView = (TextView) findViewById(R.id.marker);
+        textView = findViewById(R.id.marker);
     }
 
     void setMarkerDates(ArrayList<String> markerDates) {
