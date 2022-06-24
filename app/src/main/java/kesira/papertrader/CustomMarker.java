@@ -14,6 +14,7 @@ import java.util.ArrayList;
 class CustomMarker extends MarkerView {
     private final TextView textView;
     private ArrayList<String> markerDates;
+    private final Portfolio portfolio = Portfolio.getInstance();
 
     CustomMarker(Context context) {
         this(context, R.layout.chart_marker);
@@ -30,7 +31,7 @@ class CustomMarker extends MarkerView {
 
     @Override
     public void refreshContent(Entry e, Highlight highlight) {
-        textView.setText(Portfolio.formatSimpleCurrency(BigDecimal.valueOf(e.getY())) + "  " + markerDates.get((int) e.getX()));
+        textView.setText(portfolio.formatSimpleCurrency(BigDecimal.valueOf(e.getY())) + "  " + markerDates.get((int) e.getX()));
         super.refreshContent(e, highlight);
     }
 

@@ -28,16 +28,19 @@ import java.util.Scanner;
 import java.util.concurrent.Executors;
 
 class Portfolio {
-    private final MainActivity mainActivity;
-    private static SharedPreferences prefs;
-    private static Cash cash;
-    private static StockCollection positions;
-    private static StockCollection watchlist;
-    private static final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
-    private static final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
-    private static final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
+    private static final Portfolio portfolio = new Portfolio();
+    private MainActivity mainActivity;
+    private SharedPreferences prefs;
+    private Cash cash;
+    private StockCollection positions;
+    private StockCollection watchlist;
+    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+    private final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
+    private final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
 
-    Portfolio(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
+    private Portfolio() {}
+
+    void initialize(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
         this.mainActivity = mainActivity;
         prefs = mainActivity.getSharedPreferences("Save", Context.MODE_PRIVATE);
         cash = new Cash();
@@ -48,34 +51,38 @@ class Portfolio {
         }
     }
 
-    static BigDecimal getCash() {
+    static Portfolio getInstance() {
+        return portfolio;
+    }
+
+    BigDecimal getCash() {
         return cash.get();
     }
-    static String getCashString() {
+    String getCashString() {
         return cash.getString();
     }
 
-    static boolean containsPositions() {
+    boolean containsPositions() {
         return positions.isNonEmpty();
     }
 
-    static boolean inPositions(String ticker) {
+    boolean inPositions(String ticker) {
         return positions.contains(ticker);
     }
 
-    static boolean inWatchlist(String ticker) {
+    boolean inWatchlist(String ticker) {
         return watchlist.contains(ticker);
     }
 
-    static int getShares(String ticker) {
+    int getShares(String ticker) {
         return positions.getShares(ticker);
     }
 
-    static BigDecimal getCost(String ticker) {
+    BigDecimal getCost(String ticker) {
         return positions.getCost(ticker);
     }
 
-    static BigDecimal getPreviousClose(String ticker) {
+    BigDecimal getPreviousClose(String ticker) {
         if (inPositions(ticker)) {
             return positions.getPreviousClose(ticker);
         } else if (inWatchlist(ticker)) {
@@ -84,7 +91,7 @@ class Portfolio {
         return null;
     }
 
-    static BigDecimal getQuote(String ticker) {
+    BigDecimal getQuote(String ticker) {
         if (inPositions(ticker)) {
             return positions.getQuote(ticker);
         } else if (inWatchlist(ticker)) {
@@ -93,7 +100,7 @@ class Portfolio {
         return null;
     }
 
-    static BigDecimal getChange(String ticker) {
+    BigDecimal getChange(String ticker) {
         if (inPositions(ticker)) {
             return positions.getChange(ticker);
         } else if (inWatchlist(ticker)) {
@@ -102,7 +109,7 @@ class Portfolio {
         return null;
     }
 
-    static BigDecimal getPercentChange(String ticker) {
+    BigDecimal getPercentChange(String ticker) {
         if (inPositions(ticker)) {
             return positions.getPercentChange(ticker);
         } else if (inWatchlist(ticker)) {
@@ -111,25 +118,25 @@ class Portfolio {
         return null;
     }
 
-    static void addIfValid(String ticker) {
+    void addIfValid(String ticker) {
         if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
             watchlist.addIfValid(ticker);
         }
     }
 
-    static void add(String ticker) {
+    void add(String ticker) {
         if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
             watchlist.add(ticker);
         }
     }
 
-    static void remove(String ticker) {
+    void remove(String ticker) {
         if (watchlist.contains(ticker)) {
             watchlist.remove(ticker);
         }
     }
 
-    static void changePosition(boolean buy, String ticker, int shares, BigDecimal price) {
+    void changePosition(boolean buy, String ticker, int shares, BigDecimal price) {
         BigDecimal total = new BigDecimal(shares).multiply(price);
         int sharesOwned = positions.getShares(ticker);
         if (buy && cash.has(total)) {
@@ -158,48 +165,48 @@ class Portfolio {
         }
     }
 
-    static boolean isPortfolioValueReady() {
+    boolean isPortfolioValueReady() {
         return positions.isPositionsValueReady();
     }
 
-    static BigDecimal getPortfolioValue() {
+    BigDecimal getPortfolioValue() {
         return roundCurrency(cash.get().add(positions.getPositionsValue()));
     }
 
-    static void refresh() {
+    void refresh() {
         positions.refresh();
         watchlist.refresh();
     }
 
-    static BigDecimal divide(BigDecimal dividend, BigDecimal divisor) {
+    BigDecimal divide(BigDecimal dividend, BigDecimal divisor) {
         return dividend.divide(divisor, new MathContext(20, RoundingMode.HALF_EVEN));
     }
 
-    static String createPercentage(BigDecimal dividend, BigDecimal divisor) {
+    String createPercentage(BigDecimal dividend, BigDecimal divisor) {
         return percentageFormat.format(divide(dividend, divisor));
     }
 
-    static String formatCurrency(BigDecimal value) {
+    String formatCurrency(BigDecimal value) {
         return currencyFormat.format(value);
     }
 
-    static String formatSimpleCurrency(BigDecimal value) {
+    String formatSimpleCurrency(BigDecimal value) {
         return simpleCurrencyFormat.format(value);
     }
 
-    static String formatPercentage(BigDecimal value) {
+    String formatPercentage(BigDecimal value) {
         return percentageFormat.format(value);
     }
 
-    static BigDecimal roundCurrency(BigDecimal amount) {
+    BigDecimal roundCurrency(BigDecimal amount) {
         return amount.setScale(2, RoundingMode.HALF_EVEN);
     }
 
-    static BigDecimal roundPercentage(BigDecimal percentage) {
+    BigDecimal roundPercentage(BigDecimal percentage) {
         return percentage.setScale(4, RoundingMode.HALF_EVEN);
     }
 
-    static boolean isPositive(BigDecimal value) {
+    boolean isPositive(BigDecimal value) {
         return value.compareTo(BigDecimal.ZERO) >= 0;
     }
 

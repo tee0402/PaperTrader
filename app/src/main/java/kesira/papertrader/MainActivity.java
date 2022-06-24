@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
 public class MainActivity extends AppCompatActivity {
+    private final Portfolio portfolio = Portfolio.getInstance();
     private EditText enterTicker;
     private String tickerSelected;
 
@@ -40,13 +41,13 @@ public class MainActivity extends AppCompatActivity {
 
         NonScrollListView watchlist = findViewById(R.id.watchlistView);
         registerForContextMenu(watchlist);
-        new Portfolio(this, findViewById(R.id.positionsView), watchlist);
+        portfolio.initialize(this, findViewById(R.id.positionsView), watchlist);
     }
 
     private void addToWatchlist(View v) {
         String ticker = enterTicker.getText().toString();
         if (!ticker.equals("")) {
-            Portfolio.addIfValid(ticker);
+            portfolio.addIfValid(ticker);
             enterTicker.getText().clear();
             enterTicker.clearFocus();
             hideSoftInput(v);
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        Portfolio.remove(tickerSelected);
+        portfolio.remove(tickerSelected);
         return true;
     }
 
@@ -97,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.refresh) {
-            Portfolio.refresh();
+            portfolio.refresh();
         }
         return super.onOptionsItemSelected(item);
     }

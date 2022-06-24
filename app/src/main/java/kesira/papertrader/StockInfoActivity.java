@@ -40,6 +40,7 @@ import java.util.TimeZone;
 import java.util.concurrent.Executors;
 
 public class StockInfoActivity extends AppCompatActivity {
+    private final Portfolio portfolio = Portfolio.getInstance();
     private String ticker;
     private BigDecimal stockPrice;
     private BigDecimal stockChange;
@@ -60,12 +61,12 @@ public class StockInfoActivity extends AppCompatActivity {
 
         ticker = getIntent().getStringExtra("ticker");
         getTickerDetails();
-        stockPrice = Portfolio.getQuote(ticker);
+        stockPrice = portfolio.getQuote(ticker);
         if (stockPrice != null) {
-            ((TextView) findViewById(R.id.stockPrice)).setText(Portfolio.formatCurrency(stockPrice));
+            ((TextView) findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(stockPrice));
         }
-        stockChange = Portfolio.getChange(ticker);
-        stockPercentChange = Portfolio.getPercentChange(ticker);
+        stockChange = portfolio.getChange(ticker);
+        stockPercentChange = portfolio.getPercentChange(ticker);
         setChange(stockChange, stockPercentChange);
 
         chart = findViewById(R.id.chart);
@@ -142,8 +143,8 @@ public class StockInfoActivity extends AppCompatActivity {
     private void setChange(BigDecimal change, BigDecimal percentChange) {
         if (change != null && percentChange != null) {
             TextView changeText = findViewById(R.id.stockChange);
-            boolean changePositive = Portfolio.isPositive(change);
-            changeText.setText((changePositive ? "+" : "") + Portfolio.formatCurrency(change) + (changePositive ? " (+" : " (") + Portfolio.formatPercentage(percentChange) + ")");
+            boolean changePositive = portfolio.isPositive(change);
+            changeText.setText((changePositive ? "+" : "") + portfolio.formatCurrency(change) + (changePositive ? " (+" : " (") + portfolio.formatPercentage(percentChange) + ")");
             changeText.setTextColor(changePositive ? Color.parseColor("#33CC33") : Color.RED);
         }
     }
@@ -212,7 +213,7 @@ public class StockInfoActivity extends AppCompatActivity {
                             xAxisValues.add(xAxisFormat.format(date));
                             markerDates.add(markerDateFormat.format(date));
                         }
-                        int color = Portfolio.isPositive(stockChange) ? Color.parseColor("#33CC33") : Color.RED;
+                        int color = portfolio.isPositive(stockChange) ? Color.parseColor("#33CC33") : Color.RED;
                         LineDataSet premarketDataSet = new LineDataSet(premarketEntries, "Premarket");
                         premarketDataSet.setHighlightEnabled(false);
                         premarketDataSet.setDrawValues(false);
@@ -231,13 +232,13 @@ public class StockInfoActivity extends AppCompatActivity {
                         lineDataSet.setColor(color);
                         LineData lineData = new LineData(premarketDataSet, lineDataSet, afterHoursDataSet);
                         setting = new ChartSetting(lineData, xAxisValues, markerDates, stockChange, stockPercentChange);
-                        BigDecimal previousClose = Portfolio.getPreviousClose(ticker);
+                        BigDecimal previousClose = portfolio.getPreviousClose(ticker);
                         if (previousClose != null) {
                             LimitLine previousCloseLimitLine = new LimitLine(previousClose.floatValue());
                             previousCloseLimitLine.setLineColor(Color.BLACK);
                             previousCloseLimitLine.setLineWidth(1);
                             previousCloseLimitLine.enableDashedLine(10, 10, 0);
-                            previousCloseLimitLine.setLabel("Previous close " + Portfolio.formatSimpleCurrency(previousClose));
+                            previousCloseLimitLine.setLabel("Previous close " + portfolio.formatSimpleCurrency(previousClose));
                             setting.setPreviousCloseLimitLine(previousCloseLimitLine);
                         }
                     } else {
@@ -256,9 +257,9 @@ public class StockInfoActivity extends AppCompatActivity {
                         lineDataSet.setDrawValues(false);
                         lineDataSet.setDrawCircles(false);
                         lineDataSet.setLineWidth(2);
-                        lineDataSet.setColor(Portfolio.isPositive(change) ? Color.parseColor("#33CC33") : Color.RED);
+                        lineDataSet.setColor(portfolio.isPositive(change) ? Color.parseColor("#33CC33") : Color.RED);
                         LineData lineData = new LineData(lineDataSet);
-                        setting = new ChartSetting(lineData, xAxisValues, markerDates, Portfolio.roundCurrency(change), Portfolio.roundPercentage(Portfolio.divide(change, open)));
+                        setting = new ChartSetting(lineData, xAxisValues, markerDates, portfolio.roundCurrency(change), portfolio.roundPercentage(portfolio.divide(change, open)));
                     }
                     chartSettings.put(checkedId, setting);
                     setChart(setting);
@@ -318,29 +319,29 @@ public class StockInfoActivity extends AppCompatActivity {
     }
 
     void updatePosition() {
-        boolean inPositions = Portfolio.inPositions(ticker);
+        boolean inPositions = portfolio.inPositions(ticker);
         findViewById(R.id.sell).setEnabled(inPositions);
         findViewById(R.id.position).setVisibility(inPositions ? View.VISIBLE : View.GONE);
         if (inPositions) {
-            BigDecimal shares = new BigDecimal(Portfolio.getShares(ticker));
+            BigDecimal shares = new BigDecimal(portfolio.getShares(ticker));
             ((TextView) findViewById(R.id.shares)).setText(shares.toPlainString());
-            BigDecimal totalValue = Portfolio.roundCurrency(shares.multiply(stockPrice));
-            ((TextView) findViewById(R.id.totalValue)).setText(Portfolio.formatCurrency(totalValue));
-            ((TextView) findViewById(R.id.percentageOfPortfolio)).setText(Portfolio.isPortfolioValueReady() ? Portfolio.createPercentage(totalValue, Portfolio.getPortfolioValue()) : "");
-            BigDecimal averageCost = Portfolio.getCost(ticker);
-            ((TextView) findViewById(R.id.averageCost)).setText(Portfolio.formatCurrency(averageCost));
+            BigDecimal totalValue = portfolio.roundCurrency(shares.multiply(stockPrice));
+            ((TextView) findViewById(R.id.totalValue)).setText(portfolio.formatCurrency(totalValue));
+            ((TextView) findViewById(R.id.percentageOfPortfolio)).setText(portfolio.isPortfolioValueReady() ? portfolio.createPercentage(totalValue, portfolio.getPortfolioValue()) : "");
+            BigDecimal averageCost = portfolio.getCost(ticker);
+            ((TextView) findViewById(R.id.averageCost)).setText(portfolio.formatCurrency(averageCost));
             BigDecimal priceChange = stockPrice.subtract(averageCost);
-            boolean priceChangePositive = Portfolio.isPositive(priceChange);
+            boolean priceChangePositive = portfolio.isPositive(priceChange);
             TextView performanceText = findViewById(R.id.performance);
-            performanceText.setText((priceChangePositive ? "+" : "") + Portfolio.formatCurrency(Portfolio.roundCurrency(shares.multiply(priceChange))) + (priceChangePositive ? " (+" : " (") + Portfolio.createPercentage(priceChange, averageCost) + ")");
+            performanceText.setText((priceChangePositive ? "+" : "") + portfolio.formatCurrency(portfolio.roundCurrency(shares.multiply(priceChange))) + (priceChangePositive ? " (+" : " (") + portfolio.createPercentage(priceChange, averageCost) + ")");
             performanceText.setTextColor(priceChangePositive ? Color.parseColor("#33CC33") : Color.RED);
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!Portfolio.inPositions(ticker)) {
-            getMenuInflater().inflate(Portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
+        if (!portfolio.inPositions(ticker)) {
+            getMenuInflater().inflate(portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
         }
         return true;
     }
@@ -349,11 +350,11 @@ public class StockInfoActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.add) {
-            Portfolio.add(ticker);
+            portfolio.add(ticker);
             invalidateOptionsMenu();
             Toast.makeText(this, "Stock added to watchlist", Toast.LENGTH_LONG).show();
         } else if (itemId == R.id.remove) {
-            Portfolio.remove(ticker);
+            portfolio.remove(ticker);
             invalidateOptionsMenu();
             Toast.makeText(this, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
         }

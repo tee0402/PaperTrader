@@ -28,6 +28,7 @@ public class TradeDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Portfolio portfolio = Portfolio.getInstance();
         StockInfoActivity stockInfoActivity = (StockInfoActivity) requireActivity();
         View v = stockInfoActivity.getLayoutInflater().inflate(buy ? R.layout.dialog_buy : R.layout.dialog_sell, null);
 
@@ -36,9 +37,9 @@ public class TradeDialogFragment extends DialogFragment {
         BigDecimal stockPrice = new BigDecimal(args.getString("stockPrice"));
 
         TextView totalText = v.findViewById(R.id.total);
-        int sharesOwned = Portfolio.getShares(ticker);
-        totalText.setHint(buy ? Portfolio.getCashString() + " available" : sharesOwned + " shares available");
-        int sharesCanAfford = Portfolio.divide(Portfolio.getCash(), stockPrice).intValue();
+        int sharesOwned = portfolio.getShares(ticker);
+        totalText.setHint(buy ? portfolio.getCashString() + " available" : sharesOwned + " shares available");
+        int sharesCanAfford = portfolio.divide(portfolio.getCash(), stockPrice).intValue();
         if (buy) {
             ((TextView) v.findViewById(R.id.shares)).setText("You can afford " + sharesCanAfford + " shares.");
         }
@@ -56,7 +57,7 @@ public class TradeDialogFragment extends DialogFragment {
                     enterQuantity.setText(quantityString.replaceFirst("^0+", ""));
                 }
                 quantity = quantityString.equals("") ? 0 : Integer.parseInt(quantityString);
-                totalText.setText(quantity > 0 ? Portfolio.formatCurrency(new BigDecimal(quantity).multiply(stockPrice)) : "");
+                totalText.setText(quantity > 0 ? portfolio.formatCurrency(new BigDecimal(quantity).multiply(stockPrice)) : "");
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(quantity > 0 && quantity <= (buy ? sharesCanAfford : sharesOwned));
             }
         });
@@ -68,7 +69,7 @@ public class TradeDialogFragment extends DialogFragment {
             } else if (quantity > (buy ? sharesCanAfford : sharesOwned)) {
                 Toast.makeText(stockInfoActivity, buy ? "You can only afford " + sharesCanAfford + " shares" : "You only have " + sharesOwned + " shares to sell", Toast.LENGTH_LONG).show();
             } else {
-                Portfolio.changePosition(buy, ticker, quantity, stockPrice);
+                portfolio.changePosition(buy, ticker, quantity, stockPrice);
                 stockInfoActivity.updatePosition();
                 Toast.makeText(stockInfoActivity, (buy ? "Bought " : "Sold ") + quantity + " shares successfully", Toast.LENGTH_LONG).show();
             }

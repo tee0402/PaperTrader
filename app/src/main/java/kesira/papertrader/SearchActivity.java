@@ -20,7 +20,7 @@ public class SearchActivity extends AppCompatActivity {
 
     private void handleIntent(Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_VIEW)) {
-            Portfolio.add(intent.getDataString());
+            Portfolio.getInstance().add(intent.getDataString());
         }
         finish();
     }
