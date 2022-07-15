@@ -11,6 +11,12 @@ class Stock {
     private BigDecimal change;
     private BigDecimal percentChange;
 
+    Stock(String ticker) {
+        this.ticker = ticker;
+        this.shares = 0;
+        this.cost = new BigDecimal(0);
+    }
+
     Stock(String ticker, int shares, BigDecimal cost) {
         this.ticker = ticker;
         this.shares = shares;

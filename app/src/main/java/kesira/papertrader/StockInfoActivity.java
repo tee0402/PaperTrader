@@ -336,6 +336,7 @@ public class StockInfoActivity extends AppCompatActivity {
             performanceText.setText((priceChangePositive ? "+" : "") + portfolio.formatCurrency(portfolio.roundCurrency(shares.multiply(priceChange))) + (priceChangePositive ? " (+" : " (") + portfolio.createPercentage(priceChange, averageCost) + ")");
             performanceText.setTextColor(priceChangePositive ? Color.parseColor("#33CC33") : Color.RED);
         }
+        invalidateOptionsMenu();
     }
 
     @Override

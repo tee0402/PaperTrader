@@ -1,8 +1,6 @@
 package kesira.papertrader;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +11,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,36 +27,86 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 class Portfolio {
     private static final Portfolio portfolio = new Portfolio();
     private MainActivity mainActivity;
-    private SharedPreferences prefs;
+    private final BigDecimal initialCash = new BigDecimal(10000);
     private Cash cash;
     private StockCollection positions;
     private StockCollection watchlist;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
     private final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
     private final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
+    private DocumentReference userDoc;
+    private List<String> positionsList;
+    private Map<String, String> positionsShares;
+    private Map<String, String> positionsCost;
+    private List<String> watchlistList;
 
     private Portfolio() {}
 
-    void initialize(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
-        this.mainActivity = mainActivity;
-        prefs = mainActivity.getSharedPreferences("Save", Context.MODE_PRIVATE);
-        cash = new Cash();
-        positions = new StockCollection(true, positionsView);
-        watchlist = new StockCollection(false, watchlistView);
-        if (!containsPositions()) {
-            showPortfolioValueIfReady();
-        }
-    }
-
     static Portfolio getInstance() {
         return portfolio;
+    }
+
+    @SuppressWarnings("unchecked")
+    void initialize(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
+        this.mainActivity = mainActivity;
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        mAuth.signInAnonymously().addOnCompleteListener(mainActivity, task -> {
+            if (task.isSuccessful()) {
+                String uId = mAuth.getUid();
+                if (uId != null) {
+                    userDoc = FirebaseFirestore.getInstance().collection("users").document(uId);
+                    userDoc.get().addOnCompleteListener(docTask -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = docTask.getResult();
+                            if (document.exists()) {
+                                cash = new Cash((String) document.get("cash"));
+                                positionsList = (List<String>) document.get("positions");
+                                positionsShares = (Map<String, String>) document.get("positionsShares");
+                                positionsCost = (Map<String, String>) document.get("positionsCost");
+                                watchlistList = (List<String>) document.get("watchlist");
+                            } else {
+                                setInitialFirestore();
+                            }
+                            positions = new StockCollection(true, positionsView);
+                            watchlist = new StockCollection(false, watchlistView);
+                            if (!containsPositions()) {
+                                showPortfolioValueIfReady();
+                            }
+                        } else {
+                            Toast.makeText(mainActivity, "Document get failed", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    Toast.makeText(mainActivity, "uid not found", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(mainActivity, "Anonymous sign-in failed", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void setInitialFirestore() {
+        Map<String, Object> user = new HashMap<>();
+        cash = new Cash(initialCash.toPlainString());
+        user.put("cash", cash.getPlainString());
+        positionsList = new ArrayList<>();
+        user.put("positions", positionsList);
+        positionsShares = new HashMap<>();
+        user.put("positionsShares", positionsShares);
+        positionsCost = new HashMap<>();
+        user.put("positionsCost", positionsCost);
+        watchlistList = new ArrayList<>();
+        user.put("watchlist", watchlistList);
+        userDoc.set(user);
     }
 
     BigDecimal getCash() {
@@ -155,7 +209,6 @@ class Portfolio {
     private void showPortfolioValueIfReady() {
         if (isPortfolioValueReady()) {
             BigDecimal portfolioValue = getPortfolioValue();
-            BigDecimal initialCash = cash.getInitial();
             BigDecimal portfolioValueChange = roundCurrency(portfolioValue.subtract(initialCash));
             ((TextView) mainActivity.findViewById(R.id.portfolioValue)).setText(formatCurrency(portfolioValue));
             TextView portfolioValuePerformanceText = mainActivity.findViewById(R.id.portfolioValuePerformance);
@@ -211,15 +264,11 @@ class Portfolio {
     }
 
     private class Cash {
-        private final BigDecimal initialCash = new BigDecimal(10000);
-        private BigDecimal cash = new BigDecimal(prefs.getString("cash", initialCash.toPlainString()));
+        private BigDecimal cash;
 
-        private Cash() {
+        private Cash(String cash) {
+            this.cash = new BigDecimal(cash);
             ((TextView) mainActivity.findViewById(R.id.cash)).setText(getString());
-        }
-
-        private BigDecimal getInitial() {
-            return initialCash;
         }
 
         private BigDecimal get() {
@@ -227,6 +276,9 @@ class Portfolio {
         }
         private String getString() {
             return formatCurrency(cash);
+        }
+        private String getPlainString() {
+            return cash.toPlainString();
         }
 
         private boolean has(BigDecimal amount) {
@@ -240,7 +292,7 @@ class Portfolio {
         }
 
         private void write() {
-            prefs.edit().putString("cash", cash.toPlainString()).apply();
+            userDoc.update("cash", getPlainString());
         }
     }
 
@@ -259,14 +311,19 @@ class Portfolio {
                 intent.putExtra("ticker", stocks.get(position).getTicker());
                 mainActivity.startActivity(intent);
             });
-            Scanner scanner = new Scanner(prefs.getString(positions ? "positions" : "watchlist", ""));
-            while (scanner.hasNext()) {
-                String ticker = scanner.next();
-                stocks.add(new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0"))));
-            }
-            scanner.close();
             if (positions) {
+                for (String ticker : positionsList) {
+                    String shares = positionsShares.get(ticker);
+                    assert shares != null;
+                    String cost = positionsCost.get(ticker);
+                    assert cost != null;
+                    stocks.add(new Stock(ticker, Integer.parseInt(shares), new BigDecimal(cost)));
+                }
                 mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+            } else {
+                for (String ticker : watchlistList) {
+                    stocks.add(new Stock(ticker));
+                }
             }
             if (isNonEmpty()) {
                 mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
@@ -345,6 +402,7 @@ class Portfolio {
             return null;
         }
 
+        // Only used by watchlist
         private void addIfValid(String ticker) {
             if (!contains(ticker)) {
                 Executors.newSingleThreadExecutor().execute(() -> {
@@ -360,20 +418,22 @@ class Portfolio {
             }
         }
 
+        // Only used by watchlist
         private void add(String ticker) {
             if (!contains(ticker)) {
-                Stock stock = new Stock(ticker, prefs.getInt(ticker, 0), new BigDecimal(prefs.getString(ticker + "_cost", "0")));
+                Stock stock = new Stock(ticker);
                 stocks.add(stock);
-                writeTickers();
+                write(true, ticker, null);
                 getData(stock);
             }
         }
 
+        // Only used by watchlist
         private void add(Stock stock) {
             String ticker = stock.getTicker();
             if (!contains(ticker)) {
                 stocks.add(stock);
-                writeTickers();
+                write(true, ticker, null);
                 quotesReady++;
                 adapter.notifyDataSetChanged();
             }
@@ -381,12 +441,11 @@ class Portfolio {
 
         private Stock remove(String ticker) {
             if (contains(ticker)) {
-                int numStocks = stocks.size();
-                for (int i = 0; i < numStocks; i++) {
+                for (int i = 0; i < stocks.size(); i++) {
                     Stock stock = stocks.get(i);
                     if (stock.getTicker().equals(ticker)) {
                         stocks.remove(i);
-                        writeTickers();
+                        write(false, ticker, null);
                         quotesReady--;
                         adapter.notifyDataSetChanged();
                         return stock;
@@ -396,26 +455,49 @@ class Portfolio {
             return null;
         }
 
-        private void writeTickers() {
-            StringBuilder tickers = new StringBuilder();
-            for (Stock stock : stocks) {
-                tickers.append(stock.getTicker()).append(" ");
+        private void write(boolean add, String ticker, Stock stock) {
+            if (positions) {
+                if (add) {
+                    if (!positionsList.contains(ticker)) {
+                        positionsList.add(ticker);
+                    }
+                    positionsShares.put(ticker, String.valueOf(stock.getShares()));
+                    positionsCost.put(ticker, String.valueOf(stock.getCost()));
+                } else {
+                    positionsList.remove(ticker);
+                    positionsShares.remove(ticker);
+                    positionsCost.remove(ticker);
+                }
+                userDoc.update("positions", positionsList, "positionsShares", positionsShares, "positionsCost", positionsCost);
+            } else {
+                if (add) {
+                    watchlistList.add(ticker);
+                } else {
+                    watchlistList.remove(ticker);
+                }
+                userDoc.update("watchlist", watchlistList);
             }
-            prefs.edit().putString(positions ? "positions" : "watchlist", tickers.toString()).apply();
         }
 
+        // Only used by positions, returns stock if removing to watchlist
         private Stock changePosition(boolean buy, String ticker, int shares, BigDecimal price, Stock watchlistStock) {
             Stock stock = getStock(ticker);
-            // New or existing position
-            if (buy && stock == null) {
-                stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
+            if (buy && stock == null) { // New position
+                if (watchlistStock == null) { // Stock not in watchlist
+                    stock = new Stock(ticker, shares, price);
+                } else { // Stock in watchlist
+                    stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
+                }
                 stocks.add(stock);
-                writeTickers();
-                writePosition(stock);
-                quotesReady++;
-                adapter.notifyDataSetChanged();
+                write(true, ticker, stock);
+                if (watchlistStock == null) {
+                    getData(stock);
+                } else {
+                    quotesReady++;
+                    adapter.notifyDataSetChanged();
+                }
                 mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
-            } else if (stock != null) {
+            } else if (stock != null) { // Overwriting or removing existing position
                 int sharesOwned = stock.getShares();
                 int newSharesOwned = buy ? sharesOwned + shares : sharesOwned - shares;
                 if (newSharesOwned >= 0) {
@@ -423,11 +505,9 @@ class Portfolio {
                     adapter.notifyDataSetChanged();
                     if (buy) {
                         stock.setCost(roundCurrency(divide(new BigDecimal(sharesOwned).multiply(stock.getCost()).add(new BigDecimal(shares).multiply(price)), new BigDecimal(newSharesOwned))));
+                        write(true, ticker, stock);
                     } else if (newSharesOwned == 0) {
                         stock.setCost(BigDecimal.ZERO);
-                    }
-                    writePosition(stock);
-                    if (!buy && newSharesOwned == 0) {
                         remove(ticker);
                         mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
                         return stock;
@@ -435,16 +515,6 @@ class Portfolio {
                 }
             }
             return null;
-        }
-
-        private void writePosition(Stock stock) {
-            String ticker = stock.getTicker();
-            int shares = stock.getShares();
-            if (shares == 0) {
-                prefs.edit().remove(ticker).remove(ticker + "_cost").apply();
-            } else {
-                prefs.edit().putInt(ticker, shares).putString(ticker + "_cost", stock.getCost().toPlainString()).apply();
-            }
         }
 
         private boolean isPositionsValueReady() {
