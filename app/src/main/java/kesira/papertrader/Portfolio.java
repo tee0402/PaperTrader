@@ -517,6 +517,8 @@ class Portfolio {
                         remove(ticker);
                         mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
                         return stock;
+                    } else {
+                        write(true, ticker, stock);
                     }
                 }
             }
