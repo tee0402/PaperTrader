@@ -108,17 +108,22 @@ public class StockInfoActivity extends AppCompatActivity {
 
     private void getTickerDetails() {
         Executors.newSingleThreadExecutor().execute(() -> {
-            String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers/" + ticker + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+            String result = APIHelper.get("https://www.alphavantage.co/query?function=OVERVIEW&symbol=" + ticker + "&apikey=1275");
             try {
-                JSONObject jsonObject = new JSONObject(result).getJSONObject("results");
-                String name = jsonObject.getString("name");
-                String exchange = jsonObject.getString("primary_exchange").replace("XNYS", "NYSE").replace("XNAS", "NASDAQ");
-                String marketCap = createMarketCapString(jsonObject.getDouble("market_cap"));
-                String description = jsonObject.getString("description");
+                JSONObject jsonObject = new JSONObject(result);
+                String name = jsonObject.getString("Name");
+                String exchange = jsonObject.getString("Exchange");
+                String marketCap = createMarketCapString(jsonObject.getDouble("MarketCapitalization"));
+                String peRatio = jsonObject.getString("PERatio");
+                String divYield = jsonObject.getString("DividendYield");
+                String dividendYield = divYield.equals("0") ? "None" : portfolio.formatPercentage(new BigDecimal(divYield));
+                String description = jsonObject.getString("Description");
                 new Handler(Looper.getMainLooper()).post(() -> {
                     ((TextView) findViewById(R.id.stockName)).setText(name);
                     ((TextView) findViewById(R.id.exchange)).setText(exchange);
                     ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
+                    ((TextView) findViewById(R.id.peRatio)).setText(peRatio);
+                    ((TextView) findViewById(R.id.dividendYield)).setText(dividendYield);
                     ((TextView) findViewById(R.id.description)).setText(description);
                 });
             } catch (JSONException e) {

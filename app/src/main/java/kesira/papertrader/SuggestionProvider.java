@@ -28,13 +28,13 @@ public class SuggestionProvider extends ContentProvider {
         MatrixCursor matrixCursor = new MatrixCursor(new String[] {BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2, SearchManager.SUGGEST_COLUMN_INTENT_DATA});
         String query = uri.getLastPathSegment().toUpperCase();
         if (!query.equals("SEARCH_SUGGEST_QUERY")) {
-            String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?search=" + query + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+            String result = APIHelper.get("https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=" + query + "&apikey=1275");
             try {
-                JSONArray jsonArray = new JSONObject(result).getJSONArray("results");
+                JSONArray jsonArray = new JSONObject(result).getJSONArray("bestMatches");
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    String ticker = jsonObject.getString("ticker");
-                    matrixCursor.addRow(new Object[] {i, ticker, jsonObject.getString("name"), ticker});
+                    String ticker = jsonObject.getString("1. symbol");
+                    matrixCursor.addRow(new Object[] {i, ticker, jsonObject.getString("2. name"), ticker});
                 }
             } catch (JSONException e) {
                 Log.e("Exception", e.getMessage());

@@ -30,5 +30,7 @@
     <string name="performance">Performance</string>
     <string name="exchange">Exchange</string>
     <string name="market_cap">Market Cap</string>
+    <string name="pe_ratio">PE Ratio</string>
+    <string name="dividend_yield">Dividend Yield</string>
     <string name="description">Description</string>
 </resources>

@@ -34,9 +34,7 @@ class APIHelper {
 
     private static Calendar getTodayCalendar() {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
-        if (calendar.get(Calendar.HOUR_OF_DAY) < 16) {
-            calendar.add(Calendar.DAY_OF_WEEK, -1);
-        }
+        calendar.add(Calendar.DAY_OF_WEEK, -1);
         toFridayIfWeekend(calendar);
         return calendar;
     }
@@ -54,15 +52,6 @@ class APIHelper {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         return dateFormat.format(getTodayCalendar().getTime());
-    }
-
-    static String getPreviousDay() {
-        Calendar calendar = getTodayCalendar();
-        calendar.add(Calendar.DAY_OF_WEEK, -1);
-        toFridayIfWeekend(calendar);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-        return dateFormat.format(calendar.getTime());
     }
 
     static String getRangeStart(int field, int amount) {

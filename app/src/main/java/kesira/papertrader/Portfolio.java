@@ -329,7 +329,7 @@ class Portfolio {
                 mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
             }
             for (Stock stock : stocks) {
-                getData(stock);
+                getData(stock, null);
             }
         }
 
@@ -406,10 +406,16 @@ class Portfolio {
         private void addIfValid(String ticker) {
             if (!contains(ticker)) {
                 Executors.newSingleThreadExecutor().execute(() -> {
-                    String result = APIHelper.get("https://api.polygon.io/v3/reference/tickers?ticker=" + ticker + "&apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+                    String result = APIHelper.get("https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + ticker + "&apikey=1275");
                     try {
-                        if (new JSONObject(result).getJSONArray("results").length() == 1) {
-                            add(ticker);
+                        JSONObject jsonObject = new JSONObject(result).getJSONObject("Global Quote");
+                        if (jsonObject.length() > 0) {
+                            if (!contains(ticker)) {
+                                Stock stock = new Stock(ticker);
+                                stocks.add(stock);
+                                write(true, ticker, null);
+                                getData(stock, result);
+                            }
                         }
                     } catch (JSONException e) {
                         Log.e("Exception", e.getMessage());
@@ -424,7 +430,7 @@ class Portfolio {
                 Stock stock = new Stock(ticker);
                 stocks.add(stock);
                 write(true, ticker, null);
-                getData(stock);
+                getData(stock, null);
             }
         }
 
@@ -491,7 +497,7 @@ class Portfolio {
                 stocks.add(stock);
                 write(true, ticker, stock);
                 if (watchlistStock == null) {
-                    getData(stock);
+                    getData(stock, null);
                 } else {
                     quotesReady++;
                     adapter.notifyDataSetChanged();
@@ -538,31 +544,22 @@ class Portfolio {
                     stock.setChange(null);
                     stock.setPercentChange(null);
                     adapter.notifyDataSetChanged();
-                    getData(stock);
+                    getData(stock, null);
                 }
             }
         }
 
-        private void getData(Stock stock) {
+        private void getData(Stock stock, String prevResult) {
             Executors.newSingleThreadExecutor().execute(() -> {
-                String result = APIHelper.get("https://api.polygon.io/v1/open-close/" + stock.getTicker() + "/" + APIHelper.getPreviousDay() + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
+                String result = prevResult == null ? APIHelper.get("https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + stock.getTicker() + "&apikey=1275") : prevResult;
                 try {
-                    stock.setPreviousClose(new BigDecimal(new JSONObject(result).getString("close")));
-                } catch (JSONException e) {
-                    Log.e("Exception", e.getMessage());
-                }
-                result = APIHelper.get("https://api.polygon.io/v2/aggs/ticker/" + stock.getTicker() + "/prev?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
-                try {
-                    JSONObject jsonObject = new JSONObject(result).getJSONArray("results").getJSONObject(0);
-                    BigDecimal close = new BigDecimal(jsonObject.getString("c"));
-                    stock.setQuote(close);
+                    JSONObject jsonObject = new JSONObject(result).getJSONObject("Global Quote");
+                    stock.setPreviousClose(roundCurrency(new BigDecimal(jsonObject.getString("08. previous close"))));
+                    stock.setQuote(roundCurrency(new BigDecimal(jsonObject.getString("05. price"))));
+                    stock.setChange(roundCurrency(new BigDecimal(jsonObject.getString("09. change"))));
+                    String percentChange = jsonObject.getString("10. change percent");
+                    stock.setPercentChange(roundPercentage(divide(new BigDecimal(percentChange.substring(0, percentChange.length() - 1)), new BigDecimal(100))));
                     quotesReady++;
-                    BigDecimal previousClose = stock.getPreviousClose();
-                    if (previousClose != null) {
-                        BigDecimal change = close.subtract(previousClose);
-                        stock.setChange(roundCurrency(change));
-                        stock.setPercentChange(roundPercentage(divide(change, previousClose)));
-                    }
                     new Handler(Looper.getMainLooper()).post(() -> {
                         adapter.notifyDataSetChanged();
                         mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.GONE);
