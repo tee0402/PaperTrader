@@ -20,7 +20,15 @@ public class SearchActivity extends AppCompatActivity {
 
     private void handleIntent(Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_VIEW)) {
-            Portfolio.getInstance().add(intent.getDataString());
+            String ticker = intent.getDataString();
+            Portfolio portfolio = Portfolio.getInstance();
+            if (portfolio.inPositions(ticker) || portfolio.inWatchlist(ticker)) {
+                Intent stockInfoIntent = new Intent(SearchActivity.this, StockInfoActivity.class);
+                stockInfoIntent.putExtra("ticker", ticker);
+                startActivity(stockInfoIntent);
+            } else {
+                portfolio.add(ticker);
+            }
         }
         finish();
     }
