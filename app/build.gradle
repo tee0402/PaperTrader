@@ -10,7 +10,7 @@ android {
         applicationId "kesira.papertrader"
         minSdk 31
         targetSdk 31
-        versionCode 8
+        versionCode 13
         versionName '2'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
