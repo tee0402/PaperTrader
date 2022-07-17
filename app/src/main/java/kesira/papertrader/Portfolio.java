@@ -26,12 +26,17 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 class Portfolio {
     private static final Portfolio portfolio = new Portfolio();
@@ -44,6 +49,9 @@ class Portfolio {
     private final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
     private final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
     private DocumentReference userDoc;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("M/d/yyyy", Locale.ENGLISH);
+    private List<Date> datesList;
+    private List<Float> portfolioValuesList;
     private List<String> positionsList;
     private Map<String, String> positionsShares;
     private Map<String, String> positionsCost;
@@ -55,7 +63,6 @@ class Portfolio {
         return portfolio;
     }
 
-    @SuppressWarnings("unchecked")
     void initialize(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
         this.mainActivity = mainActivity;
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -68,11 +75,7 @@ class Portfolio {
                         if (task.isSuccessful()) {
                             DocumentSnapshot document = docTask.getResult();
                             if (document.exists()) {
-                                cash = new Cash((String) document.get("cash"));
-                                positionsList = (List<String>) document.get("positions");
-                                positionsShares = (Map<String, String>) document.get("positionsShares");
-                                positionsCost = (Map<String, String>) document.get("positionsCost");
-                                watchlistList = (List<String>) document.get("watchlist");
+                                getExistingFirestore(document);
                             } else {
                                 setInitialFirestore();
                             }
@@ -81,6 +84,7 @@ class Portfolio {
                             if (!containsPositions()) {
                                 showPortfolioValueIfReady();
                             }
+                            mainActivity.setChartData();
                         } else {
                             Toast.makeText(mainActivity, "Document get failed", Toast.LENGTH_LONG).show();
                         }
@@ -94,10 +98,39 @@ class Portfolio {
         });
     }
 
+    @SuppressWarnings("unchecked")
+    private void getExistingFirestore(DocumentSnapshot document) {
+        cash = new Cash((String) document.get("cash"));
+        List<String> dates = (List<String>) document.get("dates");
+        assert dates != null;
+        datesList = dates.stream().map(date -> {
+            try {
+                return dateFormat.parse(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }).collect(Collectors.toList());
+        List<String> portfolioValues = (List<String>) document.get("portfolioValues");
+        assert portfolioValues != null;
+        portfolioValuesList = portfolioValues.stream().map(Float::parseFloat).collect(Collectors.toList());
+        positionsList = (List<String>) document.get("positions");
+        positionsShares = (Map<String, String>) document.get("positionsShares");
+        positionsCost = (Map<String, String>) document.get("positionsCost");
+        watchlistList = (List<String>) document.get("watchlist");
+    }
+
     private void setInitialFirestore() {
         Map<String, Object> user = new HashMap<>();
         cash = new Cash(initialCash.toPlainString());
         user.put("cash", cash.getPlainString());
+        datesList = new ArrayList<>();
+        datesList.add(new Date());
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+        user.put("dates", datesList.stream().map(dateFormat::format).collect(Collectors.toList()));
+        portfolioValuesList = new ArrayList<>();
+        portfolioValuesList.add(initialCash.floatValue());
+        user.put("portfolioValues", portfolioValuesList.stream().map(String::valueOf).collect(Collectors.toList()));
         positionsList = new ArrayList<>();
         user.put("positions", positionsList);
         positionsShares = new HashMap<>();
@@ -114,6 +147,13 @@ class Portfolio {
     }
     String getCashString() {
         return cash.getString();
+    }
+
+    List<Date> getDatesList() {
+        return datesList;
+    }
+    List<Float> getPortfolioValuesList() {
+        return portfolioValuesList;
     }
 
     boolean containsPositions() {
@@ -261,6 +301,10 @@ class Portfolio {
 
     boolean isPositive(BigDecimal value) {
         return value.compareTo(BigDecimal.ZERO) >= 0;
+    }
+
+    boolean isPositivePortfolio(BigDecimal currentPortfolioValue) {
+        return currentPortfolioValue.compareTo(initialCash) >= 0;
     }
 
     private class Cash {

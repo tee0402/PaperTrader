@@ -15,9 +15,15 @@ class CustomMarker extends MarkerView {
     private final TextView textView;
     private ArrayList<String> markerDates;
     private final Portfolio portfolio = Portfolio.getInstance();
+    private boolean simpleCurrencyFormat = false;
 
     CustomMarker(Context context) {
         this(context, R.layout.chart_marker);
+    }
+
+    CustomMarker(Context context, boolean simpleCurrencyFormat) {
+        this(context, R.layout.chart_marker);
+        this.simpleCurrencyFormat = simpleCurrencyFormat;
     }
 
     private CustomMarker(Context context, int layoutResource) {
@@ -31,7 +37,8 @@ class CustomMarker extends MarkerView {
 
     @Override
     public void refreshContent(Entry e, Highlight highlight) {
-        textView.setText(portfolio.formatSimpleCurrency(BigDecimal.valueOf(e.getY())) + "  " + markerDates.get((int) e.getX()));
+        BigDecimal y = BigDecimal.valueOf(e.getY());
+        textView.setText((simpleCurrencyFormat ? portfolio.formatSimpleCurrency(y) : portfolio.formatCurrency(y)) + "  " + markerDates.get((int) e.getX()));
         super.refreshContent(e, highlight);
     }
 

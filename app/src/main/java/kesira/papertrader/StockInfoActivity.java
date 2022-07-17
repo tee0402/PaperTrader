@@ -15,7 +15,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -76,6 +75,7 @@ public class StockInfoActivity extends AppCompatActivity {
         chart.setDrawGridBackground(true);
         chart.getLegend().setEnabled(false);
         chart.getAxisRight().setEnabled(false);
+        chart.getDescription().setEnabled(false);
         chart.setOnTouchListener((v, event) -> {
             v.performClick();
             if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -83,12 +83,9 @@ public class StockInfoActivity extends AppCompatActivity {
             }
             return super.onTouchEvent(event);
         });
-        marker = new CustomMarker(this);
+        marker = new CustomMarker(this, true);
         marker.setChartView(chart);
         chart.setMarker(marker);
-        Description description = new Description();
-        description.setText("MPAndroidChart by Philipp Jahoda");
-        chart.setDescription(description);
         xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawAxisLine(false);

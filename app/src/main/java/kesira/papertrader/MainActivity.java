@@ -3,6 +3,7 @@ package kesira.papertrader;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -18,16 +19,48 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.content.ContextCompat;
+
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     private final Portfolio portfolio = Portfolio.getInstance();
     private EditText enterTicker;
+    private CustomLineChart chart;
     private String tickerSelected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        chart = findViewById(R.id.portfolioChart);
+        chart.setNoDataText("Loading...");
+        chart.setDragYEnabled(false);
+        chart.setScaleYEnabled(false);
+        chart.setDrawGridBackground(true);
+        chart.getLegend().setEnabled(false);
+        chart.getAxisLeft().setEnabled(false);
+        chart.getAxisRight().setEnabled(false);
+        chart.getDescription().setEnabled(false);
+        chart.setOnTouchListener((v, event) -> {
+            v.performClick();
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                chart.highlightValues(null);
+            }
+            return super.onTouchEvent(event);
+        });
 
         enterTicker = findViewById(R.id.enterTicker);
         enterTicker.setOnKeyListener((v, keyCode, event) -> {
@@ -56,6 +89,49 @@ public class MainActivity extends AppCompatActivity {
 
     private void hideSoftInput(View v) {
         ((InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
+    void setChartData() {
+        ArrayList<Entry> entries = new ArrayList<>();
+        ArrayList<String> markerDates = new ArrayList<>();
+        List<Date> dates = portfolio.getDatesList();
+        List<Float> portfolioValues = portfolio.getPortfolioValuesList();
+        int size = dates.size();
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawAxisLine(false);
+        xAxis.setDrawGridLines(false);
+        xAxis.setLabelCount(4, false);
+        SimpleDateFormat xAxisFormat = new SimpleDateFormat(size <= 260 ? "MMM d" : "MMM yyyy", Locale.ENGLISH);
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return xAxisFormat.format(dates.get((int) value));
+            }
+        });
+
+        SimpleDateFormat markerDateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH);
+        for (int i = 0; i < size; i++) {
+            entries.add(new Entry(i, portfolioValues.get(i)));
+            markerDates.add(markerDateFormat.format(dates.get(i)));
+        }
+        CustomMarker marker = new CustomMarker(this);
+        marker.setChartView(chart);
+        chart.setMarker(marker);
+        marker.setMarkerDates(markerDates);
+        LineDataSet lineDataSet = new LineDataSet(entries, "Portfolio Values");
+        lineDataSet.setDrawHorizontalHighlightIndicator(false);
+        lineDataSet.setDrawValues(false);
+        lineDataSet.setDrawCircles(false);
+        lineDataSet.setLineWidth(2);
+        boolean isPositivePortfolio = portfolio.isPositivePortfolio(BigDecimal.valueOf(entries.get(size - 1).getY()));
+        lineDataSet.setColor(isPositivePortfolio ? Color.parseColor("#33CC33") : Color.RED);
+        lineDataSet.setDrawFilled(true);
+        lineDataSet.setFillDrawable(ContextCompat.getDrawable(this, isPositivePortfolio ? R.drawable.fill_green : R.drawable.fill_red));
+        LineData lineData = new LineData(lineDataSet);
+        chart.setData(lineData);
+        chart.invalidate();
     }
 
     @Override
