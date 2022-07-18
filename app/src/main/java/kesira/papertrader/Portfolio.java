@@ -266,11 +266,6 @@ class Portfolio {
         return roundCurrency(cash.get().add(positions.getPositionsValue()));
     }
 
-    void refresh() {
-        positions.refresh();
-        watchlist.refresh();
-    }
-
     BigDecimal divide(BigDecimal dividend, BigDecimal divisor) {
         return dividend.divide(divisor, new MathContext(20, RoundingMode.HALF_EVEN));
     }
@@ -579,20 +574,6 @@ class Portfolio {
                 value = value.add(stock.getQuote().multiply(new BigDecimal(stock.getShares())));
             }
             return value;
-        }
-
-        private void refresh() {
-            if (isNonEmpty()) {
-                mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
-                quotesReady = 0;
-                for (Stock stock : stocks) {
-                    stock.setQuote(null);
-                    stock.setChange(null);
-                    stock.setPercentChange(null);
-                    adapter.notifyDataSetChanged();
-                    getData(stock, null);
-                }
-            }
         }
 
         private void getData(Stock stock, String prevResult) {

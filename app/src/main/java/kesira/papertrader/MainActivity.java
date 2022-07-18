@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.refresh) {
-            portfolio.refresh();
+            recreate();
         }
         return super.onOptionsItemSelected(item);
     }
