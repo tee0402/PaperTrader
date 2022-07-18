@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
@@ -78,13 +79,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addToWatchlist(View v) {
-        String ticker = enterTicker.getText().toString();
-        if (!ticker.equals("")) {
+        String ticker = enterTicker.getText().toString().toUpperCase().replaceAll("[^A-Z.]", "");
+        if (ticker.matches("^[A-Z]+$|^[A-Z]+[.][A-Z]+$")) {
             portfolio.addIfValid(ticker);
-            enterTicker.getText().clear();
-            enterTicker.clearFocus();
-            hideSoftInput(v);
+        } else {
+            Toast.makeText(this, "Invalid ticker", Toast.LENGTH_LONG).show();
         }
+        enterTicker.getText().clear();
+        enterTicker.clearFocus();
+        hideSoftInput(v);
     }
 
     private void hideSoftInput(View v) {
@@ -167,7 +170,9 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.search_menu, menu);
         inflater.inflate(R.menu.refresh_menu, menu);
-        ((SearchView) menu.findItem(R.id.search).getActionView()).setSearchableInfo(((SearchManager) getSystemService(Context.SEARCH_SERVICE)).getSearchableInfo(getComponentName()));
+        MenuItem searchMenuItem = menu.findItem(R.id.search);
+        SearchMenuItemHelper.getInstance().initialize(searchMenuItem);
+        ((SearchView) searchMenuItem.getActionView()).setSearchableInfo(((SearchManager) getSystemService(Context.SEARCH_SERVICE)).getSearchableInfo(getComponentName()));
         return true;
     }
 

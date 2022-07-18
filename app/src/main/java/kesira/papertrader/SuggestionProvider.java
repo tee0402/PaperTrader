@@ -16,6 +16,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 public class SuggestionProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
@@ -28,16 +31,23 @@ public class SuggestionProvider extends ContentProvider {
         MatrixCursor matrixCursor = new MatrixCursor(new String[] {BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2, SearchManager.SUGGEST_COLUMN_INTENT_DATA});
         String query = uri.getLastPathSegment().toUpperCase();
         if (!query.equals("SEARCH_SUGGEST_QUERY")) {
-            String result = APIHelper.get("https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=" + query + "&apikey=1275");
             try {
-                JSONArray jsonArray = new JSONObject(result).getJSONArray("bestMatches");
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    String ticker = jsonObject.getString("1. symbol");
-                    matrixCursor.addRow(new Object[] {i, ticker, jsonObject.getString("2. name"), ticker});
+                String result = APIHelper.get("https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=" + URLEncoder.encode(query, "UTF-8") + "&apikey=1275");
+                try {
+                    JSONArray jsonArray = new JSONObject(result).getJSONArray("bestMatches");
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        String type = jsonObject.getString("3. type");
+                        if ((type.equals("Equity") || type.equals("ETF")) && jsonObject.getString("4. region").equals("United States")) {
+                            String ticker = jsonObject.getString("1. symbol");
+                            matrixCursor.addRow(new Object[] {i, ticker, jsonObject.getString("2. name"), ticker});
+                        }
+                    }
+                } catch (JSONException e) {
+                    Log.e("Exception", e.getMessage());
                 }
-            } catch (JSONException e) {
-                Log.e("Exception", e.getMessage());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
             }
         }
         return matrixCursor;
