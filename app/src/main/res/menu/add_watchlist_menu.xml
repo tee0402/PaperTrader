@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/add"
-        android:title="@string/add_title"
+        android:title="@string/add"
         android:icon="@drawable/ic_add"
         app:showAsAction="collapseActionView|ifRoom" />
 </menu>

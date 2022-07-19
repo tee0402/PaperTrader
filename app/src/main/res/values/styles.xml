@@ -7,7 +7,7 @@
         <item name="android:dropDownItemStyle">@style/myDropDownItemStyle</item>
     </style>
     <style name="myAutoCompleteTextViewStyle" parent="Widget.AppCompat.Light.AutoCompleteTextView">
-        <item name="android:popupBackground">#ffffff</item>
+        <item name="android:popupBackground">#FFFFFF</item>
     </style>
     <style name="myDropDownItemStyle" parent="Widget.AppCompat.DropDownItem.Spinner">
         <item name="android:textColor">@color/colorPrimary</item>

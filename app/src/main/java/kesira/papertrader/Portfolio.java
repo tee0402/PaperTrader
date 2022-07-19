@@ -57,7 +57,9 @@ class Portfolio {
     private Map<String, String> positionsCost;
     private List<String> watchlistList;
 
-    private Portfolio() {}
+    private Portfolio() {
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+    }
 
     static Portfolio getInstance() {
         return portfolio;
@@ -84,7 +86,7 @@ class Portfolio {
                             if (!containsPositions()) {
                                 showPortfolioValueIfReady();
                             }
-                            mainActivity.setChartData();
+                            mainActivity.initializeChartData();
                         } else {
                             Toast.makeText(mainActivity, "Document get failed", Toast.LENGTH_LONG).show();
                         }
@@ -126,7 +128,6 @@ class Portfolio {
         user.put("cash", cash.getPlainString());
         datesList = new ArrayList<>();
         datesList.add(new Date());
-        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         user.put("dates", datesList.stream().map(dateFormat::format).collect(Collectors.toList()));
         portfolioValuesList = new ArrayList<>();
         portfolioValuesList.add(initialCash.floatValue());
@@ -249,12 +250,8 @@ class Portfolio {
     private void showPortfolioValueIfReady() {
         if (isPortfolioValueReady()) {
             BigDecimal portfolioValue = getPortfolioValue();
-            BigDecimal portfolioValueChange = roundCurrency(portfolioValue.subtract(initialCash));
             ((TextView) mainActivity.findViewById(R.id.portfolioValue)).setText(formatCurrency(portfolioValue));
-            TextView portfolioValuePerformanceText = mainActivity.findViewById(R.id.portfolioValuePerformance);
-            boolean positive = isPositive(portfolioValueChange);
-            portfolioValuePerformanceText.setText((positive ? " +" : " ") + formatCurrency(portfolioValueChange) + (positive ? " (+" : " (") + createPercentage(portfolioValueChange, initialCash) + ")");
-            portfolioValuePerformanceText.setTextColor(positive ? Color.parseColor("#33CC33") : Color.RED);
+            mainActivity.showPortfolioValuePerformance(null);
         }
     }
 
@@ -298,8 +295,8 @@ class Portfolio {
         return value.compareTo(BigDecimal.ZERO) >= 0;
     }
 
-    boolean isPositivePortfolio(BigDecimal currentPortfolioValue) {
-        return currentPortfolioValue.compareTo(initialCash) >= 0;
+    boolean isPositiveChange(BigDecimal currentValue, BigDecimal initialValue) {
+        return currentValue.compareTo(initialValue) >= 0;
     }
 
     private class Cash {
@@ -338,7 +335,7 @@ class Portfolio {
     private class StockCollection {
         private final boolean positions;
         private final StockArrayAdapter adapter;
-        private final ArrayList<Stock> stocks = new ArrayList<>();
+        private final List<Stock> stocks = new ArrayList<>();
         private int quotesReady = 0;
 
         private StockCollection(boolean positions, ListView listView) {

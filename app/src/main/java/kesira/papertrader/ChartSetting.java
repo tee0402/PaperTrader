@@ -4,17 +4,21 @@ import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.data.LineData;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.List;
 
 class ChartSetting {
-    private final LineData lineData;
-    private final ArrayList<String> xAxisValues;
-    private final ArrayList<String> markerDates;
-    private final BigDecimal change;
-    private final BigDecimal percentChange;
+    private LineData lineData;
+    private List<String> xAxisValues;
+    private List<String> markerDates;
+    private BigDecimal change;
+    private BigDecimal percentChange;
     private LimitLine previousCloseLimitLine;
+    private int initialIndex;
+    private BigDecimal initialPortfolioValue;
+    private SimpleDateFormat xAxisFormat;
 
-    ChartSetting(LineData lineData, ArrayList<String> xAxisValues, ArrayList<String> markerDates, BigDecimal change, BigDecimal percentChange) {
+    ChartSetting(LineData lineData, List<String> xAxisValues, List<String> markerDates, BigDecimal change, BigDecimal percentChange) {
         this.lineData = lineData;
         this.xAxisValues = xAxisValues;
         this.markerDates = markerDates;
@@ -22,15 +26,24 @@ class ChartSetting {
         this.percentChange = percentChange;
     }
 
+    ChartSetting(int initialIndex, BigDecimal initialPortfolioValue, SimpleDateFormat xAxisFormat) {
+        this.initialIndex = initialIndex;
+        this.initialPortfolioValue = initialPortfolioValue;
+        this.xAxisFormat = xAxisFormat;
+    }
+
     LineData getLineData() {
         return lineData;
     }
+    void setLineData(LineData lineData) {
+        this.lineData = lineData;
+    }
 
-    ArrayList<String> getXAxisValues() {
+    List<String> getXAxisValues() {
         return xAxisValues;
     }
 
-    ArrayList<String> getMarkerDates() {
+    List<String> getMarkerDates() {
         return markerDates;
     }
 
@@ -47,5 +60,17 @@ class ChartSetting {
     }
     void setPreviousCloseLimitLine(LimitLine previousCloseLimitLine) {
         this.previousCloseLimitLine = previousCloseLimitLine;
+    }
+
+    int getInitialIndex() {
+        return initialIndex;
+    }
+
+    BigDecimal getInitialPortfolioValue() {
+        return initialPortfolioValue;
+    }
+
+    SimpleDateFormat getXAxisFormat() {
+        return xAxisFormat;
     }
 }

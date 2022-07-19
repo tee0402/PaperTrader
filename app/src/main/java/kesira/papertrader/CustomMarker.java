@@ -9,11 +9,11 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.utils.MPPointF;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.List;
 
 class CustomMarker extends MarkerView {
     private final TextView textView;
-    private ArrayList<String> markerDates;
+    private List<String> markerDates;
     private final Portfolio portfolio = Portfolio.getInstance();
     private boolean simpleCurrencyFormat = false;
 
@@ -31,7 +31,7 @@ class CustomMarker extends MarkerView {
         textView = findViewById(R.id.marker);
     }
 
-    void setMarkerDates(ArrayList<String> markerDates) {
+    void setMarkerDates(List<String> markerDates) {
         this.markerDates = markerDates;
     }
 

@@ -51,7 +51,7 @@
                 android:checked="true"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="@string/button_1d"
+                android:text="@string/radio_1d"
                 android:textSize="12sp"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -64,7 +64,7 @@
                 android:checked="false"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="@string/button_1w"
+                android:text="@string/radio_1w"
                 android:textSize="12sp"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -77,7 +77,7 @@
                 android:checked="false"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="@string/button_1m"
+                android:text="@string/radio_1m"
                 android:textSize="12sp"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -90,7 +90,7 @@
                 android:checked="false"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="@string/button_3m"
+                android:text="@string/radio_3m"
                 android:textSize="12sp"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -103,7 +103,7 @@
                 android:checked="false"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="@string/button_1y"
+                android:text="@string/radio_1y"
                 android:textSize="12sp"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
             <RadioButton
@@ -116,7 +116,7 @@
                 android:checked="false"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="@string/button_2y"
+                android:text="@string/radio_2y"
                 android:textSize="12sp"
                 android:textColor="@drawable/rbtn_textcolor_selector" />
         </RadioGroup>

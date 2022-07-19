@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 
@@ -51,7 +53,7 @@ public class StockInfoActivity extends AppCompatActivity {
     private CustomMarker marker;
     private XAxis xAxis;
     private YAxis yAxis;
-    private final HashMap<Integer, ChartSetting> chartSettings = new HashMap<>();
+    private final Map<Integer, ChartSetting> chartSettings = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,9 +85,6 @@ public class StockInfoActivity extends AppCompatActivity {
             }
             return super.onTouchEvent(event);
         });
-        marker = new CustomMarker(this, true);
-        marker.setChartView(chart);
-        chart.setMarker(marker);
         xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawAxisLine(false);
@@ -93,6 +92,9 @@ public class StockInfoActivity extends AppCompatActivity {
         xAxis.setLabelCount(4, false);
         yAxis = chart.getAxisLeft();
         yAxis.setDrawAxisLine(false);
+        marker = new CustomMarker(this, true);
+        marker.setChartView(chart);
+        chart.setMarker(marker);
         RadioGroup radioGroup = findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> getChartData(checkedId));
         getChartData(R.id.radio1D);
@@ -170,11 +172,13 @@ public class StockInfoActivity extends AppCompatActivity {
             Executors.newSingleThreadExecutor().execute(() -> {
                 String url = "https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/";
                 boolean radio1D = checkedId == R.id.radio1D;
+                boolean radio1W = checkedId == R.id.radio1W;
+                boolean radio1M = checkedId == R.id.radio1M;
                 if (radio1D) {
                     url += "5/minute/" + APIHelper.getToday();
-                } else if (checkedId == R.id.radio1W) {
+                } else if (radio1W) {
                     url += "30/minute/" + APIHelper.getRangeStart(Calendar.WEEK_OF_MONTH, 1);
-                } else if (checkedId == R.id.radio1M) {
+                } else if (radio1M) {
                     url += "1/day/" + APIHelper.getRangeStart(Calendar.MONTH, 1);
                 } else if (checkedId == R.id.radio3M) {
                     url += "1/day/" + APIHelper.getRangeStart(Calendar.MONTH, 3);
@@ -187,19 +191,19 @@ public class StockInfoActivity extends AppCompatActivity {
                 String result = APIHelper.get(url);
                 try {
                     JSONArray jsonArray = new JSONObject(result).getJSONArray("results");
-                    ArrayList<Entry> entries = new ArrayList<>();
-                    ArrayList<String> xAxisValues = new ArrayList<>();
-                    ArrayList<String> markerDates = new ArrayList<>();
+                    List<Entry> entries = new ArrayList<>();
+                    List<String> xAxisValues = new ArrayList<>();
+                    List<String> markerDates = new ArrayList<>();
                     Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
-                    SimpleDateFormat xAxisFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (checkedId == R.id.radio1W || checkedId == R.id.radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
+                    SimpleDateFormat xAxisFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (radio1W || radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
                     xAxisFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-                    SimpleDateFormat markerDateFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (checkedId == R.id.radio1W ? "EEE, MMM d h:mm a" : (checkedId == R.id.radio1M ? "EEE, MMM d" : "MMM d, yyyy")), Locale.ENGLISH);
+                    SimpleDateFormat markerDateFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (radio1W ? "EEE, MMM d h:mm a" : (radio1M ? "EEE, MMM d" : "MMM d, yyyy")), Locale.ENGLISH);
                     markerDateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
                     ChartSetting setting;
                     int numResults = jsonArray.length();
                     if (radio1D) {
-                        ArrayList<Entry> premarketEntries = new ArrayList<>();
-                        ArrayList<Entry> afterHoursEntries = new ArrayList<>();
+                        List<Entry> premarketEntries = new ArrayList<>();
+                        List<Entry> afterHoursEntries = new ArrayList<>();
                         int skipped = 0;
                         for (int i = 0; i < numResults; i++) {
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -309,16 +313,16 @@ public class StockInfoActivity extends AppCompatActivity {
             }
         }
         chart.setData(lineData);
-        ArrayList<String> xAxisValues = chartSetting.getXAxisValues();
+        List<String> xAxisValues = chartSetting.getXAxisValues();
         int numXAxisValues = xAxisValues.size();
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
-                int index = (int) value;
-                if (index >= 0 && index < numXAxisValues) {
-                    return xAxisValues.get(index);
+                int i = (int) value;
+                if (i < 0 || i >= numXAxisValues) {
+                    return "";
                 }
-                return "";
+                return xAxisValues.get(i);
             }
         });
         marker.setMarkerDates(chartSetting.getMarkerDates());
