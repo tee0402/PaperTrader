@@ -48,6 +48,7 @@ class Portfolio {
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
     private final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
     private final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
+    private final DecimalFormat simplePercentageFormat = new DecimalFormat("0.0000");
     private DocumentReference userDoc;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("M/d/yyyy", Locale.ENGLISH);
     private List<Date> datesList;
@@ -169,6 +170,10 @@ class Portfolio {
         return watchlist.contains(ticker);
     }
 
+    boolean inPortfolio(String ticker) {
+        return inPositions(ticker) || inWatchlist(ticker);
+    }
+
     int getShares(String ticker) {
         return positions.getShares(ticker);
     }
@@ -267,6 +272,10 @@ class Portfolio {
         return dividend.divide(divisor, new MathContext(20, RoundingMode.HALF_EVEN));
     }
 
+    BigDecimal percentageToDecimal(BigDecimal percentage) {
+        return divide(percentage, new BigDecimal(100));
+    }
+
     String createPercentage(BigDecimal dividend, BigDecimal divisor) {
         return percentageFormat.format(divide(dividend, divisor));
     }
@@ -277,6 +286,10 @@ class Portfolio {
 
     String formatSimpleCurrency(BigDecimal value) {
         return simpleCurrencyFormat.format(value);
+    }
+
+    String formatSimplePercentage(BigDecimal value) {
+        return simplePercentageFormat.format(value);
     }
 
     String formatPercentage(BigDecimal value) {
@@ -482,16 +495,14 @@ class Portfolio {
         }
 
         private Stock remove(String ticker) {
-            if (contains(ticker)) {
-                for (int i = 0; i < stocks.size(); i++) {
-                    Stock stock = stocks.get(i);
-                    if (stock.getTicker().equals(ticker)) {
-                        stocks.remove(i);
-                        write(false, ticker, null);
-                        quotesReady--;
-                        adapter.notifyDataSetChanged();
-                        return stock;
-                    }
+            for (int i = 0; i < stocks.size(); i++) {
+                Stock stock = stocks.get(i);
+                if (stock.getTicker().equals(ticker)) {
+                    stocks.remove(i);
+                    write(false, ticker, null);
+                    quotesReady--;
+                    adapter.notifyDataSetChanged();
+                    return stock;
                 }
             }
             return null;
@@ -582,7 +593,7 @@ class Portfolio {
                     stock.setQuote(roundCurrency(new BigDecimal(jsonObject.getString("05. price"))));
                     stock.setChange(roundCurrency(new BigDecimal(jsonObject.getString("09. change"))));
                     String percentChange = jsonObject.getString("10. change percent");
-                    stock.setPercentChange(roundPercentage(divide(new BigDecimal(percentChange.substring(0, percentChange.length() - 1)), new BigDecimal(100))));
+                    stock.setPercentChange(roundPercentage(percentageToDecimal(new BigDecimal(percentChange.substring(0, percentChange.length() - 1)))));
                     quotesReady++;
                     new Handler(Looper.getMainLooper()).post(() -> {
                         adapter.notifyDataSetChanged();

@@ -1,5 +1,6 @@
 package kesira.papertrader;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -43,6 +44,8 @@ import java.util.concurrent.Executors;
 
 public class StockInfoActivity extends AppCompatActivity {
     private final Portfolio portfolio = Portfolio.getInstance();
+    private Intent intent;
+    private boolean fromNonPortfolio;
     private String ticker;
     private BigDecimal stockPrice;
     private BigDecimal stockChange;
@@ -61,14 +64,16 @@ public class StockInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stock_info);
 
-        ticker = getIntent().getStringExtra("ticker");
+        intent = getIntent();
+        ticker = intent.getStringExtra("ticker");
         getTickerDetails();
-        stockPrice = portfolio.getQuote(ticker);
+        fromNonPortfolio = intent.hasExtra("quote");
+        stockPrice = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("quote")) : portfolio.getQuote(ticker);
         if (stockPrice != null) {
             ((TextView) findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(stockPrice));
         }
-        stockChange = portfolio.getChange(ticker);
-        stockPercentChange = portfolio.getPercentChange(ticker);
+        stockChange = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("change")) : portfolio.getChange(ticker);
+        stockPercentChange = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("percentChange")) : portfolio.getPercentChange(ticker);
         setChange(stockChange, stockPercentChange);
 
         chart = findViewById(R.id.chart);
@@ -255,7 +260,7 @@ public class StockInfoActivity extends AppCompatActivity {
                         lineDataSet.setColor(color);
                         LineData lineData = new LineData(premarketDataSet, lineDataSet, afterHoursDataSet);
                         setting = new ChartSetting(lineData, xAxisValues, markerDates, stockChange, stockPercentChange);
-                        BigDecimal previousClose = portfolio.getPreviousClose(ticker);
+                        BigDecimal previousClose = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("previousClose")) : portfolio.getPreviousClose(ticker);
                         if (previousClose != null) {
                             LimitLine previousCloseLimitLine = new LimitLine(previousClose.floatValue());
                             previousCloseLimitLine.setLineColor(Color.BLACK);
