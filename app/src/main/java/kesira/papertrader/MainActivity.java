@@ -13,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.EditText;
@@ -61,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         chart = findViewById(R.id.chart);
+        ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
+        layoutParams.height = getResources().getDisplayMetrics().heightPixels / 4;
+        chart.setLayoutParams(layoutParams);
         chart.setNoDataText("Loading...");
         chart.setDragYEnabled(false);
         chart.setScaleYEnabled(false);

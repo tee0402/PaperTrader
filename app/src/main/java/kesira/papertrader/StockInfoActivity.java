@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -71,6 +72,9 @@ public class StockInfoActivity extends AppCompatActivity {
         setChange(stockChange, stockPercentChange);
 
         chart = findViewById(R.id.chart);
+        ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
+        layoutParams.height = getResources().getDisplayMetrics().heightPixels / 3;
+        chart.setLayoutParams(layoutParams);
         chart.setNoDataText("Loading...");
         chart.setDragYEnabled(false);
         chart.setScaleYEnabled(false);
