@@ -13,10 +13,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,7 +55,8 @@ class Portfolio {
     private final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
     private final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
     private final DecimalFormat simplePercentageFormat = new DecimalFormat("0.0000");
-    private DocumentReference userDoc;
+    private DocumentReference userDocRef;
+    private CollectionReference tradesCollectionRef;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("M/d/yyyy", Locale.ENGLISH);
     private List<Date> datesList;
     private List<Float> portfolioValuesList;
@@ -69,16 +76,17 @@ class Portfolio {
     void initialize(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
         this.mainActivity = mainActivity;
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        mAuth.signInAnonymously().addOnCompleteListener(mainActivity, task -> {
-            if (task.isSuccessful()) {
+        mAuth.signInAnonymously().addOnCompleteListener(signInTask -> {
+            if (signInTask.isSuccessful()) {
                 String uId = mAuth.getUid();
                 if (uId != null) {
-                    userDoc = FirebaseFirestore.getInstance().collection("users").document(uId);
-                    userDoc.get().addOnCompleteListener(docTask -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = docTask.getResult();
-                            if (document.exists()) {
-                                getExistingFirestore(document);
+                    userDocRef = FirebaseFirestore.getInstance().collection("users").document(uId);
+                    tradesCollectionRef = userDocRef.collection("trades");
+                    userDocRef.get().addOnCompleteListener(docTask -> {
+                        if (docTask.isSuccessful()) {
+                            DocumentSnapshot userDoc = docTask.getResult();
+                            if (userDoc.exists()) {
+                                getExistingFirestore(userDoc);
                             } else {
                                 setInitialFirestore();
                             }
@@ -88,6 +96,17 @@ class Portfolio {
                                 showPortfolioValueIfReady();
                             }
                             mainActivity.initializeChartData();
+
+                            tradesCollectionRef.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(tradesTask -> {
+                                if (tradesTask.isSuccessful()) {
+                                    QuerySnapshot trades = tradesTask.getResult();
+                                    for (QueryDocumentSnapshot trade : trades) {
+                                        trade.getTimestamp("date");
+                                    }
+                                } else {
+                                    Toast.makeText(mainActivity, "Trades get failed", Toast.LENGTH_LONG).show();
+                                }
+                            });
                         } else {
                             Toast.makeText(mainActivity, "Document get failed", Toast.LENGTH_LONG).show();
                         }
@@ -103,7 +122,7 @@ class Portfolio {
 
     @SuppressWarnings("unchecked")
     private void getExistingFirestore(DocumentSnapshot document) {
-        cash = new Cash((String) document.get("cash"));
+        cash = new Cash(document.getString("cash"));
         List<String> dates = (List<String>) document.get("dates");
         assert dates != null;
         datesList = dates.stream().map(date -> {
@@ -141,7 +160,7 @@ class Portfolio {
         user.put("positionsCost", positionsCost);
         watchlistList = new ArrayList<>();
         user.put("watchlist", watchlistList);
-        userDoc.set(user);
+        userDocRef.set(user);
     }
 
     BigDecimal getCash() {
@@ -341,7 +360,7 @@ class Portfolio {
         }
 
         private void write() {
-            userDoc.update("cash", getPlainString());
+            userDocRef.update("cash", getPlainString());
         }
     }
 
@@ -508,9 +527,9 @@ class Portfolio {
             return null;
         }
 
-        private void write(boolean add, String ticker, Stock stock) {
+        private void write(boolean addOrOverwrite, String ticker, Stock stock) {
             if (positions) {
-                if (add) {
+                if (addOrOverwrite) {
                     if (!positionsList.contains(ticker)) {
                         positionsList.add(ticker);
                     }
@@ -521,14 +540,14 @@ class Portfolio {
                     positionsShares.remove(ticker);
                     positionsCost.remove(ticker);
                 }
-                userDoc.update("positions", positionsList, "positionsShares", positionsShares, "positionsCost", positionsCost);
+                userDocRef.update("positions", positionsList, "positionsShares", positionsShares, "positionsCost", positionsCost);
             } else {
-                if (add) {
+                if (addOrOverwrite) {
                     watchlistList.add(ticker);
                 } else {
                     watchlistList.remove(ticker);
                 }
-                userDoc.update("watchlist", watchlistList);
+                userDocRef.update("watchlist", watchlistList);
             }
         }
 
@@ -543,6 +562,7 @@ class Portfolio {
                 }
                 stocks.add(stock);
                 write(true, ticker, stock);
+                writeTrade(true, ticker, shares, price);
                 if (watchlistStock == null) {
                     getData(stock, null);
                 } else {
@@ -556,20 +576,31 @@ class Portfolio {
                 if (newSharesOwned >= 0) {
                     stock.setShares(newSharesOwned);
                     adapter.notifyDataSetChanged();
-                    if (buy) {
-                        stock.setCost(roundCurrency(divide(new BigDecimal(sharesOwned).multiply(stock.getCost()).add(new BigDecimal(shares).multiply(price)), new BigDecimal(newSharesOwned))));
+                    writeTrade(buy, ticker, shares, price);
+                    if (buy || newSharesOwned > 0) {
+                        if (buy) {
+                            stock.setCost(roundCurrency(divide(new BigDecimal(sharesOwned).multiply(stock.getCost()).add(new BigDecimal(shares).multiply(price)), new BigDecimal(newSharesOwned))));
+                        }
                         write(true, ticker, stock);
-                    } else if (newSharesOwned == 0) {
+                    } else {
                         stock.setCost(BigDecimal.ZERO);
                         remove(ticker);
                         mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
                         return stock;
-                    } else {
-                        write(true, ticker, stock);
                     }
                 }
             }
             return null;
+        }
+
+        private void writeTrade(boolean buy, String ticker, int shares, BigDecimal price) {
+            Map<String, Object> trade = new HashMap<>();
+            trade.put("buy", buy);
+            trade.put("date", FieldValue.serverTimestamp());
+            trade.put("price", String.valueOf(price));
+            trade.put("shares", String.valueOf(shares));
+            trade.put("ticker", ticker);
+            tradesCollectionRef.add(trade);
         }
 
         private boolean isPositionsValueReady() {
