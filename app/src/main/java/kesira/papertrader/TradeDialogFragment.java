@@ -2,6 +2,7 @@ package kesira.papertrader;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -29,8 +30,9 @@ public class TradeDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Portfolio portfolio = Portfolio.getInstance();
-        StockInfoActivity stockInfoActivity = (StockInfoActivity) requireActivity();
-        View v = stockInfoActivity.getLayoutInflater().inflate(buy ? R.layout.dialog_buy : R.layout.dialog_sell, null);
+        Context context = requireContext();
+        StockInfoFragment stockInfoFragment = (StockInfoFragment) requireParentFragment();
+        View v = stockInfoFragment.getLayoutInflater().inflate(buy ? R.layout.dialog_buy : R.layout.dialog_sell, null);
 
         Bundle args = requireArguments();
         String ticker = args.getString("ticker");
@@ -62,16 +64,16 @@ public class TradeDialogFragment extends DialogFragment {
             }
         });
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(stockInfoActivity);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(v).setPositiveButton(buy ? R.string.button_buy : R.string.button_sell, (dialog, id) -> {
             if (quantity <= 0) {
-                Toast.makeText(stockInfoActivity, "Please enter a valid number of shares", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Please enter a valid number of shares", Toast.LENGTH_LONG).show();
             } else if (quantity > (buy ? sharesCanAfford : sharesOwned)) {
-                Toast.makeText(stockInfoActivity, buy ? "You can only afford " + sharesCanAfford + " shares" : "You only have " + sharesOwned + " shares to sell", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, buy ? "You can only afford " + sharesCanAfford + " shares" : "You only have " + sharesOwned + " shares to sell", Toast.LENGTH_LONG).show();
             } else {
                 portfolio.changePosition(buy, ticker, quantity, stockPrice);
-                stockInfoActivity.updatePosition();
-                Toast.makeText(stockInfoActivity, (buy ? "Bought " : "Sold ") + quantity + " shares successfully", Toast.LENGTH_LONG).show();
+                stockInfoFragment.updatePosition();
+                Toast.makeText(context, (buy ? "Bought " : "Sold ") + quantity + " shares successfully", Toast.LENGTH_LONG).show();
             }
         }).setNegativeButton(R.string.cancel, (dialog, id) -> dialog.cancel());
         dialog = builder.create();

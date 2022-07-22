@@ -34,11 +34,6 @@
             <meta-data android:name="android.app.searchable"
                 android:resource="@xml/searchable"/>
         </activity>
-        <activity android:name="kesira.papertrader.StockInfoActivity"
-            android:parentActivityName="kesira.papertrader.MainActivity"
-            android:screenOrientation="nosensor"
-            android:windowSoftInputMode="adjustNothing">
-        </activity>
     </application>
 
 </manifest>

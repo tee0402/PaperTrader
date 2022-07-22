@@ -1,12 +1,13 @@
 package kesira.papertrader;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,7 +17,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MenuProvider;
+import androidx.fragment.app.Fragment;
 
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
@@ -43,11 +47,12 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 
-public class StockInfoActivity extends AppCompatActivity {
+public class StockInfoFragment extends Fragment {
     private final Portfolio portfolio = Portfolio.getInstance();
-    private Intent intent;
-    private boolean fromNonPortfolio;
+    private View view;
+    private AppCompatActivity activity;
     private String ticker;
+    private BigDecimal previousClose;
     private BigDecimal stockPrice;
     private BigDecimal stockChange;
     private BigDecimal stockPercentChange;
@@ -60,24 +65,26 @@ public class StockInfoActivity extends AppCompatActivity {
     private YAxis yAxis;
     private final Map<Integer, ChartSetting> chartSettings = new HashMap<>();
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_stock_info);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        view = inflater.inflate(R.layout.fragment_stock_info, container, false);
+        activity = (AppCompatActivity) requireActivity();
 
-        intent = getIntent();
-        ticker = intent.getStringExtra("ticker");
+        Bundle bundle = requireArguments();
+        ticker = bundle.getString("ticker");
         getTickerDetails();
-        fromNonPortfolio = intent.hasExtra("quote");
-        stockPrice = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("quote")) : portfolio.getQuote(ticker);
+        boolean fromNonPortfolio = bundle.containsKey("quote");
+        previousClose = fromNonPortfolio ? new BigDecimal(bundle.getString("previousClose")) : portfolio.getPreviousClose(ticker);
+        stockPrice = fromNonPortfolio ? new BigDecimal(bundle.getString("quote")) : portfolio.getQuote(ticker);
         if (stockPrice != null) {
-            ((TextView) findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(stockPrice));
+            ((TextView) view.findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(stockPrice));
         }
-        stockChange = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("change")) : portfolio.getChange(ticker);
-        stockPercentChange = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("percentChange")) : portfolio.getPercentChange(ticker);
+        stockChange = fromNonPortfolio ? new BigDecimal(bundle.getString("change")) : portfolio.getChange(ticker);
+        stockPercentChange = fromNonPortfolio ? new BigDecimal(bundle.getString("percentChange")) : portfolio.getPercentChange(ticker);
         setChange(stockChange, stockPercentChange);
 
-        chart = findViewById(R.id.chart);
+        chart = view.findViewById(R.id.chart);
         ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
         layoutParams.height = getResources().getDisplayMetrics().heightPixels / 3;
         chart.setLayoutParams(layoutParams);
@@ -93,7 +100,7 @@ public class StockInfoActivity extends AppCompatActivity {
             if (event.getAction() == MotionEvent.ACTION_UP) {
                 chart.highlightValues(null);
             }
-            return super.onTouchEvent(event);
+            return activity.onTouchEvent(event);
         });
         xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -102,17 +109,44 @@ public class StockInfoActivity extends AppCompatActivity {
         xAxis.setLabelCount(4, false);
         yAxis = chart.getAxisLeft();
         yAxis.setDrawAxisLine(false);
-        marker = new CustomMarker(this, true);
+        marker = new CustomMarker(activity, true);
         marker.setChartView(chart);
         chart.setMarker(marker);
-        RadioGroup radioGroup = findViewById(R.id.radioGroup);
+        RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> getChartData(checkedId));
         getChartData(R.id.radio1D);
 
-        findViewById(R.id.buy).setOnClickListener(v -> showTradeDialogFragment(true));
-        findViewById(R.id.sell).setOnClickListener(v -> showTradeDialogFragment(false));
+        view.findViewById(R.id.buy).setOnClickListener(v -> showTradeDialogFragment(true));
+        view.findViewById(R.id.sell).setOnClickListener(v -> showTradeDialogFragment(false));
 
         updatePosition();
+
+        activity.addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menu.clear();
+                if (!portfolio.inPositions(ticker)) {
+                    menuInflater.inflate(portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
+                }
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                int itemId = menuItem.getItemId();
+                if (itemId == R.id.add) {
+                    portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
+                    activity.invalidateOptionsMenu();
+                    Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
+                } else if (itemId == R.id.remove) {
+                    portfolio.remove(ticker);
+                    activity.invalidateOptionsMenu();
+                    Toast.makeText(activity, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
+                }
+                return false;
+            }
+        }, getViewLifecycleOwner());
+
+        return view;
     }
 
     private void getTickerDetails() {
@@ -127,9 +161,9 @@ public class StockInfoActivity extends AppCompatActivity {
                     String exchange = jsonObject.getString("primary_exchange").replace("ARCX", "NYSE Arca").replace("XNAS", "NASDAQ");
                     String marketCap = createMarketCapString(jsonObject.getDouble("share_class_shares_outstanding") * stockPrice.doubleValue());
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        ((TextView) findViewById(R.id.stockName)).setText(name);
-                        ((TextView) findViewById(R.id.exchange)).setText(exchange);
-                        ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
+                        ((TextView) view.findViewById(R.id.stockName)).setText(name);
+                        ((TextView) view.findViewById(R.id.exchange)).setText(exchange);
+                        ((TextView) view.findViewById(R.id.marketCap)).setText(marketCap);
                     });
                 } else {
                     String name = jsonObject.getString("Name");
@@ -140,12 +174,12 @@ public class StockInfoActivity extends AppCompatActivity {
                     String dividendYield = divYield.equals("0") ? "None" : portfolio.formatPercentage(new BigDecimal(divYield));
                     String description = jsonObject.getString("Description");
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        ((TextView) findViewById(R.id.stockName)).setText(name);
-                        ((TextView) findViewById(R.id.exchange)).setText(exchange);
-                        ((TextView) findViewById(R.id.marketCap)).setText(marketCap);
-                        ((TextView) findViewById(R.id.peRatio)).setText(peRatio);
-                        ((TextView) findViewById(R.id.dividendYield)).setText(dividendYield);
-                        ((TextView) findViewById(R.id.description)).setText(description);
+                        ((TextView) view.findViewById(R.id.stockName)).setText(name);
+                        ((TextView) view.findViewById(R.id.exchange)).setText(exchange);
+                        ((TextView) view.findViewById(R.id.marketCap)).setText(marketCap);
+                        ((TextView) view.findViewById(R.id.peRatio)).setText(peRatio);
+                        ((TextView) view.findViewById(R.id.dividendYield)).setText(dividendYield);
+                        ((TextView) view.findViewById(R.id.description)).setText(description);
                     });
                 }
             } catch (JSONException e) {
@@ -169,7 +203,7 @@ public class StockInfoActivity extends AppCompatActivity {
 
     private void setChange(BigDecimal change, BigDecimal percentChange) {
         if (change != null && percentChange != null) {
-            TextView changeText = findViewById(R.id.stockChange);
+            TextView changeText = view.findViewById(R.id.stockChange);
             boolean changePositive = portfolio.isPositive(change);
             changeText.setText((changePositive ? "+" : "") + portfolio.formatCurrency(change) + (changePositive ? " (+" : " (") + portfolio.formatPercentage(percentChange) + ")");
             changeText.setTextColor(changePositive ? Color.parseColor("#33CC33") : Color.RED);
@@ -261,7 +295,6 @@ public class StockInfoActivity extends AppCompatActivity {
                         lineDataSet.setColor(color);
                         LineData lineData = new LineData(premarketDataSet, lineDataSet, afterHoursDataSet);
                         setting = new ChartSetting(lineData, xAxisValues, markerDates, stockChange, stockPercentChange);
-                        BigDecimal previousClose = fromNonPortfolio ? new BigDecimal(intent.getStringExtra("previousClose")) : portfolio.getPreviousClose(ticker);
                         if (previousClose != null) {
                             LimitLine previousCloseLimitLine = new LimitLine(previousClose.floatValue());
                             previousCloseLimitLine.setLineColor(Color.BLACK);
@@ -344,50 +377,27 @@ public class StockInfoActivity extends AppCompatActivity {
         args.putString("stockPrice", stockPrice.toPlainString());
         TradeDialogFragment tradeDialogFragment = new TradeDialogFragment(buy);
         tradeDialogFragment.setArguments(args);
-        tradeDialogFragment.show(getSupportFragmentManager(), buy ? "buy" : "sell");
+        tradeDialogFragment.show(getChildFragmentManager(), buy ? "buy" : "sell");
     }
 
     void updatePosition() {
         boolean inPositions = portfolio.inPositions(ticker);
-        findViewById(R.id.sell).setEnabled(inPositions);
-        findViewById(R.id.position).setVisibility(inPositions ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.sell).setEnabled(inPositions);
+        view.findViewById(R.id.position).setVisibility(inPositions ? View.VISIBLE : View.GONE);
         if (inPositions) {
             BigDecimal shares = new BigDecimal(portfolio.getShares(ticker));
-            ((TextView) findViewById(R.id.shares)).setText(shares.toPlainString());
+            ((TextView) view.findViewById(R.id.shares)).setText(shares.toPlainString());
             BigDecimal totalValue = portfolio.roundCurrency(shares.multiply(stockPrice));
-            ((TextView) findViewById(R.id.totalValue)).setText(portfolio.formatCurrency(totalValue));
-            ((TextView) findViewById(R.id.percentageOfPortfolio)).setText(portfolio.isPortfolioValueReady() ? portfolio.createPercentage(totalValue, portfolio.getPortfolioValue()) : "");
+            ((TextView) view.findViewById(R.id.totalValue)).setText(portfolio.formatCurrency(totalValue));
+            ((TextView) view.findViewById(R.id.percentageOfPortfolio)).setText(portfolio.isPortfolioValueReady() ? portfolio.createPercentage(totalValue, portfolio.getPortfolioValue()) : "");
             BigDecimal averageCost = portfolio.getCost(ticker);
-            ((TextView) findViewById(R.id.averageCost)).setText(portfolio.formatCurrency(averageCost));
+            ((TextView) view.findViewById(R.id.averageCost)).setText(portfolio.formatCurrency(averageCost));
             BigDecimal priceChange = stockPrice.subtract(averageCost);
             boolean priceChangePositive = portfolio.isPositive(priceChange);
-            TextView performanceText = findViewById(R.id.performance);
+            TextView performanceText = view.findViewById(R.id.performance);
             performanceText.setText((priceChangePositive ? "+" : "") + portfolio.formatCurrency(portfolio.roundCurrency(shares.multiply(priceChange))) + (priceChangePositive ? " (+" : " (") + portfolio.createPercentage(priceChange, averageCost) + ")");
             performanceText.setTextColor(priceChangePositive ? Color.parseColor("#33CC33") : Color.RED);
         }
-        invalidateOptionsMenu();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-        if (!portfolio.inPositions(ticker)) {
-            getMenuInflater().inflate(portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == R.id.add) {
-            portfolio.add(ticker);
-            invalidateOptionsMenu();
-            Toast.makeText(this, "Stock added to watchlist", Toast.LENGTH_LONG).show();
-        } else if (itemId == R.id.remove) {
-            portfolio.remove(ticker);
-            invalidateOptionsMenu();
-            Toast.makeText(this, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
-        }
-        return super.onOptionsItemSelected(item);
+        activity.invalidateOptionsMenu();
     }
 }

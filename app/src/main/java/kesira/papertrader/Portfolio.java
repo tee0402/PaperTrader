@@ -1,7 +1,7 @@
 package kesira.papertrader;
 
-import android.content.Intent;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -13,7 +13,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.Timestamp;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -46,7 +48,8 @@ import java.util.stream.Collectors;
 
 class Portfolio {
     private static final Portfolio portfolio = new Portfolio();
-    private MainActivity mainActivity;
+    private MainFragment mainFragment;
+    private AppCompatActivity activity;
     private final BigDecimal initialCash = new BigDecimal(10000);
     private Cash cash;
     private StockCollection positions;
@@ -73,8 +76,9 @@ class Portfolio {
         return portfolio;
     }
 
-    void initialize(MainActivity mainActivity, ListView positionsView, ListView watchlistView) {
-        this.mainActivity = mainActivity;
+    void initialize(MainFragment mainFragment, ListView positionsView, ListView watchlistView) {
+        this.mainFragment = mainFragment;
+        this.activity = (AppCompatActivity) mainFragment.requireActivity();
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         mAuth.signInAnonymously().addOnCompleteListener(signInTask -> {
             if (signInTask.isSuccessful()) {
@@ -93,9 +97,9 @@ class Portfolio {
                             positions = new StockCollection(true, positionsView);
                             watchlist = new StockCollection(false, watchlistView);
                             if (!containsPositions()) {
-                                showPortfolioValueIfReady();
+                                mainFragment.showPortfolioValueIfReady();
                             }
-                            mainActivity.initializeChartData();
+                            mainFragment.initializeChartData();
 
                             tradesCollectionRef.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(tradesTask -> {
                                 if (tradesTask.isSuccessful()) {
@@ -104,18 +108,18 @@ class Portfolio {
                                         trade.getTimestamp("date");
                                     }
                                 } else {
-                                    Toast.makeText(mainActivity, "Trades get failed", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(activity, "Trades get failed", Toast.LENGTH_LONG).show();
                                 }
                             });
                         } else {
-                            Toast.makeText(mainActivity, "Document get failed", Toast.LENGTH_LONG).show();
+                            Toast.makeText(activity, "Document get failed", Toast.LENGTH_LONG).show();
                         }
                     });
                 } else {
-                    Toast.makeText(mainActivity, "uid not found", Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, "uid not found", Toast.LENGTH_LONG).show();
                 }
             } else {
-                Toast.makeText(mainActivity, "Anonymous sign-in failed", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "Anonymous sign-in failed", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -161,6 +165,16 @@ class Portfolio {
         watchlistList = new ArrayList<>();
         user.put("watchlist", watchlistList);
         userDocRef.set(user);
+    }
+
+    void startStockInfoFragment(Bundle bundle) {
+        activity.getSupportFragmentManager().beginTransaction()
+                .hide(mainFragment)
+                .add(R.id.fragmentContainerView, StockInfoFragment.class, bundle)
+                .setReorderingAllowed(true)
+                .addToBackStack(null)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit();
     }
 
     BigDecimal getCash() {
@@ -243,9 +257,9 @@ class Portfolio {
         }
     }
 
-    void add(String ticker) {
+    void add(String ticker, BigDecimal previousClose, BigDecimal quote, BigDecimal change, BigDecimal percentChange) {
         if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
-            watchlist.add(ticker);
+            watchlist.add(ticker, previousClose, quote, change, percentChange);
         }
     }
 
@@ -268,14 +282,6 @@ class Portfolio {
                 watchlist.add(stock);
             }
             cash.change(true, total);
-        }
-    }
-
-    private void showPortfolioValueIfReady() {
-        if (isPortfolioValueReady()) {
-            BigDecimal portfolioValue = getPortfolioValue();
-            ((TextView) mainActivity.findViewById(R.id.portfolioValue)).setText(formatCurrency(portfolioValue));
-            mainActivity.showPortfolioValuePerformance(null);
         }
     }
 
@@ -336,7 +342,7 @@ class Portfolio {
 
         private Cash(String cash) {
             this.cash = new BigDecimal(cash);
-            ((TextView) mainActivity.findViewById(R.id.cash)).setText(getString());
+            mainFragment.showCash(getString());
         }
 
         private BigDecimal get() {
@@ -356,7 +362,7 @@ class Portfolio {
         private void change(boolean add, BigDecimal amount) {
             cash = roundCurrency(add ? cash.add(amount) : cash.subtract(amount));
             write();
-            ((TextView) mainActivity.findViewById(R.id.cash)).setText(getString());
+            mainFragment.showCash(getString());
         }
 
         private void write() {
@@ -375,9 +381,9 @@ class Portfolio {
             adapter = new StockArrayAdapter(positions);
             listView.setAdapter(adapter);
             listView.setOnItemClickListener((parent, view, position, id) -> {
-                Intent intent = new Intent(mainActivity, StockInfoActivity.class);
-                intent.putExtra("ticker", stocks.get(position).getTicker());
-                mainActivity.startActivity(intent);
+                Bundle bundle = new Bundle();
+                bundle.putString("ticker", stocks.get(position).getTicker());
+                startStockInfoFragment(bundle);
             });
             if (positions) {
                 for (String ticker : positionsList) {
@@ -387,14 +393,14 @@ class Portfolio {
                     assert cost != null;
                     stocks.add(new Stock(ticker, Integer.parseInt(shares), new BigDecimal(cost)));
                 }
-                mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+                mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
             } else {
                 for (String ticker : watchlistList) {
                     stocks.add(new Stock(ticker));
                 }
             }
             if (isNonEmpty()) {
-                mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.VISIBLE);
+                mainFragment.setProgressBarVisibility(positions, View.VISIBLE);
             }
             for (Stock stock : stocks) {
                 getData(stock, null);
@@ -493,13 +499,9 @@ class Portfolio {
         }
 
         // Only used by watchlist
-        private void add(String ticker) {
-            if (!contains(ticker)) {
-                Stock stock = new Stock(ticker);
-                stocks.add(stock);
-                write(true, ticker, null);
-                getData(stock, null);
-            }
+        private void add(String ticker, BigDecimal previousClose, BigDecimal quote, BigDecimal change, BigDecimal percentChange) {
+            Stock stock = new Stock(ticker, previousClose, quote, change, percentChange);
+            add(stock);
         }
 
         // Only used by watchlist
@@ -569,7 +571,7 @@ class Portfolio {
                     quotesReady++;
                     adapter.notifyDataSetChanged();
                 }
-                mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+                mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
             } else if (stock != null) { // Overwriting or removing existing position
                 int sharesOwned = stock.getShares();
                 int newSharesOwned = buy ? sharesOwned + shares : sharesOwned - shares;
@@ -585,7 +587,7 @@ class Portfolio {
                     } else {
                         stock.setCost(BigDecimal.ZERO);
                         remove(ticker);
-                        mainActivity.findViewById(R.id.positions).setVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+                        mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
                         return stock;
                     }
                 }
@@ -628,9 +630,9 @@ class Portfolio {
                     quotesReady++;
                     new Handler(Looper.getMainLooper()).post(() -> {
                         adapter.notifyDataSetChanged();
-                        mainActivity.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(View.GONE);
+                        mainFragment.setProgressBarVisibility(positions, View.GONE);
                         if (positions) {
-                            showPortfolioValueIfReady();
+                            mainFragment.showPortfolioValueIfReady();
                         }
                     });
                 } catch (JSONException e) {
@@ -641,10 +643,10 @@ class Portfolio {
 
         private class StockArrayAdapter extends ArrayAdapter<Stock> {
             private final boolean positions;
-            private final LayoutInflater layoutInflater = LayoutInflater.from(mainActivity);
+            private final LayoutInflater layoutInflater = LayoutInflater.from(activity);
 
             StockArrayAdapter(boolean positions) {
-                super(mainActivity, positions ? R.layout.position_row : R.layout.watchlist_row, stocks);
+                super(activity, positions ? R.layout.position_row : R.layout.watchlist_row, stocks);
                 this.positions = positions;
             }
 

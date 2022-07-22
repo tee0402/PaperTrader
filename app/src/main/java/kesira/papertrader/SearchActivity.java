@@ -39,9 +39,9 @@ public class SearchActivity extends AppCompatActivity {
             String ticker = actionView ? intent.getDataString() : intent.getStringExtra(SearchManager.QUERY).toUpperCase().replaceAll("[^A-Z.]", "");
             if (actionView || ticker.matches("^[A-Z]+$|^[A-Z]+[.][A-Z]+$")) {
                 if (portfolio.inPortfolio(ticker)) {
-                    Intent stockInfoIntent = new Intent(SearchActivity.this, StockInfoActivity.class);
-                    stockInfoIntent.putExtra("ticker", ticker);
-                    startActivity(stockInfoIntent);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("ticker", ticker);
+                    portfolio.startStockInfoFragment(bundle);
                 } else {
                     startStockInfoActivityIfValid(ticker);
                 }
@@ -59,14 +59,14 @@ public class SearchActivity extends AppCompatActivity {
             try {
                 JSONObject jsonObject = new JSONObject(result).getJSONObject("Global Quote");
                 if (jsonObject.length() > 0) {
-                    Intent stockInfoIntent = new Intent(SearchActivity.this, StockInfoActivity.class);
-                    stockInfoIntent.putExtra("ticker", ticker);
-                    stockInfoIntent.putExtra("previousClose", portfolio.formatSimpleCurrency(new BigDecimal(jsonObject.getString("08. previous close"))));
-                    stockInfoIntent.putExtra("quote", portfolio.formatSimpleCurrency(new BigDecimal(jsonObject.getString("05. price"))));
-                    stockInfoIntent.putExtra("change", portfolio.formatSimpleCurrency(new BigDecimal(jsonObject.getString("09. change"))));
+                    Bundle bundle = new Bundle();
+                    bundle.putString("ticker", ticker);
+                    bundle.putString("previousClose", portfolio.formatSimpleCurrency(new BigDecimal(jsonObject.getString("08. previous close"))));
+                    bundle.putString("quote", portfolio.formatSimpleCurrency(new BigDecimal(jsonObject.getString("05. price"))));
+                    bundle.putString("change", portfolio.formatSimpleCurrency(new BigDecimal(jsonObject.getString("09. change"))));
                     String changePercent = jsonObject.getString("10. change percent");
-                    stockInfoIntent.putExtra("percentChange", portfolio.formatSimplePercentage(portfolio.percentageToDecimal(new BigDecimal(changePercent.substring(0, changePercent.length() - 1)))));
-                    startActivity(stockInfoIntent);
+                    bundle.putString("percentChange", portfolio.formatSimplePercentage(portfolio.percentageToDecimal(new BigDecimal(changePercent.substring(0, changePercent.length() - 1)))));
+                    portfolio.startStockInfoFragment(bundle);
                 } else {
                     new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(this, "Invalid ticker", Toast.LENGTH_LONG).show());
                 }
