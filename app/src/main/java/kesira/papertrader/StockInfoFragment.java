@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
@@ -121,6 +122,9 @@ public class StockInfoFragment extends Fragment {
 
         updatePosition();
 
+        ActionBar actionBar = activity.getSupportActionBar();
+        assert actionBar != null;
+        actionBar.setDisplayHomeAsUpEnabled(true);
         activity.addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
@@ -137,10 +141,15 @@ public class StockInfoFragment extends Fragment {
                     portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
                     activity.invalidateOptionsMenu();
                     Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
+                    return true;
                 } else if (itemId == R.id.remove) {
                     portfolio.remove(ticker);
                     activity.invalidateOptionsMenu();
                     Toast.makeText(activity, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
+                    return true;
+                } else if (itemId == android.R.id.home) {
+                    activity.onBackPressed();
+                    return true;
                 }
                 return false;
             }
