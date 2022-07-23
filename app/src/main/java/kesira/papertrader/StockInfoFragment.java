@@ -18,8 +18,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 
@@ -51,7 +49,7 @@ import java.util.concurrent.Executors;
 public class StockInfoFragment extends Fragment {
     private final Portfolio portfolio = Portfolio.getInstance();
     private View view;
-    private AppCompatActivity activity;
+    private MainActivity activity;
     private String ticker;
     private BigDecimal previousClose;
     private BigDecimal stockPrice;
@@ -70,7 +68,7 @@ public class StockInfoFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_stock_info, container, false);
-        activity = (AppCompatActivity) requireActivity();
+        activity = (MainActivity) requireActivity();
 
         Bundle bundle = requireArguments();
         ticker = bundle.getString("ticker");
@@ -122,13 +120,11 @@ public class StockInfoFragment extends Fragment {
 
         updatePosition();
 
-        ActionBar actionBar = activity.getSupportActionBar();
-        assert actionBar != null;
-        actionBar.setDisplayHomeAsUpEnabled(true);
         activity.addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
                 menu.clear();
+                activity.setActionBarUpIndicatorAsBack();
                 if (!portfolio.inPositions(ticker)) {
                     menuInflater.inflate(portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
                 }
@@ -141,15 +137,12 @@ public class StockInfoFragment extends Fragment {
                     portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
                     activity.invalidateOptionsMenu();
                     Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
-                    return true;
                 } else if (itemId == R.id.remove) {
                     portfolio.remove(ticker);
                     activity.invalidateOptionsMenu();
                     Toast.makeText(activity, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
-                    return true;
                 } else if (itemId == android.R.id.home) {
                     activity.onBackPressed();
-                    return true;
                 }
                 return false;
             }

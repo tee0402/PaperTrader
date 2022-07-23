@@ -23,7 +23,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuProvider;
@@ -51,7 +50,7 @@ import java.util.TimeZone;
 public class MainFragment extends Fragment {
     private final Portfolio portfolio = Portfolio.getInstance();
     private View view;
-    private AppCompatActivity activity;
+    private MainActivity activity;
     private EditText enterTicker;
     private String tickerSelected;
     private CustomLineChart chart;
@@ -66,7 +65,7 @@ public class MainFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_main, container, false);
-        activity = (AppCompatActivity) requireActivity();
+        activity = (MainActivity) requireActivity();
 
         chart = view.findViewById(R.id.chart);
         ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
@@ -121,11 +120,16 @@ public class MainFragment extends Fragment {
 
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-                if (menuItem.getItemId() == R.id.refresh) {
-                    activity.getSupportFragmentManager().beginTransaction()
-                            .setReorderingAllowed(true)
-                            .replace(R.id.fragmentContainerView, MainFragment.class, null)
-                            .commit();
+                if (activity.getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                    int itemId = menuItem.getItemId();
+                    if (itemId == R.id.refresh) {
+                        activity.getSupportFragmentManager().beginTransaction()
+                                .setReorderingAllowed(true)
+                                .replace(R.id.fragmentContainerView, MainFragment.class, null, "main")
+                                .commit();
+                    } else if (itemId == android.R.id.home) {
+                        activity.toggleDrawer();
+                    }
                 }
                 return false;
             }

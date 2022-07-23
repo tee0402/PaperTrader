@@ -13,7 +13,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,7 +48,7 @@ import java.util.stream.Collectors;
 class Portfolio {
     private static final Portfolio portfolio = new Portfolio();
     private MainFragment mainFragment;
-    private AppCompatActivity activity;
+    private MainActivity activity;
     private final BigDecimal initialCash = new BigDecimal(10000);
     private Cash cash;
     private StockCollection positions;
@@ -78,7 +77,7 @@ class Portfolio {
 
     void initialize(MainFragment mainFragment, ListView positionsView, ListView watchlistView) {
         this.mainFragment = mainFragment;
-        this.activity = (AppCompatActivity) mainFragment.requireActivity();
+        this.activity = (MainActivity) mainFragment.requireActivity();
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         mAuth.signInAnonymously().addOnCompleteListener(signInTask -> {
             if (signInTask.isSuccessful()) {
