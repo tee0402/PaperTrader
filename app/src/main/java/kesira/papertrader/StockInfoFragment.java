@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
@@ -51,6 +52,8 @@ public class StockInfoFragment extends Fragment {
     private final Portfolio portfolio = Portfolio.getInstance();
     private View view;
     private MainActivity activity;
+    private final List<QueryDocumentSnapshot> history = new ArrayList<>();
+    private HistoryArrayAdapter adapter;
     private String ticker;
     private BigDecimal previousClose;
     private BigDecimal stockPrice;
@@ -121,11 +124,17 @@ public class StockInfoFragment extends Fragment {
 
         updatePosition();
 
+        adapter = new HistoryArrayAdapter(activity, history);
         NonScrollListView historyListView = view.findViewById(R.id.historyListView);
-        List<QueryDocumentSnapshot> history = new ArrayList<>();
-        HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
         historyListView.setAdapter(adapter);
-        portfolio.queryHistory(history, adapter, ticker, true, view.findViewById(R.id.history));
+        view.findViewById(R.id.showAll).setOnClickListener(v -> activity.getSupportFragmentManager().beginTransaction()
+                .hide(this)
+                .add(R.id.fragmentContainerView, StockHistoryFragment.class, bundle)
+                .setReorderingAllowed(true)
+                .addToBackStack(null)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit());
+        updateHistory();
 
         activity.addMenuProvider(new MenuProvider() {
             @Override
@@ -140,17 +149,19 @@ public class StockInfoFragment extends Fragment {
 
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-                int itemId = menuItem.getItemId();
-                if (itemId == R.id.add) {
-                    portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
-                    activity.invalidateOptionsMenu();
-                    Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
-                } else if (itemId == R.id.remove) {
-                    portfolio.remove(ticker);
-                    activity.invalidateOptionsMenu();
-                    Toast.makeText(activity, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
-                } else if (itemId == android.R.id.home) {
-                    activity.onBackPressed();
+                if (activity.getSupportFragmentManager().getBackStackEntryCount() == 1) {
+                    int itemId = menuItem.getItemId();
+                    if (itemId == R.id.add) {
+                        portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
+                        activity.invalidateOptionsMenu();
+                        Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
+                    } else if (itemId == R.id.remove) {
+                        portfolio.remove(ticker);
+                        activity.invalidateOptionsMenu();
+                        Toast.makeText(activity, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
+                    } else if (itemId == android.R.id.home) {
+                        activity.onBackPressed();
+                    }
                 }
                 return false;
             }
@@ -409,5 +420,10 @@ public class StockInfoFragment extends Fragment {
             performanceText.setTextColor(priceChangePositive ? Color.parseColor("#33CC33") : Color.RED);
         }
         activity.invalidateOptionsMenu();
+    }
+
+    void updateHistory() {
+        history.clear();
+        portfolio.queryHistory(history, adapter, ticker, true, view.findViewById(R.id.history), view.findViewById(R.id.showAll));
     }
 }

@@ -155,18 +155,22 @@ class Portfolio {
         userDocRef.set(user);
     }
 
-    void queryHistory(List<QueryDocumentSnapshot> result, ArrayAdapter<QueryDocumentSnapshot> adapter, String ticker, boolean limit, View view) {
+    void queryHistory(List<QueryDocumentSnapshot> result, ArrayAdapter<QueryDocumentSnapshot> adapter, String ticker, boolean limit, View view, View showAll) {
         Query query = ticker == null ? tradesCollectionRef : tradesCollectionRef.whereEqualTo("ticker", ticker);
-        query = limit ? query.limit(5) : query;
+        query = limit ? query.limit(6) : query;
         query.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(tradesTask -> {
             if (tradesTask.isSuccessful()) {
                 QuerySnapshot trades = tradesTask.getResult();
                 for (QueryDocumentSnapshot trade : trades) {
+                    if (limit && result.size() == 5) {
+                        break;
+                    }
                     result.add(trade);
                 }
                 adapter.notifyDataSetChanged();
                 if (view != null) {
-                    view.setVisibility(result.isEmpty() ? View.GONE : View.VISIBLE);
+                    view.setVisibility(trades.isEmpty() ? View.GONE : View.VISIBLE);
+                    showAll.setVisibility(trades.size() > 5 ? View.VISIBLE : View.GONE);
                 }
             } else {
                 Toast.makeText(activity, "History query failed", Toast.LENGTH_LONG).show();
@@ -276,15 +280,15 @@ class Portfolio {
         }
     }
 
-    void changePosition(boolean buy, String ticker, int shares, BigDecimal price) {
+    void changePosition(boolean buy, String ticker, int shares, BigDecimal price, StockInfoFragment stockInfoFragment) {
         BigDecimal total = new BigDecimal(shares).multiply(price);
         int sharesOwned = positions.getShares(ticker);
         if (buy && cash.has(total)) {
             Stock watchlistStock = watchlist.remove(ticker);
-            positions.changePosition(true, ticker, shares, price, watchlistStock);
+            positions.changePosition(true, ticker, shares, price, watchlistStock, stockInfoFragment);
             cash.change(false, total);
         } else if (!buy && shares <= sharesOwned) {
-            Stock stock = positions.changePosition(false, ticker, shares, price, null);
+            Stock stock = positions.changePosition(false, ticker, shares, price, null, stockInfoFragment);
             if (shares == sharesOwned && stock != null) {
                 watchlist.add(stock);
             }
@@ -561,7 +565,7 @@ class Portfolio {
         }
 
         // Only used by positions, returns stock if removing to watchlist
-        private Stock changePosition(boolean buy, String ticker, int shares, BigDecimal price, Stock watchlistStock) {
+        private Stock changePosition(boolean buy, String ticker, int shares, BigDecimal price, Stock watchlistStock, StockInfoFragment stockInfoFragment) {
             Stock stock = getStock(ticker);
             if (buy && stock == null) { // New position
                 if (watchlistStock == null) { // Stock not in watchlist
@@ -571,7 +575,7 @@ class Portfolio {
                 }
                 stocks.add(stock);
                 write(true, ticker, stock);
-                writeTrade(true, ticker, shares, price);
+                writeTrade(true, ticker, shares, price, stockInfoFragment);
                 if (watchlistStock == null) {
                     getData(stock, null);
                 } else {
@@ -585,7 +589,7 @@ class Portfolio {
                 if (newSharesOwned >= 0) {
                     stock.setShares(newSharesOwned);
                     adapter.notifyDataSetChanged();
-                    writeTrade(buy, ticker, shares, price);
+                    writeTrade(buy, ticker, shares, price, stockInfoFragment);
                     if (buy || newSharesOwned > 0) {
                         if (buy) {
                             stock.setCost(roundCurrency(divide(new BigDecimal(sharesOwned).multiply(stock.getCost()).add(new BigDecimal(shares).multiply(price)), new BigDecimal(newSharesOwned))));
@@ -602,14 +606,18 @@ class Portfolio {
             return null;
         }
 
-        private void writeTrade(boolean buy, String ticker, int shares, BigDecimal price) {
+        private void writeTrade(boolean buy, String ticker, int shares, BigDecimal price, StockInfoFragment stockInfoFragment) {
             Map<String, Object> trade = new HashMap<>();
             trade.put("buy", buy);
             trade.put("date", FieldValue.serverTimestamp());
             trade.put("price", String.valueOf(price));
             trade.put("shares", String.valueOf(shares));
             trade.put("ticker", ticker);
-            tradesCollectionRef.add(trade);
+            tradesCollectionRef.add(trade).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    stockInfoFragment.updateHistory();
+                }
+            });
         }
 
         private boolean isPositionsValueReady() {

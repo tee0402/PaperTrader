@@ -71,7 +71,7 @@ public class TradeDialogFragment extends DialogFragment {
             } else if (quantity > (buy ? sharesCanAfford : sharesOwned)) {
                 Toast.makeText(context, buy ? "You can only afford " + sharesCanAfford + " shares" : "You only have " + sharesOwned + " shares to sell", Toast.LENGTH_LONG).show();
             } else {
-                portfolio.changePosition(buy, ticker, quantity, stockPrice);
+                portfolio.changePosition(buy, ticker, quantity, stockPrice, stockInfoFragment);
                 stockInfoFragment.updatePosition();
                 Toast.makeText(context, (buy ? "Bought " : "Sold ") + quantity + " shares successfully", Toast.LENGTH_LONG).show();
             }

@@ -18,25 +18,25 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HistoryFragment extends Fragment {
+public class StockHistoryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
         MainActivity activity = (MainActivity) requireActivity();
+        String ticker = requireArguments().getString("ticker");
 
         List<QueryDocumentSnapshot> history = new ArrayList<>();
         HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
         NonScrollListView historyListView = view.findViewById(R.id.historyListView);
         historyListView.setAdapter(adapter);
-        Portfolio.getInstance().queryHistory(history, adapter, null, false, null, null);
+        Portfolio.getInstance().queryHistory(history, adapter, ticker, false, null, null);
 
         activity.addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
                 menu.clear();
-                activity.setActionBarTitle(getString(R.string.history));
-                activity.setActionBarUpIndicatorAsBack();
+                activity.setActionBarTitle(ticker + " " + getString(R.string.history));
             }
 
             @Override

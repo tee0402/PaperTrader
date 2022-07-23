@@ -333,6 +333,11 @@
                 android:background="#E8EAF6"
                 android:divider="@color/colorPrimary"
                 android:dividerHeight="1dp" />
+            <Button
+                android:id="@+id/showAll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/show_all" />
         </LinearLayout>
         <LinearLayout
             android:orientation="vertical"

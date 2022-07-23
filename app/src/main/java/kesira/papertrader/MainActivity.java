@@ -98,7 +98,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        if (supportFragmentManager.getBackStackEntryCount() == 1) {
+            setActionBarUpIndicatorAsMenu();
+        }
         super.onBackPressed();
-        setActionBarUpIndicatorAsMenu();
     }
 }
