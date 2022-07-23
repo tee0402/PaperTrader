@@ -12,11 +12,13 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.util.List;
 
 class HistoryArrayAdapter extends ArrayAdapter<QueryDocumentSnapshot> {
     private final Portfolio portfolio = Portfolio.getInstance();
     private final LayoutInflater layoutInflater;
+    private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
     HistoryArrayAdapter(Context context, List<QueryDocumentSnapshot> history) {
         super(context, R.layout.history_row, history);
@@ -41,7 +43,7 @@ class HistoryArrayAdapter extends ArrayAdapter<QueryDocumentSnapshot> {
         QueryDocumentSnapshot queryDocumentSnapshot = getItem(position);
         Timestamp timestamp = queryDocumentSnapshot.getTimestamp("date");
         assert timestamp != null;
-        textViews[0].setText(timestamp.toDate().toString());
+        textViews[0].setText(dateFormat.format(timestamp.toDate()));
         textViews[1].setText(queryDocumentSnapshot.getString("ticker"));
         boolean buy = Boolean.TRUE.equals(queryDocumentSnapshot.getBoolean("buy"));
         textViews[2].setText(buy ? "Buy" : "Sell");
