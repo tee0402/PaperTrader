@@ -111,6 +111,7 @@ public class MainFragment extends Fragment {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
                 menu.clear();
+                activity.setActionBarTitle(getString(R.string.portfolio));
                 menuInflater.inflate(R.menu.search_menu, menu);
                 menuInflater.inflate(R.menu.refresh_menu, menu);
                 MenuItem searchMenuItem = menu.findItem(R.id.search);

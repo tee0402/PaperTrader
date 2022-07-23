@@ -13,6 +13,11 @@ import androidx.annotation.Nullable;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class HistoryFragment extends Fragment {
     @Nullable
     @Override
@@ -20,10 +25,17 @@ public class HistoryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
         MainActivity activity = (MainActivity) requireActivity();
 
+        NonScrollListView historyListView = view.findViewById(R.id.historyListView);
+        List<QueryDocumentSnapshot> history = new ArrayList<>();
+        HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
+        historyListView.setAdapter(adapter);
+        Portfolio.getInstance().queryHistory(history, adapter, null, false, null);
+
         activity.addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
                 menu.clear();
+                activity.setActionBarTitle(getString(R.string.history));
                 activity.setActionBarUpIndicatorAsBack();
             }
 

@@ -99,17 +99,6 @@ class Portfolio {
                                 mainFragment.showPortfolioValueIfReady();
                             }
                             mainFragment.initializeChartData();
-
-                            tradesCollectionRef.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(tradesTask -> {
-                                if (tradesTask.isSuccessful()) {
-                                    QuerySnapshot trades = tradesTask.getResult();
-                                    for (QueryDocumentSnapshot trade : trades) {
-                                        trade.getTimestamp("date");
-                                    }
-                                } else {
-                                    Toast.makeText(activity, "Trades get failed", Toast.LENGTH_LONG).show();
-                                }
-                            });
                         } else {
                             Toast.makeText(activity, "Document get failed", Toast.LENGTH_LONG).show();
                         }
@@ -164,6 +153,25 @@ class Portfolio {
         watchlistList = new ArrayList<>();
         user.put("watchlist", watchlistList);
         userDocRef.set(user);
+    }
+
+    void queryHistory(List<QueryDocumentSnapshot> result, ArrayAdapter<QueryDocumentSnapshot> adapter, String ticker, boolean limit, View view) {
+        Query query = ticker == null ? tradesCollectionRef : tradesCollectionRef.whereEqualTo("ticker", ticker);
+        query = limit ? query.limit(5) : query;
+        query.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(tradesTask -> {
+            if (tradesTask.isSuccessful()) {
+                QuerySnapshot trades = tradesTask.getResult();
+                for (QueryDocumentSnapshot trade : trades) {
+                    result.add(trade);
+                }
+                adapter.notifyDataSetChanged();
+                if (view != null) {
+                    view.setVisibility(result.isEmpty() ? View.GONE : View.VISIBLE);
+                }
+            } else {
+                Toast.makeText(activity, "History query failed", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     void startStockInfoFragment(Bundle bundle) {

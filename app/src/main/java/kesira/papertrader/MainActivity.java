@@ -92,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
         actionBar.setHomeAsUpIndicator(0);
     }
 
+    void setActionBarTitle(String title) {
+        actionBar.setTitle(title);
+    }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();

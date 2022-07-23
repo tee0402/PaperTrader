@@ -28,6 +28,7 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -120,10 +121,17 @@ public class StockInfoFragment extends Fragment {
 
         updatePosition();
 
+        NonScrollListView historyListView = view.findViewById(R.id.historyListView);
+        List<QueryDocumentSnapshot> history = new ArrayList<>();
+        HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
+        historyListView.setAdapter(adapter);
+        portfolio.queryHistory(history, adapter, ticker, true, view.findViewById(R.id.history));
+
         activity.addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
                 menu.clear();
+                activity.setActionBarTitle(ticker);
                 activity.setActionBarUpIndicatorAsBack();
                 if (!portfolio.inPositions(ticker)) {
                     menuInflater.inflate(portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
