@@ -25,12 +25,6 @@ public class HistoryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
         MainActivity activity = (MainActivity) requireActivity();
 
-        List<QueryDocumentSnapshot> history = new ArrayList<>();
-        HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
-        NonScrollListView historyListView = view.findViewById(R.id.historyListView);
-        historyListView.setAdapter(adapter);
-        Portfolio.getInstance().queryHistory(history, adapter, null, false, null, null);
-
         activity.addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
@@ -47,6 +41,13 @@ public class HistoryFragment extends Fragment {
                 return false;
             }
         }, getViewLifecycleOwner());
+
+        List<QueryDocumentSnapshot> history = new ArrayList<>();
+        HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
+        NonScrollListView historyListView = view.findViewById(R.id.historyListView);
+        historyListView.setAdapter(adapter);
+        Portfolio.getInstance().queryHistory(history, adapter, null, false, null, null);
+
         return view;
     }
 }

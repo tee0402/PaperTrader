@@ -87,6 +87,37 @@ public class StockInfoFragment extends Fragment {
         stockPercentChange = fromNonPortfolio ? new BigDecimal(bundle.getString("percentChange")) : portfolio.getPercentChange(ticker);
         setChange(stockChange, stockPercentChange);
 
+        activity.addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menu.clear();
+                activity.setActionBarTitle(ticker);
+                activity.setActionBarUpIndicatorAsBack();
+                if (!portfolio.inPositions(ticker)) {
+                    menuInflater.inflate(portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
+                }
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                if (activity.getSupportFragmentManager().getBackStackEntryCount() == 1) {
+                    int itemId = menuItem.getItemId();
+                    if (itemId == R.id.add) {
+                        portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
+                        activity.invalidateOptionsMenu();
+                        Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
+                    } else if (itemId == R.id.remove) {
+                        portfolio.remove(ticker);
+                        activity.invalidateOptionsMenu();
+                        Toast.makeText(activity, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
+                    } else if (itemId == android.R.id.home) {
+                        activity.onBackPressed();
+                    }
+                }
+                return false;
+            }
+        }, getViewLifecycleOwner());
+
         chart = view.findViewById(R.id.chart);
         ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
         layoutParams.height = getResources().getDisplayMetrics().heightPixels / 3;
@@ -135,37 +166,6 @@ public class StockInfoFragment extends Fragment {
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .commit());
         updateHistory();
-
-        activity.addMenuProvider(new MenuProvider() {
-            @Override
-            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-                menu.clear();
-                activity.setActionBarTitle(ticker);
-                activity.setActionBarUpIndicatorAsBack();
-                if (!portfolio.inPositions(ticker)) {
-                    menuInflater.inflate(portfolio.inWatchlist(ticker) ? R.menu.remove_watchlist_menu : R.menu.add_watchlist_menu, menu);
-                }
-            }
-
-            @Override
-            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-                if (activity.getSupportFragmentManager().getBackStackEntryCount() == 1) {
-                    int itemId = menuItem.getItemId();
-                    if (itemId == R.id.add) {
-                        portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
-                        activity.invalidateOptionsMenu();
-                        Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
-                    } else if (itemId == R.id.remove) {
-                        portfolio.remove(ticker);
-                        activity.invalidateOptionsMenu();
-                        Toast.makeText(activity, "Stock removed from watchlist", Toast.LENGTH_LONG).show();
-                    } else if (itemId == android.R.id.home) {
-                        activity.onBackPressed();
-                    }
-                }
-                return false;
-            }
-        }, getViewLifecycleOwner());
 
         return view;
     }

@@ -1,237 +1,249 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="10dp">
+            android:orientation="vertical">
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:baselineAligned="false">
+                android:orientation="vertical"
+                android:padding="10dp">
                 <LinearLayout
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <TextView
-                        android:id="@+id/portfolioValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="40sp" />
+                    android:baselineAligned="false">
                     <LinearLayout
-                        android:orientation="horizontal"
+                        android:orientation="vertical"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:id="@+id/portfolioValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="40sp" />
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/portfolio_value"
+                                android:textSize="13sp" />
+                            <TextView
+                                android:id="@+id/portfolioValuePerformance"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:layout_gravity="bottom"
+                        android:gravity="end">
+                        <TextView
+                            android:id="@+id/cash"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="17sp" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/portfolio_value"
-                            android:textSize="13sp" />
-                        <TextView
-                            android:id="@+id/portfolioValuePerformance"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:text="@string/cash"
                             android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
-                <LinearLayout
-                    android:orientation="vertical"
+                <kesira.papertrader.CustomLineChart
+                    android:id="@+id/chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+                <RadioGroup
+                    android:id="@+id/radioGroup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:layout_gravity="bottom"
-                    android:gravity="end">
-                    <TextView
-                        android:id="@+id/cash"
-                        android:layout_width="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+                    <RadioButton
+                        android:id="@+id/radio1W"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="17sp" />
-                    <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/rbtn_selector"
+                        android:button="@null"
+                        android:checked="false"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="@string/radio_1w"
+                        android:textSize="12sp"
+                        android:textColor="@drawable/rbtn_textcolor_selector" />
+                    <RadioButton
+                        android:id="@+id/radio1M"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/cash"
-                        android:textSize="13sp" />
+                        android:layout_weight="1"
+                        android:background="@drawable/rbtn_selector"
+                        android:button="@null"
+                        android:checked="false"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="@string/radio_1m"
+                        android:textSize="12sp"
+                        android:textColor="@drawable/rbtn_textcolor_selector" />
+                    <RadioButton
+                        android:id="@+id/radio3M"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/rbtn_selector"
+                        android:button="@null"
+                        android:checked="false"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="@string/radio_3m"
+                        android:textSize="12sp"
+                        android:textColor="@drawable/rbtn_textcolor_selector" />
+                    <RadioButton
+                        android:id="@+id/radio1Y"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/rbtn_selector"
+                        android:button="@null"
+                        android:checked="false"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="@string/radio_1y"
+                        android:textSize="12sp"
+                        android:textColor="@drawable/rbtn_textcolor_selector" />
+                    <RadioButton
+                        android:id="@+id/radio5Y"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/rbtn_selector"
+                        android:button="@null"
+                        android:checked="false"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="@string/radio_5y"
+                        android:textSize="12sp"
+                        android:textColor="@drawable/rbtn_textcolor_selector" />
+                    <RadioButton
+                        android:id="@+id/radioAll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/rbtn_selector"
+                        android:button="@null"
+                        android:checked="true"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="@string/radio_all"
+                        android:textSize="12sp"
+                        android:textColor="@drawable/rbtn_textcolor_selector" />
+                </RadioGroup>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <EditText
+                        android:id="@+id/enterTicker"
+                        android:inputType="textCapCharacters"
+                        android:hint="@string/ticker"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:autofillHints="" />
+                    <Button
+                        android:id="@+id/addTicker"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:text="@string/button_add" />
                 </LinearLayout>
             </LinearLayout>
-            <kesira.papertrader.CustomLineChart
-                android:id="@+id/chart"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-            <RadioGroup
-                android:id="@+id/radioGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-                <RadioButton
-                    android:id="@+id/radio1W"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rbtn_selector"
-                    android:button="@null"
-                    android:checked="false"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="@string/radio_1w"
-                    android:textSize="12sp"
-                    android:textColor="@drawable/rbtn_textcolor_selector" />
-                <RadioButton
-                    android:id="@+id/radio1M"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rbtn_selector"
-                    android:button="@null"
-                    android:checked="false"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="@string/radio_1m"
-                    android:textSize="12sp"
-                    android:textColor="@drawable/rbtn_textcolor_selector" />
-                <RadioButton
-                    android:id="@+id/radio3M"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rbtn_selector"
-                    android:button="@null"
-                    android:checked="false"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="@string/radio_3m"
-                    android:textSize="12sp"
-                    android:textColor="@drawable/rbtn_textcolor_selector" />
-                <RadioButton
-                    android:id="@+id/radio1Y"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rbtn_selector"
-                    android:button="@null"
-                    android:checked="false"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="@string/radio_1y"
-                    android:textSize="12sp"
-                    android:textColor="@drawable/rbtn_textcolor_selector" />
-                <RadioButton
-                    android:id="@+id/radio5Y"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rbtn_selector"
-                    android:button="@null"
-                    android:checked="false"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="@string/radio_5y"
-                    android:textSize="12sp"
-                    android:textColor="@drawable/rbtn_textcolor_selector" />
-                <RadioButton
-                    android:id="@+id/radioAll"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/rbtn_selector"
-                    android:button="@null"
-                    android:checked="true"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="@string/radio_all"
-                    android:textSize="12sp"
-                    android:textColor="@drawable/rbtn_textcolor_selector" />
-            </RadioGroup>
             <LinearLayout
+                android:id="@+id/positions"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <EditText
-                    android:id="@+id/enterTicker"
-                    android:inputType="textCapCharacters"
-                    android:hint="@string/ticker"
+                android:layout_marginBottom="10dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/positions"
+                    android:textSize="20sp" />
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:autofillHints="" />
-                <Button
-                    android:id="@+id/addTicker"
+                    android:gravity="center">
+                    <kesira.papertrader.NonScrollListView
+                        android:id="@+id/positionsView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#E8EAF6"
+                        android:divider="@null"
+                        android:dividerHeight="0dp" />
+                    <ProgressBar
+                        android:id="@+id/progressBarPositions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="true"
+                        android:layout_centerHorizontal="true"
+                        android:visibility="gone" />
+                </RelativeLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/watchlist"
+                    android:textSize="20sp" />
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:text="@string/button_add" />
+                    android:gravity="center">
+                    <kesira.papertrader.NonScrollListView
+                        android:id="@+id/watchlistView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#E8EAF6"
+                        android:divider="@null"
+                        android:dividerHeight="0dp" />
+                    <ProgressBar
+                        android:id="@+id/progressBarWatchlist"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="true"
+                        android:layout_centerHorizontal="true"
+                        android:visibility="gone" />
+                </RelativeLayout>
             </LinearLayout>
         </LinearLayout>
-        <LinearLayout
-            android:id="@+id/positions"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="10dp"
-                android:text="@string/positions"
-                android:textSize="20sp" />
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center">
-                <kesira.papertrader.NonScrollListView
-                    android:id="@+id/positionsView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#E8EAF6"
-                    android:divider="@null"
-                    android:dividerHeight="0dp" />
-                <ProgressBar
-                    android:id="@+id/progressBarPositions"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="true"
-                    android:layout_centerHorizontal="true"
-                    android:visibility="gone" />
-            </RelativeLayout>
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="10dp"
-                android:text="@string/watchlist"
-                android:textSize="20sp" />
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center">
-                <kesira.papertrader.NonScrollListView
-                    android:id="@+id/watchlistView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#E8EAF6"
-                    android:divider="@null"
-                    android:dividerHeight="0dp" />
-                <ProgressBar
-                    android:id="@+id/progressBarWatchlist"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="true"
-                    android:layout_centerHorizontal="true"
-                    android:visibility="gone" />
-            </RelativeLayout>
-        </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:menu="@menu/navigation_menu" />
+</androidx.drawerlayout.widget.DrawerLayout>

@@ -26,12 +26,6 @@ public class StockHistoryFragment extends Fragment {
         MainActivity activity = (MainActivity) requireActivity();
         String ticker = requireArguments().getString("ticker");
 
-        List<QueryDocumentSnapshot> history = new ArrayList<>();
-        HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
-        NonScrollListView historyListView = view.findViewById(R.id.historyListView);
-        historyListView.setAdapter(adapter);
-        Portfolio.getInstance().queryHistory(history, adapter, ticker, false, null, null);
-
         activity.addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
@@ -47,6 +41,13 @@ public class StockHistoryFragment extends Fragment {
                 return false;
             }
         }, getViewLifecycleOwner());
+
+        List<QueryDocumentSnapshot> history = new ArrayList<>();
+        HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
+        NonScrollListView historyListView = view.findViewById(R.id.historyListView);
+        historyListView.setAdapter(adapter);
+        Portfolio.getInstance().queryHistory(history, adapter, ticker, false, null, null);
+
         return view;
     }
 }

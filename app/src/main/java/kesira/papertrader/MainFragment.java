@@ -26,13 +26,16 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuProvider;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.android.material.navigation.NavigationView;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -66,6 +69,52 @@ public class MainFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_main, container, false);
         activity = (MainActivity) requireActivity();
+
+        DrawerLayout drawerLayout = view.findViewById(R.id.drawerLayout);
+        NavigationView navigationView = view.findViewById(R.id.navigationView);
+        navigationView.setNavigationItemSelectedListener(item -> {
+            activity.getSupportFragmentManager().beginTransaction()
+                    .hide(this)
+                    .add(R.id.fragmentContainerView, HistoryFragment.class, null)
+                    .setReorderingAllowed(true)
+                    .addToBackStack(null)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit();
+            drawerLayout.close();
+            return false;
+        });
+        activity.addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menu.clear();
+                activity.setActionBarTitle(getString(R.string.portfolio));
+                menuInflater.inflate(R.menu.search_menu, menu);
+                menuInflater.inflate(R.menu.refresh_menu, menu);
+                MenuItem searchMenuItem = menu.findItem(R.id.search);
+                SearchMenuItemHelper.getInstance().initialize(searchMenuItem);
+                ((SearchView) searchMenuItem.getActionView()).setSearchableInfo(((SearchManager) activity.getSystemService(Context.SEARCH_SERVICE)).getSearchableInfo(activity.getComponentName()));
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                if (activity.getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                    int itemId = menuItem.getItemId();
+                    if (itemId == R.id.refresh) {
+                        activity.getSupportFragmentManager().beginTransaction()
+                                .setReorderingAllowed(true)
+                                .replace(R.id.fragmentContainerView, MainFragment.class, null)
+                                .commit();
+                    } else if (itemId == android.R.id.home) {
+                        if (drawerLayout.isOpen()) {
+                            drawerLayout.close();
+                        } else {
+                            drawerLayout.open();
+                        }
+                    }
+                }
+                return false;
+            }
+        }, getViewLifecycleOwner());
 
         chart = view.findViewById(R.id.chart);
         ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
@@ -106,35 +155,6 @@ public class MainFragment extends Fragment {
         NonScrollListView watchlist = view.findViewById(R.id.watchlistView);
         registerForContextMenu(watchlist);
         portfolio.initialize(this, view.findViewById(R.id.positionsView), watchlist);
-
-        activity.addMenuProvider(new MenuProvider() {
-            @Override
-            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-                menu.clear();
-                activity.setActionBarTitle(getString(R.string.portfolio));
-                menuInflater.inflate(R.menu.search_menu, menu);
-                menuInflater.inflate(R.menu.refresh_menu, menu);
-                MenuItem searchMenuItem = menu.findItem(R.id.search);
-                SearchMenuItemHelper.getInstance().initialize(searchMenuItem);
-                ((SearchView) searchMenuItem.getActionView()).setSearchableInfo(((SearchManager) activity.getSystemService(Context.SEARCH_SERVICE)).getSearchableInfo(activity.getComponentName()));
-            }
-
-            @Override
-            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-                if (activity.getSupportFragmentManager().getBackStackEntryCount() == 0) {
-                    int itemId = menuItem.getItemId();
-                    if (itemId == R.id.refresh) {
-                        activity.getSupportFragmentManager().beginTransaction()
-                                .setReorderingAllowed(true)
-                                .replace(R.id.fragmentContainerView, MainFragment.class, null, "main")
-                                .commit();
-                    } else if (itemId == android.R.id.home) {
-                        activity.toggleDrawer();
-                    }
-                }
-                return false;
-            }
-        }, getViewLifecycleOwner());
 
         return view;
     }
