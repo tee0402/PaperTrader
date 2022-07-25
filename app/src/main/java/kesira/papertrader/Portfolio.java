@@ -53,6 +53,7 @@ class Portfolio {
     private Cash cash;
     private StockCollection positions;
     private StockCollection watchlist;
+    private final NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
     private final DecimalFormat simpleCurrencyFormat = new DecimalFormat("0.00");
     private final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
@@ -316,12 +317,28 @@ class Portfolio {
         return percentageFormat.format(divide(dividend, divisor));
     }
 
+    String formatNumber(int value) {
+        return numberFormat.format(value);
+    }
+
+    String formatNumber(BigDecimal value) {
+        return numberFormat.format(value);
+    }
+
     String formatCurrency(BigDecimal value) {
         return currencyFormat.format(value);
     }
 
     String formatSimpleCurrency(BigDecimal value) {
         return simpleCurrencyFormat.format(value);
+    }
+
+    String formatCurrencyWithoutRounding(BigDecimal value) {
+        BigDecimal stripped = value.stripTrailingZeros();
+        if (stripped.scale() < 2) {
+            return formatCurrency(value);
+        }
+        return "$" + stripped.toPlainString();
     }
 
     String formatSimplePercentage(BigDecimal value) {
@@ -694,7 +711,7 @@ class Portfolio {
                     textViews[2].setTextColor(percentChangePositive ? Color.parseColor("#33CC33") : Color.RED);
                 }
                 if (positions) {
-                    textViews[3].setText(stock.getShares() + " shares");
+                    textViews[3].setText(portfolio.formatNumber(stock.getShares()) + " shares");
                 }
                 return convertView;
             }

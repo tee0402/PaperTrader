@@ -407,7 +407,7 @@ public class StockInfoFragment extends Fragment {
         view.findViewById(R.id.position).setVisibility(inPositions ? View.VISIBLE : View.GONE);
         if (inPositions) {
             BigDecimal shares = new BigDecimal(portfolio.getShares(ticker));
-            ((TextView) view.findViewById(R.id.shares)).setText(shares.toPlainString());
+            ((TextView) view.findViewById(R.id.shares)).setText(portfolio.formatNumber(shares));
             BigDecimal totalValue = portfolio.roundCurrency(shares.multiply(stockPrice));
             ((TextView) view.findViewById(R.id.totalValue)).setText(portfolio.formatCurrency(totalValue));
             ((TextView) view.findViewById(R.id.percentageOfPortfolio)).setText(portfolio.isPortfolioValueReady() ? portfolio.createPercentage(totalValue, portfolio.getPortfolioValue()) : "");

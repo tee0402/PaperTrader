@@ -55,15 +55,11 @@ class HistoryArrayAdapter extends ArrayAdapter<QueryDocumentSnapshot> {
             textViews[2].setText((paid ? "(Paid)" : "(Pending)") + " Dividend");
             textViews[2].setTextColor(Color.parseColor("#808080"));
         }
-        String sharesString = queryDocumentSnapshot.getString("shares");
-        BigDecimal shares = new BigDecimal(sharesString);
+        BigDecimal shares = new BigDecimal(queryDocumentSnapshot.getString("shares"));
         BigDecimal priceOrDividend = new BigDecimal(trade ? queryDocumentSnapshot.getString("price") : queryDocumentSnapshot.getString("dividend"));
-        if (trade) {
-            textViews[3].setText(sharesString + " shares @ " + portfolio.formatCurrency(priceOrDividend));
-        } else {
-            textViews[3].setText(sharesString + " shares @ $" + priceOrDividend.toPlainString());
-        }
-        textViews[4].setText(portfolio.formatCurrency(shares.multiply(priceOrDividend)));
+        textViews[3].setText(portfolio.formatNumber(shares) + " shares @ " + (trade ? portfolio.formatCurrency(priceOrDividend) : portfolio.formatCurrencyWithoutRounding(priceOrDividend)));
+        BigDecimal total = shares.multiply(priceOrDividend);
+        textViews[4].setText(trade ? portfolio.formatCurrency(total) : portfolio.formatCurrencyWithoutRounding(total));
         return convertView;
     }
 }

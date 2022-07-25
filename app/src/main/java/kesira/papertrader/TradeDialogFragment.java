@@ -40,10 +40,10 @@ public class TradeDialogFragment extends DialogFragment {
 
         TextView totalText = v.findViewById(R.id.total);
         int sharesOwned = portfolio.getShares(ticker);
-        totalText.setHint(buy ? portfolio.getCashString() + " available" : sharesOwned + " shares available");
+        totalText.setHint(buy ? portfolio.getCashString() + " available" : portfolio.formatNumber(sharesOwned) + " shares available");
         int sharesCanAfford = portfolio.divide(portfolio.getCash(), stockPrice).intValue();
         if (buy) {
-            ((TextView) v.findViewById(R.id.shares)).setText("You can afford " + sharesCanAfford + " shares.");
+            ((TextView) v.findViewById(R.id.shares)).setText("You can afford " + portfolio.formatNumber(sharesCanAfford) + " shares.");
         }
 
         EditText enterQuantity = v.findViewById(R.id.quantity);
@@ -69,11 +69,11 @@ public class TradeDialogFragment extends DialogFragment {
             if (quantity <= 0) {
                 Toast.makeText(context, "Please enter a valid number of shares", Toast.LENGTH_LONG).show();
             } else if (quantity > (buy ? sharesCanAfford : sharesOwned)) {
-                Toast.makeText(context, buy ? "You can only afford " + sharesCanAfford + " shares" : "You only have " + sharesOwned + " shares to sell", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, buy ? "You can only afford " + portfolio.formatNumber(sharesCanAfford) + " shares" : "You only have " + portfolio.formatNumber(sharesOwned) + " shares to sell", Toast.LENGTH_LONG).show();
             } else {
                 portfolio.changePosition(buy, ticker, quantity, stockPrice, stockInfoFragment);
                 stockInfoFragment.updatePosition();
-                Toast.makeText(context, (buy ? "Bought " : "Sold ") + quantity + " shares successfully", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, (buy ? "Bought " : "Sold ") + portfolio.formatNumber(quantity) + " shares successfully", Toast.LENGTH_LONG).show();
             }
         }).setNegativeButton(R.string.cancel, (dialog, id) -> dialog.cancel());
         dialog = builder.create();
