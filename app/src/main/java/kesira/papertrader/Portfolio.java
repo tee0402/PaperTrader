@@ -58,8 +58,8 @@ class Portfolio {
     private final DecimalFormat percentageFormat = new DecimalFormat("0.00%");
     private final DecimalFormat simplePercentageFormat = new DecimalFormat("0.0000");
     private DocumentReference userDocRef;
-    private CollectionReference tradesCollectionRef;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("M/d/yyyy", Locale.ENGLISH);
+    private CollectionReference historyCollectionRef;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
     private List<Date> datesList;
     private List<Float> portfolioValuesList;
     private List<String> positionsList;
@@ -84,7 +84,7 @@ class Portfolio {
                 String uId = mAuth.getUid();
                 if (uId != null) {
                     userDocRef = FirebaseFirestore.getInstance().collection("users").document(uId);
-                    tradesCollectionRef = userDocRef.collection("trades");
+                    historyCollectionRef = userDocRef.collection("history");
                     userDocRef.get().addOnCompleteListener(docTask -> {
                         if (docTask.isSuccessful()) {
                             DocumentSnapshot userDoc = docTask.getResult();
@@ -156,21 +156,21 @@ class Portfolio {
     }
 
     void queryHistory(List<QueryDocumentSnapshot> result, ArrayAdapter<QueryDocumentSnapshot> adapter, String ticker, boolean limit, View view, View showAll) {
-        Query query = ticker == null ? tradesCollectionRef : tradesCollectionRef.whereEqualTo("ticker", ticker);
+        Query query = ticker == null ? historyCollectionRef : historyCollectionRef.whereEqualTo("ticker", ticker);
         query = limit ? query.limit(6) : query;
-        query.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(tradesTask -> {
-            if (tradesTask.isSuccessful()) {
-                QuerySnapshot trades = tradesTask.getResult();
-                for (QueryDocumentSnapshot trade : trades) {
+        query.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(historyTask -> {
+            if (historyTask.isSuccessful()) {
+                QuerySnapshot history = historyTask.getResult();
+                for (QueryDocumentSnapshot event : history) {
                     if (limit && result.size() == 5) {
                         break;
                     }
-                    result.add(trade);
+                    result.add(event);
                 }
                 adapter.notifyDataSetChanged();
                 if (view != null) {
-                    view.setVisibility(trades.isEmpty() ? View.GONE : View.VISIBLE);
-                    showAll.setVisibility(trades.size() > 5 ? View.VISIBLE : View.GONE);
+                    view.setVisibility(history.isEmpty() ? View.GONE : View.VISIBLE);
+                    showAll.setVisibility(history.size() > 5 ? View.VISIBLE : View.GONE);
                 }
             } else {
                 Toast.makeText(activity, "History query failed", Toast.LENGTH_LONG).show();
@@ -613,7 +613,7 @@ class Portfolio {
             trade.put("price", String.valueOf(price));
             trade.put("shares", String.valueOf(shares));
             trade.put("ticker", ticker);
-            tradesCollectionRef.add(trade).addOnCompleteListener(task -> {
+            historyCollectionRef.add(trade).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     stockInfoFragment.updateHistory();
                 }
