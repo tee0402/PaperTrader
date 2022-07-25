@@ -1,7 +1,7 @@
 # Paper Trader
 Paper trading app for Android using Firebase
 
-[Scheduled cloud function](https://github.com/tee0402/PaperTraderScheduled) for updating portfolio value histories
+[Scheduled cloud functions](https://github.com/tee0402/PaperTraderScheduled) for updating portfolio value histories and dividends
 
 ![screen1](https://user-images.githubusercontent.com/6325719/180596849-2f06ce48-0be1-4dab-ac0a-aaf73418ac89.png)
 ![screen2](https://user-images.githubusercontent.com/6325719/180596876-442cb86b-29ad-462e-8db4-a4814e45cd5b.png)
