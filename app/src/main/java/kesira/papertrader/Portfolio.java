@@ -180,13 +180,15 @@ class Portfolio {
     }
 
     void startStockInfoFragment(Bundle bundle) {
-        activity.getSupportFragmentManager().beginTransaction()
-                .hide(mainFragment)
-                .add(R.id.fragmentContainerView, StockInfoFragment.class, bundle)
-                .setReorderingAllowed(true)
-                .addToBackStack(null)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit();
+        if (bundle.containsKey("quote") || getQuote(bundle.getString("ticker")) != null) {
+            activity.getSupportFragmentManager().beginTransaction()
+                    .hide(mainFragment)
+                    .add(R.id.fragmentContainerView, StockInfoFragment.class, bundle)
+                    .setReorderingAllowed(true)
+                    .addToBackStack(null)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit();
+        }
     }
 
     BigDecimal getCash() {

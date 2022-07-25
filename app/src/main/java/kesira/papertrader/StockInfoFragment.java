@@ -80,9 +80,7 @@ public class StockInfoFragment extends Fragment {
         boolean fromNonPortfolio = bundle.containsKey("quote");
         previousClose = fromNonPortfolio ? new BigDecimal(bundle.getString("previousClose")) : portfolio.getPreviousClose(ticker);
         stockPrice = fromNonPortfolio ? new BigDecimal(bundle.getString("quote")) : portfolio.getQuote(ticker);
-        if (stockPrice != null) {
-            ((TextView) view.findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(stockPrice));
-        }
+        ((TextView) view.findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(stockPrice));
         stockChange = fromNonPortfolio ? new BigDecimal(bundle.getString("change")) : portfolio.getChange(ticker);
         stockPercentChange = fromNonPortfolio ? new BigDecimal(bundle.getString("percentChange")) : portfolio.getPercentChange(ticker);
         setChange(stockChange, stockPercentChange);
@@ -223,12 +221,10 @@ public class StockInfoFragment extends Fragment {
     }
 
     private void setChange(BigDecimal change, BigDecimal percentChange) {
-        if (change != null && percentChange != null) {
-            TextView changeText = view.findViewById(R.id.stockChange);
-            boolean changePositive = portfolio.isPositive(change);
-            changeText.setText((changePositive ? "+" : "") + portfolio.formatCurrency(change) + (changePositive ? " (+" : " (") + portfolio.formatPercentage(percentChange) + ")");
-            changeText.setTextColor(changePositive ? Color.parseColor("#33CC33") : Color.RED);
-        }
+        TextView changeText = view.findViewById(R.id.stockChange);
+        boolean changePositive = portfolio.isPositive(change);
+        changeText.setText((changePositive ? "+" : "") + portfolio.formatCurrency(change) + (changePositive ? " (+" : " (") + portfolio.formatPercentage(percentChange) + ")");
+        changeText.setTextColor(changePositive ? Color.parseColor("#33CC33") : Color.RED);
     }
 
     private void getChartData(int checkedId) {
@@ -316,14 +312,12 @@ public class StockInfoFragment extends Fragment {
                         lineDataSet.setColor(color);
                         LineData lineData = new LineData(premarketDataSet, lineDataSet, afterHoursDataSet);
                         setting = new ChartSetting(lineData, xAxisValues, markerDates, stockChange, stockPercentChange);
-                        if (previousClose != null) {
-                            LimitLine previousCloseLimitLine = new LimitLine(previousClose.floatValue());
-                            previousCloseLimitLine.setLineColor(Color.BLACK);
-                            previousCloseLimitLine.setLineWidth(1);
-                            previousCloseLimitLine.enableDashedLine(10, 10, 0);
-                            previousCloseLimitLine.setLabel("Previous close " + portfolio.formatSimpleCurrency(previousClose));
-                            setting.setPreviousCloseLimitLine(previousCloseLimitLine);
-                        }
+                        LimitLine previousCloseLimitLine = new LimitLine(previousClose.floatValue());
+                        previousCloseLimitLine.setLineColor(Color.BLACK);
+                        previousCloseLimitLine.setLineWidth(1);
+                        previousCloseLimitLine.enableDashedLine(10, 10, 0);
+                        previousCloseLimitLine.setLabel("Previous close " + portfolio.formatSimpleCurrency(previousClose));
+                        setting.setPreviousCloseLimitLine(previousCloseLimitLine);
                     } else {
                         for (int i = 0; i < numResults; i++) {
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
