@@ -404,6 +404,7 @@ class Portfolio {
         private final boolean positions;
         private final StockArrayAdapter adapter;
         private final List<Stock> stocks = new ArrayList<>();
+        private final Map<String, Stock> tickerToStock = new HashMap<>();
         private int quotesReady = 0;
 
         private StockCollection(boolean positions, ListView listView) {
@@ -421,12 +422,16 @@ class Portfolio {
                     assert shares != null;
                     String cost = positionsCost.get(ticker);
                     assert cost != null;
-                    stocks.add(new Stock(ticker, Integer.parseInt(shares), new BigDecimal(cost)));
+                    Stock stock = new Stock(ticker, Integer.parseInt(shares), new BigDecimal(cost));
+                    stocks.add(stock);
+                    tickerToStock.put(ticker, stock);
                 }
                 mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
             } else {
                 for (String ticker : watchlistList) {
-                    stocks.add(new Stock(ticker));
+                    Stock stock = new Stock(ticker);
+                    stocks.add(stock);
+                    tickerToStock.put(ticker, stock);
                 }
             }
             if (isNonEmpty()) {
@@ -446,64 +451,41 @@ class Portfolio {
         }
 
         private Stock getStock(String ticker) {
-            for (Stock stock : stocks) {
-                if (stock.getTicker().equals(ticker)) {
-                    return stock;
-                }
-            }
-            return null;
+            return tickerToStock.get(ticker);
         }
 
         private boolean contains(String ticker) {
-            return getStock(ticker) != null;
+            return tickerToStock.containsKey(ticker);
         }
 
         private int getShares(String ticker) {
             Stock stock = getStock(ticker);
-            if (stock != null) {
-                return stock.getShares();
-            }
-            return 0;
+            return stock == null ? 0 : stock.getShares();
         }
 
         private BigDecimal getCost(String ticker) {
             Stock stock = getStock(ticker);
-            if (stock != null) {
-                return stock.getCost();
-            }
-            return null;
+            return stock == null ? null : stock.getCost();
         }
 
         private BigDecimal getPreviousClose(String ticker) {
             Stock stock = getStock(ticker);
-            if (stock != null) {
-                return stock.getPreviousClose();
-            }
-            return null;
+            return stock == null ? null : stock.getPreviousClose();
         }
 
         private BigDecimal getQuote(String ticker) {
             Stock stock = getStock(ticker);
-            if (stock != null) {
-                return stock.getQuote();
-            }
-            return null;
+            return stock == null ? null : stock.getQuote();
         }
 
         private BigDecimal getChange(String ticker) {
             Stock stock = getStock(ticker);
-            if (stock != null) {
-                return stock.getChange();
-            }
-            return null;
+            return stock == null ? null : stock.getChange();
         }
 
         private BigDecimal getPercentChange(String ticker) {
             Stock stock = getStock(ticker);
-            if (stock != null) {
-                return stock.getPercentChange();
-            }
-            return null;
+            return stock == null ? null : stock.getPercentChange();
         }
 
         // Only used by watchlist
@@ -517,6 +499,7 @@ class Portfolio {
                             if (!contains(ticker)) {
                                 Stock stock = new Stock(ticker);
                                 stocks.add(stock);
+                                tickerToStock.put(ticker, stock);
                                 write(true, ticker, null);
                                 getData(stock, result);
                             }
@@ -539,6 +522,7 @@ class Portfolio {
             String ticker = stock.getTicker();
             if (!contains(ticker)) {
                 stocks.add(stock);
+                tickerToStock.put(ticker, stock);
                 write(true, ticker, null);
                 quotesReady++;
                 adapter.notifyDataSetChanged();
@@ -546,15 +530,14 @@ class Portfolio {
         }
 
         private Stock remove(String ticker) {
-            for (int i = 0; i < stocks.size(); i++) {
-                Stock stock = stocks.get(i);
-                if (stock.getTicker().equals(ticker)) {
-                    stocks.remove(i);
-                    write(false, ticker, null);
-                    quotesReady--;
-                    adapter.notifyDataSetChanged();
-                    return stock;
-                }
+            if (contains(ticker)) {
+                Stock stock = tickerToStock.get(ticker);
+                stocks.remove(stock);
+                tickerToStock.remove(ticker);
+                write(false, ticker, null);
+                quotesReady--;
+                adapter.notifyDataSetChanged();
+                return stock;
             }
             return null;
         }
@@ -593,6 +576,7 @@ class Portfolio {
                     stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
                 }
                 stocks.add(stock);
+                tickerToStock.put(ticker, stock);
                 write(true, ticker, stock);
                 writeTrade(true, ticker, shares, price, stockInfoFragment);
                 if (watchlistStock == null) {
