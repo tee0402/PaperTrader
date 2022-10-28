@@ -123,8 +123,8 @@ class Portfolio {
                 return dateFormat.parse(date);
             } catch (ParseException e) {
                 e.printStackTrace();
+                return null;
             }
-            return null;
         }).collect(Collectors.toList());
         List<String> portfolioValues = (List<String>) document.get("portfolioValues");
         assert portfolioValues != null;
@@ -180,7 +180,7 @@ class Portfolio {
     }
 
     void startStockInfoFragment(Bundle bundle) {
-        if (bundle.containsKey("quote") || getQuote(bundle.getString("ticker")) != null) {
+        if (bundle.containsKey("quote") || getStock(bundle.getString("ticker")).getQuote() != null) {
             activity.getSupportFragmentManager().beginTransaction()
                     .hide(mainFragment)
                     .add(R.id.fragmentContainerView, StockInfoFragment.class, bundle)
@@ -221,46 +221,11 @@ class Portfolio {
         return inPositions(ticker) || inWatchlist(ticker);
     }
 
-    int getShares(String ticker) {
-        return positions.getShares(ticker);
-    }
-
-    BigDecimal getCost(String ticker) {
-        return positions.getCost(ticker);
-    }
-
-    BigDecimal getPreviousClose(String ticker) {
+    Stock getStock(String ticker) {
         if (inPositions(ticker)) {
-            return positions.getPreviousClose(ticker);
+            return positions.getStock(ticker);
         } else if (inWatchlist(ticker)) {
-            return watchlist.getPreviousClose(ticker);
-        }
-        return null;
-    }
-
-    BigDecimal getQuote(String ticker) {
-        if (inPositions(ticker)) {
-            return positions.getQuote(ticker);
-        } else if (inWatchlist(ticker)) {
-            return watchlist.getQuote(ticker);
-        }
-        return null;
-    }
-
-    BigDecimal getChange(String ticker) {
-        if (inPositions(ticker)) {
-            return positions.getChange(ticker);
-        } else if (inWatchlist(ticker)) {
-            return watchlist.getChange(ticker);
-        }
-        return null;
-    }
-
-    BigDecimal getPercentChange(String ticker) {
-        if (inPositions(ticker)) {
-            return positions.getPercentChange(ticker);
-        } else if (inWatchlist(ticker)) {
-            return watchlist.getPercentChange(ticker);
+            return watchlist.getStock(ticker);
         }
         return null;
     }
@@ -283,9 +248,10 @@ class Portfolio {
         }
     }
 
+    // Stock must be in portfolio
     void changePosition(boolean buy, String ticker, int shares, BigDecimal price, StockInfoFragment stockInfoFragment) {
         BigDecimal total = new BigDecimal(shares).multiply(price);
-        int sharesOwned = positions.getShares(ticker);
+        int sharesOwned = getStock(ticker).getShares();
         if (buy && cash.has(total)) {
             Stock watchlistStock = watchlist.remove(ticker);
             positions.changePosition(true, ticker, shares, price, watchlistStock, stockInfoFragment);
@@ -442,12 +408,8 @@ class Portfolio {
             }
         }
 
-        private int size() {
-            return stocks.size();
-        }
-
         private boolean isNonEmpty() {
-            return size() > 0;
+            return stocks.size() > 0;
         }
 
         private Stock getStock(String ticker) {
@@ -456,36 +418,6 @@ class Portfolio {
 
         private boolean contains(String ticker) {
             return tickerToStock.containsKey(ticker);
-        }
-
-        private int getShares(String ticker) {
-            Stock stock = getStock(ticker);
-            return stock == null ? 0 : stock.getShares();
-        }
-
-        private BigDecimal getCost(String ticker) {
-            Stock stock = getStock(ticker);
-            return stock == null ? null : stock.getCost();
-        }
-
-        private BigDecimal getPreviousClose(String ticker) {
-            Stock stock = getStock(ticker);
-            return stock == null ? null : stock.getPreviousClose();
-        }
-
-        private BigDecimal getQuote(String ticker) {
-            Stock stock = getStock(ticker);
-            return stock == null ? null : stock.getQuote();
-        }
-
-        private BigDecimal getChange(String ticker) {
-            Stock stock = getStock(ticker);
-            return stock == null ? null : stock.getChange();
-        }
-
-        private BigDecimal getPercentChange(String ticker) {
-            Stock stock = getStock(ticker);
-            return stock == null ? null : stock.getPercentChange();
         }
 
         // Only used by watchlist
@@ -570,21 +502,13 @@ class Portfolio {
         private Stock changePosition(boolean buy, String ticker, int shares, BigDecimal price, Stock watchlistStock, StockInfoFragment stockInfoFragment) {
             Stock stock = getStock(ticker);
             if (buy && stock == null) { // New position
-                if (watchlistStock == null) { // Stock not in watchlist
-                    stock = new Stock(ticker, shares, price);
-                } else { // Stock in watchlist
-                    stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
-                }
+                stock = new Stock(ticker, shares, price, watchlistStock.getPreviousClose(), watchlistStock.getQuote(), watchlistStock.getChange(), watchlistStock.getPercentChange());
                 stocks.add(stock);
                 tickerToStock.put(ticker, stock);
                 write(true, ticker, stock);
                 writeTrade(true, ticker, shares, price, stockInfoFragment);
-                if (watchlistStock == null) {
-                    getData(stock, null);
-                } else {
-                    quotesReady++;
-                    adapter.notifyDataSetChanged();
-                }
+                quotesReady++;
+                adapter.notifyDataSetChanged();
                 mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
             } else if (stock != null) { // Overwriting or removing existing position
                 int sharesOwned = stock.getShares();
@@ -624,7 +548,7 @@ class Portfolio {
         }
 
         private boolean isPositionsValueReady() {
-            return quotesReady == size();
+            return quotesReady == stocks.size();
         }
 
         private BigDecimal getPositionsValue() {

@@ -78,11 +78,12 @@ public class StockInfoFragment extends Fragment {
         ticker = bundle.getString("ticker");
         getTickerDetails();
         boolean fromNonPortfolio = bundle.containsKey("quote");
-        previousClose = fromNonPortfolio ? new BigDecimal(bundle.getString("previousClose")) : portfolio.getPreviousClose(ticker);
-        stockPrice = fromNonPortfolio ? new BigDecimal(bundle.getString("quote")) : portfolio.getQuote(ticker);
+        Stock stock = fromNonPortfolio ? null : portfolio.getStock(ticker);
+        previousClose = fromNonPortfolio ? new BigDecimal(bundle.getString("previousClose")) : stock.getPreviousClose();
+        stockPrice = fromNonPortfolio ? new BigDecimal(bundle.getString("quote")) : stock.getQuote();
         ((TextView) view.findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(stockPrice));
-        stockChange = fromNonPortfolio ? new BigDecimal(bundle.getString("change")) : portfolio.getChange(ticker);
-        stockPercentChange = fromNonPortfolio ? new BigDecimal(bundle.getString("percentChange")) : portfolio.getPercentChange(ticker);
+        stockChange = fromNonPortfolio ? new BigDecimal(bundle.getString("change")) : stock.getChange();
+        stockPercentChange = fromNonPortfolio ? new BigDecimal(bundle.getString("percentChange")) : stock.getPercentChange();
         setChange(stockChange, stockPercentChange);
 
         activity.addMenuProvider(new MenuProvider() {
@@ -387,12 +388,7 @@ public class StockInfoFragment extends Fragment {
     }
 
     private void showTradeDialogFragment(boolean buy) {
-        Bundle args = new Bundle();
-        args.putString("ticker", ticker);
-        args.putString("stockPrice", stockPrice.toPlainString());
-        TradeDialogFragment tradeDialogFragment = new TradeDialogFragment(buy);
-        tradeDialogFragment.setArguments(args);
-        tradeDialogFragment.show(getChildFragmentManager(), buy ? "buy" : "sell");
+        new TradeDialogFragment(buy, ticker, stockPrice, previousClose, stockChange, stockPercentChange).show(getChildFragmentManager(), buy ? "buy" : "sell");
     }
 
     void updatePosition() {
@@ -400,12 +396,13 @@ public class StockInfoFragment extends Fragment {
         view.findViewById(R.id.sell).setEnabled(inPositions);
         view.findViewById(R.id.position).setVisibility(inPositions ? View.VISIBLE : View.GONE);
         if (inPositions) {
-            BigDecimal shares = new BigDecimal(portfolio.getShares(ticker));
+            Stock stock = portfolio.getStock(ticker);
+            BigDecimal shares = new BigDecimal(stock.getShares());
             ((TextView) view.findViewById(R.id.shares)).setText(portfolio.formatNumber(shares));
             BigDecimal totalValue = portfolio.roundCurrency(shares.multiply(stockPrice));
             ((TextView) view.findViewById(R.id.totalValue)).setText(portfolio.formatCurrency(totalValue));
             ((TextView) view.findViewById(R.id.percentageOfPortfolio)).setText(portfolio.isPortfolioValueReady() ? portfolio.createPercentage(totalValue, portfolio.getPortfolioValue()) : "");
-            BigDecimal averageCost = portfolio.getCost(ticker);
+            BigDecimal averageCost = stock.getCost();
             ((TextView) view.findViewById(R.id.averageCost)).setText(portfolio.formatCurrency(averageCost));
             BigDecimal priceChange = stockPrice.subtract(averageCost);
             boolean priceChangePositive = portfolio.isPositive(priceChange);

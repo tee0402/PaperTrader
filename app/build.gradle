@@ -29,7 +29,7 @@ dependencies {
     //noinspection GradleDependency
     implementation 'androidx.appcompat:appcompat:1.6.0-alpha05'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
-    implementation 'com.google.firebase:firebase-auth:21.0.8'
-    implementation 'com.google.firebase:firebase-firestore:24.3.1'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.firebase:firebase-auth:21.1.0'
+    implementation 'com.google.firebase:firebase-firestore:24.4.0'
+    implementation 'com.google.android.material:material:1.7.0'
 }

@@ -19,11 +19,21 @@ import java.math.BigDecimal;
 
 public class TradeDialogFragment extends DialogFragment {
     private final boolean buy;
+    private final String ticker;
+    private final BigDecimal stockPrice;
+    private final BigDecimal previousClose;
+    private final BigDecimal stockChange;
+    private final BigDecimal stockPercentChange;
     private int quantity;
     private AlertDialog dialog;
 
-    TradeDialogFragment(boolean buy) {
+    TradeDialogFragment(boolean buy, String ticker, BigDecimal stockPrice, BigDecimal previousClose, BigDecimal stockChange, BigDecimal stockPercentChange) {
         this.buy = buy;
+        this.ticker = ticker;
+        this.stockPrice = stockPrice;
+        this.previousClose = previousClose;
+        this.stockChange = stockChange;
+        this.stockPercentChange = stockPercentChange;
     }
 
     @NonNull
@@ -34,12 +44,9 @@ public class TradeDialogFragment extends DialogFragment {
         StockInfoFragment stockInfoFragment = (StockInfoFragment) requireParentFragment();
         View v = stockInfoFragment.getLayoutInflater().inflate(buy ? R.layout.dialog_buy : R.layout.dialog_sell, null);
 
-        Bundle args = requireArguments();
-        String ticker = args.getString("ticker");
-        BigDecimal stockPrice = new BigDecimal(args.getString("stockPrice"));
-
         TextView totalText = v.findViewById(R.id.total);
-        int sharesOwned = portfolio.getShares(ticker);
+        boolean inPortfolio = portfolio.inPortfolio(ticker);
+        int sharesOwned = inPortfolio ? portfolio.getStock(ticker).getShares() : 0;
         totalText.setHint(buy ? portfolio.getCashString() + " available" : portfolio.formatNumber(sharesOwned) + " shares available");
         int sharesCanAfford = portfolio.divide(portfolio.getCash(), stockPrice).intValue();
         if (buy) {
@@ -71,6 +78,9 @@ public class TradeDialogFragment extends DialogFragment {
             } else if (quantity > (buy ? sharesCanAfford : sharesOwned)) {
                 Toast.makeText(context, buy ? "You can only afford " + portfolio.formatNumber(sharesCanAfford) + " shares" : "You only have " + portfolio.formatNumber(sharesOwned) + " shares to sell", Toast.LENGTH_LONG).show();
             } else {
+                if (buy && !inPortfolio) {
+                    portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
+                }
                 portfolio.changePosition(buy, ticker, quantity, stockPrice, stockInfoFragment);
                 stockInfoFragment.updatePosition();
                 Toast.makeText(context, (buy ? "Bought " : "Sold ") + portfolio.formatNumber(quantity) + " shares successfully", Toast.LENGTH_LONG).show();
