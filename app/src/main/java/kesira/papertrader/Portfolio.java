@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -61,8 +62,6 @@ class Portfolio {
     private DocumentReference userDocRef;
     private CollectionReference historyCollectionRef;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-    private List<Date> datesList;
-    private List<Float> portfolioValuesList;
     private List<String> positionsList;
     private Map<String, String> positionsShares;
     private Map<String, String> positionsCost;
@@ -76,6 +75,7 @@ class Portfolio {
         return portfolio;
     }
 
+    @SuppressWarnings("unchecked")
     void initialize(MainFragment mainFragment, ListView positionsView, ListView watchlistView) {
         this.mainFragment = mainFragment;
         this.activity = (MainActivity) mainFragment.requireActivity();
@@ -89,17 +89,44 @@ class Portfolio {
                     userDocRef.get().addOnCompleteListener(docTask -> {
                         if (docTask.isSuccessful()) {
                             DocumentSnapshot userDoc = docTask.getResult();
-                            if (userDoc.exists()) {
-                                getExistingFirestore(userDoc);
-                            } else {
-                                setInitialFirestore();
+                            boolean exists = userDoc.exists();
+                            cash = new Cash(exists ? userDoc.getString("cash") : initialCash.toPlainString());
+                            List<Date> datesList = exists ?
+                                    ((List<String>) Objects.requireNonNull(userDoc.get("dates"))).stream().map(date -> {
+                                        try {
+                                            return dateFormat.parse(date);
+                                        } catch (ParseException e) {
+                                            e.printStackTrace();
+                                            return null;
+                                        }
+                                    }).collect(Collectors.toList()) :
+                                    new ArrayList<>();
+                            List<Float> portfolioValuesList = exists ?
+                                    ((List<String>) Objects.requireNonNull(userDoc.get("portfolioValues"))).stream().map(Float::parseFloat).collect(Collectors.toList()) :
+                                    new ArrayList<>();
+                            positionsList = exists ? (List<String>) userDoc.get("positions") : new ArrayList<>();
+                            positionsShares = exists ? (Map<String, String>) userDoc.get("positionsShares") : new HashMap<>();
+                            positionsCost = exists ? (Map<String, String>) userDoc.get("positionsCost") : new HashMap<>();
+                            watchlistList = exists ? (List<String>) userDoc.get("watchlist") : new ArrayList<>();
+                            if (!exists) {
+                                Map<String, Object> user = new HashMap<>();
+                                user.put("cash", cash.getPlainString());
+                                datesList.add(new Date());
+                                user.put("dates", datesList.stream().map(dateFormat::format).collect(Collectors.toList()));
+                                portfolioValuesList.add(initialCash.floatValue());
+                                user.put("portfolioValues", portfolioValuesList.stream().map(String::valueOf).collect(Collectors.toList()));
+                                user.put("positions", positionsList);
+                                user.put("positionsShares", positionsShares);
+                                user.put("positionsCost", positionsCost);
+                                user.put("watchlist", watchlistList);
+                                userDocRef.set(user);
                             }
                             positions = new StockCollection(true, positionsView);
-                            watchlist = new StockCollection(false, watchlistView);
-                            if (!containsPositions()) {
+                            if (positions.isEmpty()) {
                                 mainFragment.showPortfolioValueIfReady();
                             }
-                            mainFragment.initializeChartData();
+                            watchlist = new StockCollection(false, watchlistView);
+                            mainFragment.initializeChartData(datesList, portfolioValuesList);
                         } else {
                             Toast.makeText(activity, "Document get failed", Toast.LENGTH_LONG).show();
                         }
@@ -111,49 +138,6 @@ class Portfolio {
                 Toast.makeText(activity, "Anonymous sign-in failed", Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private void getExistingFirestore(DocumentSnapshot document) {
-        cash = new Cash(document.getString("cash"));
-        List<String> dates = (List<String>) document.get("dates");
-        assert dates != null;
-        datesList = dates.stream().map(date -> {
-            try {
-                return dateFormat.parse(date);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }).collect(Collectors.toList());
-        List<String> portfolioValues = (List<String>) document.get("portfolioValues");
-        assert portfolioValues != null;
-        portfolioValuesList = portfolioValues.stream().map(Float::parseFloat).collect(Collectors.toList());
-        positionsList = (List<String>) document.get("positions");
-        positionsShares = (Map<String, String>) document.get("positionsShares");
-        positionsCost = (Map<String, String>) document.get("positionsCost");
-        watchlistList = (List<String>) document.get("watchlist");
-    }
-
-    private void setInitialFirestore() {
-        Map<String, Object> user = new HashMap<>();
-        cash = new Cash(initialCash.toPlainString());
-        user.put("cash", cash.getPlainString());
-        datesList = new ArrayList<>();
-        datesList.add(new Date());
-        user.put("dates", datesList.stream().map(dateFormat::format).collect(Collectors.toList()));
-        portfolioValuesList = new ArrayList<>();
-        portfolioValuesList.add(initialCash.floatValue());
-        user.put("portfolioValues", portfolioValuesList.stream().map(String::valueOf).collect(Collectors.toList()));
-        positionsList = new ArrayList<>();
-        user.put("positions", positionsList);
-        positionsShares = new HashMap<>();
-        user.put("positionsShares", positionsShares);
-        positionsCost = new HashMap<>();
-        user.put("positionsCost", positionsCost);
-        watchlistList = new ArrayList<>();
-        user.put("watchlist", watchlistList);
-        userDocRef.set(user);
     }
 
     void queryHistory(List<QueryDocumentSnapshot> result, ArrayAdapter<QueryDocumentSnapshot> adapter, String ticker, boolean limit, View view, View showAll) {
@@ -191,36 +175,22 @@ class Portfolio {
         }
     }
 
+    boolean inPositions(String ticker) {
+        return positions.contains(ticker);
+    }
+    boolean inWatchlist(String ticker) {
+        return watchlist.contains(ticker);
+    }
+    boolean inPortfolio(String ticker) {
+        return positions.contains(ticker) || watchlist.contains(ticker);
+    }
+
     BigDecimal getCash() {
         return cash.get();
     }
     String getCashString() {
         return cash.getString();
     }
-
-    List<Date> getDatesList() {
-        return datesList;
-    }
-    List<Float> getPortfolioValuesList() {
-        return portfolioValuesList;
-    }
-
-    boolean containsPositions() {
-        return positions.isNonEmpty();
-    }
-
-    boolean inPositions(String ticker) {
-        return positions.contains(ticker);
-    }
-
-    boolean inWatchlist(String ticker) {
-        return watchlist.contains(ticker);
-    }
-
-    boolean inPortfolio(String ticker) {
-        return inPositions(ticker) || inWatchlist(ticker);
-    }
-
     Stock getStock(String ticker) {
         if (inPositions(ticker)) {
             return positions.getStock(ticker);
@@ -231,19 +201,17 @@ class Portfolio {
     }
 
     void addIfValid(String ticker) {
-        if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
+        if (!inPortfolio(ticker)) {
             watchlist.addIfValid(ticker);
         }
     }
-
     void add(String ticker, BigDecimal previousClose, BigDecimal quote, BigDecimal change, BigDecimal percentChange) {
-        if (!watchlist.contains(ticker) && !positions.contains(ticker)) {
+        if (!inPortfolio(ticker)) {
             watchlist.add(ticker, previousClose, quote, change, percentChange);
         }
     }
-
     void remove(String ticker) {
-        if (watchlist.contains(ticker)) {
+        if (inWatchlist(ticker)) {
             watchlist.remove(ticker);
         }
     }
@@ -268,7 +236,6 @@ class Portfolio {
     boolean isPortfolioValueReady() {
         return positions.isPositionsValueReady();
     }
-
     BigDecimal getPortfolioValue() {
         return roundCurrency(cash.get().add(positions.getPositionsValue()));
     }
@@ -276,31 +243,28 @@ class Portfolio {
     BigDecimal divide(BigDecimal dividend, BigDecimal divisor) {
         return dividend.divide(divisor, new MathContext(20, RoundingMode.HALF_EVEN));
     }
-
     BigDecimal percentageToDecimal(BigDecimal percentage) {
         return divide(percentage, new BigDecimal(100));
     }
-
-    String createPercentage(BigDecimal dividend, BigDecimal divisor) {
-        return percentageFormat.format(divide(dividend, divisor));
+    BigDecimal roundCurrency(BigDecimal amount) {
+        return amount.setScale(2, RoundingMode.HALF_EVEN);
+    }
+    BigDecimal roundPercentage(BigDecimal percentage) {
+        return percentage.setScale(4, RoundingMode.HALF_EVEN);
     }
 
     String formatNumber(int value) {
         return numberFormat.format(value);
     }
-
     String formatNumber(BigDecimal value) {
         return numberFormat.format(value);
     }
-
     String formatCurrency(BigDecimal value) {
         return currencyFormat.format(value);
     }
-
     String formatSimpleCurrency(BigDecimal value) {
         return simpleCurrencyFormat.format(value);
     }
-
     String formatCurrencyWithoutRounding(BigDecimal value) {
         BigDecimal stripped = value.stripTrailingZeros();
         if (stripped.scale() < 2) {
@@ -308,27 +272,19 @@ class Portfolio {
         }
         return "$" + stripped.toPlainString();
     }
-
-    String formatSimplePercentage(BigDecimal value) {
-        return simplePercentageFormat.format(value);
-    }
-
     String formatPercentage(BigDecimal value) {
         return percentageFormat.format(value);
     }
-
-    BigDecimal roundCurrency(BigDecimal amount) {
-        return amount.setScale(2, RoundingMode.HALF_EVEN);
+    String formatSimplePercentage(BigDecimal value) {
+        return simplePercentageFormat.format(value);
     }
-
-    BigDecimal roundPercentage(BigDecimal percentage) {
-        return percentage.setScale(4, RoundingMode.HALF_EVEN);
+    String createPercentage(BigDecimal dividend, BigDecimal divisor) {
+        return percentageFormat.format(divide(dividend, divisor));
     }
 
     boolean isPositive(BigDecimal value) {
         return value.compareTo(BigDecimal.ZERO) >= 0;
     }
-
     boolean isPositiveChange(BigDecimal currentValue, BigDecimal initialValue) {
         return currentValue.compareTo(initialValue) >= 0;
     }
@@ -392,7 +348,7 @@ class Portfolio {
                     stocks.add(stock);
                     tickerToStock.put(ticker, stock);
                 }
-                mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+                mainFragment.setPositionsVisibility(isEmpty() ? View.GONE : View.VISIBLE);
             } else {
                 for (String ticker : watchlistList) {
                     Stock stock = new Stock(ticker);
@@ -400,7 +356,7 @@ class Portfolio {
                     tickerToStock.put(ticker, stock);
                 }
             }
-            if (isNonEmpty()) {
+            if (!isEmpty()) {
                 mainFragment.setProgressBarVisibility(positions, View.VISIBLE);
             }
             for (Stock stock : stocks) {
@@ -408,8 +364,8 @@ class Portfolio {
             }
         }
 
-        private boolean isNonEmpty() {
-            return stocks.size() > 0;
+        private boolean isEmpty() {
+            return stocks.size() == 0;
         }
 
         private Stock getStock(String ticker) {
@@ -442,14 +398,10 @@ class Portfolio {
                 });
             }
         }
-
-        // Only used by watchlist
         private void add(String ticker, BigDecimal previousClose, BigDecimal quote, BigDecimal change, BigDecimal percentChange) {
             Stock stock = new Stock(ticker, previousClose, quote, change, percentChange);
             add(stock);
         }
-
-        // Only used by watchlist
         private void add(Stock stock) {
             String ticker = stock.getTicker();
             if (!contains(ticker)) {
@@ -509,7 +461,7 @@ class Portfolio {
                 writeTrade(true, ticker, shares, price, stockInfoFragment);
                 quotesReady++;
                 adapter.notifyDataSetChanged();
-                mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+                mainFragment.setPositionsVisibility(isEmpty() ? View.GONE : View.VISIBLE);
             } else if (stock != null) { // Overwriting or removing existing position
                 int sharesOwned = stock.getShares();
                 int newSharesOwned = buy ? sharesOwned + shares : sharesOwned - shares;
@@ -525,7 +477,7 @@ class Portfolio {
                     } else {
                         stock.setCost(BigDecimal.ZERO);
                         remove(ticker);
-                        mainFragment.setPositionsVisibility(isNonEmpty() ? View.VISIBLE : View.GONE);
+                        mainFragment.setPositionsVisibility(isEmpty() ? View.GONE : View.VISIBLE);
                         return stock;
                     }
                 }
@@ -550,7 +502,6 @@ class Portfolio {
         private boolean isPositionsValueReady() {
             return quotesReady == stocks.size();
         }
-
         private BigDecimal getPositionsValue() {
             BigDecimal value = BigDecimal.ZERO;
             for (Stock stock : stocks) {

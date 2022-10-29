@@ -102,7 +102,7 @@ public class StockInfoFragment extends Fragment {
                 if (activity.getSupportFragmentManager().getBackStackEntryCount() == 1) {
                     int itemId = menuItem.getItemId();
                     if (itemId == R.id.add) {
-                        portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
+                        addToWatchlist();
                         activity.invalidateOptionsMenu();
                         Toast.makeText(activity, "Stock added to watchlist", Toast.LENGTH_LONG).show();
                     } else if (itemId == R.id.remove) {
@@ -388,7 +388,11 @@ public class StockInfoFragment extends Fragment {
     }
 
     private void showTradeDialogFragment(boolean buy) {
-        new TradeDialogFragment(buy, ticker, stockPrice, previousClose, stockChange, stockPercentChange).show(getChildFragmentManager(), buy ? "buy" : "sell");
+        new TradeDialogFragment(buy, ticker, stockPrice).show(getChildFragmentManager(), buy ? "buy" : "sell");
+    }
+
+    void addToWatchlist() {
+        portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
     }
 
     void updatePosition() {

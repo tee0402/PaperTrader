@@ -21,19 +21,13 @@ public class TradeDialogFragment extends DialogFragment {
     private final boolean buy;
     private final String ticker;
     private final BigDecimal stockPrice;
-    private final BigDecimal previousClose;
-    private final BigDecimal stockChange;
-    private final BigDecimal stockPercentChange;
     private int quantity;
     private AlertDialog dialog;
 
-    TradeDialogFragment(boolean buy, String ticker, BigDecimal stockPrice, BigDecimal previousClose, BigDecimal stockChange, BigDecimal stockPercentChange) {
+    TradeDialogFragment(boolean buy, String ticker, BigDecimal stockPrice) {
         this.buy = buy;
         this.ticker = ticker;
         this.stockPrice = stockPrice;
-        this.previousClose = previousClose;
-        this.stockChange = stockChange;
-        this.stockPercentChange = stockPercentChange;
     }
 
     @NonNull
@@ -79,7 +73,7 @@ public class TradeDialogFragment extends DialogFragment {
                 Toast.makeText(context, buy ? "You can only afford " + portfolio.formatNumber(sharesCanAfford) + " shares" : "You only have " + portfolio.formatNumber(sharesOwned) + " shares to sell", Toast.LENGTH_LONG).show();
             } else {
                 if (buy && !inPortfolio) {
-                    portfolio.add(ticker, previousClose, stockPrice, stockChange, stockPercentChange);
+                    stockInfoFragment.addToWatchlist();
                 }
                 portfolio.changePosition(buy, ticker, quantity, stockPrice, stockInfoFragment);
                 stockInfoFragment.updatePosition();

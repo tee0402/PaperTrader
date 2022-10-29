@@ -175,10 +175,9 @@ public class MainFragment extends Fragment {
         ((InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(), 0);
     }
 
-    void initializeChartData() {
-        dates = portfolio.getDatesList();
+    void initializeChartData(List<Date> dates, List<Float> portfolioValues) {
+        this.dates = dates;
         numDates = dates.size();
-        List<Float> portfolioValues = portfolio.getPortfolioValuesList();
 
         Map<Integer, Calendar> startCalendars = new LinkedHashMap<>();
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
