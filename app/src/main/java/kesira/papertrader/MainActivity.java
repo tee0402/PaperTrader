@@ -14,13 +14,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
 public class MainActivity extends AppCompatActivity {
-    private FragmentManager supportFragmentManager;
     private ActionBar actionBar;
+    private FragmentManager supportFragmentManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        APIHelper.initializeISODateFormat();
 
         actionBar = getSupportActionBar();
         assert actionBar != null;
@@ -50,22 +51,19 @@ public class MainActivity extends AppCompatActivity {
         return super.dispatchTouchEvent(ev);
     }
 
-    private void hideSoftInput(View v) {
+    void hideSoftInput(View v) {
         ((InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(), 0);
     }
 
     void setActionBarUpIndicatorAsMenu() {
         actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
     }
-
     void setActionBarUpIndicatorAsBack() {
         actionBar.setHomeAsUpIndicator(0);
     }
-
     void setActionBarTitle(String title) {
         actionBar.setTitle(title);
     }
-
     @Override
     public void onBackPressed() {
         if (supportFragmentManager.getBackStackEntryCount() == 1) {

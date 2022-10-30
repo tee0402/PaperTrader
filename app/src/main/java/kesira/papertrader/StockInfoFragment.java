@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
@@ -36,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,8 +52,6 @@ public class StockInfoFragment extends Fragment {
     private final Portfolio portfolio = Portfolio.getInstance();
     private View view;
     private MainActivity activity;
-    private final List<QueryDocumentSnapshot> history = new ArrayList<>();
-    private HistoryArrayAdapter adapter;
     private String ticker;
     private BigDecimal previousClose;
     private BigDecimal stockPrice;
@@ -67,6 +65,8 @@ public class StockInfoFragment extends Fragment {
     private XAxis xAxis;
     private YAxis yAxis;
     private final Map<Integer, ChartSetting> chartSettings = new HashMap<>();
+    private final List<QueryDocumentSnapshot> history = new ArrayList<>();
+    private HistoryArrayAdapter adapter;
 
     @Nullable
     @Override
@@ -118,28 +118,8 @@ public class StockInfoFragment extends Fragment {
         }, getViewLifecycleOwner());
 
         chart = view.findViewById(R.id.chart);
-        ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
-        layoutParams.height = getResources().getDisplayMetrics().heightPixels / 3;
-        chart.setLayoutParams(layoutParams);
-        chart.setNoDataText("Loading...");
-        chart.setDragYEnabled(false);
-        chart.setScaleYEnabled(false);
-        chart.setDrawGridBackground(true);
-        chart.getLegend().setEnabled(false);
-        chart.getAxisRight().setEnabled(false);
-        chart.getDescription().setEnabled(false);
-        chart.setOnTouchListener((v, event) -> {
-            v.performClick();
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                chart.highlightValues(null);
-            }
-            return activity.onTouchEvent(event);
-        });
+        chart.initialize(getResources().getDisplayMetrics().heightPixels / 3, activity);
         xAxis = chart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setDrawAxisLine(false);
-        xAxis.setDrawGridLines(false);
-        xAxis.setLabelCount(4, false);
         yAxis = chart.getAxisLeft();
         yAxis.setDrawAxisLine(false);
         marker = new CustomMarker(activity, true);
@@ -169,12 +149,13 @@ public class StockInfoFragment extends Fragment {
         return view;
     }
 
+    // Ticker already validated
     private void getTickerDetails() {
         Executors.newSingleThreadExecutor().execute(() -> {
             String result = APIHelper.get("https://www.alphavantage.co/query?function=OVERVIEW&symbol=" + ticker + "&apikey=1275");
             try {
                 JSONObject jsonObject = new JSONObject(result);
-                if (jsonObject.length() == 0) {
+                if (jsonObject.length() == 0) { // ETF
                     result = APIHelper.get("https://api.polygon.io/v3/reference/tickers/" + ticker + "?apiKey=lTkAIOnwJ9vpjDvqYAF0RWt9yMkhD0up");
                     jsonObject = new JSONObject(result).getJSONObject("results");
                     String name = jsonObject.getString("name");
@@ -185,7 +166,7 @@ public class StockInfoFragment extends Fragment {
                         ((TextView) view.findViewById(R.id.exchange)).setText(exchange);
                         ((TextView) view.findViewById(R.id.marketCap)).setText(marketCap);
                     });
-                } else {
+                } else { // Stock
                     String name = jsonObject.getString("Name");
                     String exchange = jsonObject.getString("Exchange");
                     String marketCap = createMarketCapString(jsonObject.getDouble("MarketCapitalization"));
@@ -208,16 +189,16 @@ public class StockInfoFragment extends Fragment {
         });
     }
 
-    private String createMarketCapString(double num) {
+    private String createMarketCapString(double marketCap) {
         DecimalFormat marketCapFormat = new DecimalFormat("$#.##");
-        if (num < MILLION) {
-            return marketCapFormat.format(num);
-        } else if (num < BILLION) {
-            return marketCapFormat.format(num / MILLION) + "M";
-        } else if (num < TRILLION) {
-            return marketCapFormat.format(num / BILLION) + "B";
+        if (marketCap < MILLION) {
+            return marketCapFormat.format(marketCap);
+        } else if (marketCap < BILLION) {
+            return marketCapFormat.format(marketCap / MILLION) + "M";
+        } else if (marketCap < TRILLION) {
+            return marketCapFormat.format(marketCap / BILLION) + "B";
         } else {
-            return marketCapFormat.format(num / TRILLION) + "T";
+            return marketCapFormat.format(marketCap / TRILLION) + "T";
         }
     }
 
@@ -257,9 +238,9 @@ public class StockInfoFragment extends Fragment {
                     List<String> xAxisValues = new ArrayList<>();
                     List<String> markerDates = new ArrayList<>();
                     Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"));
-                    SimpleDateFormat xAxisFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (radio1W || radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
+                    DateFormat xAxisFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (radio1W || radio1M ? "MMM d" : "MMM yyyy"), Locale.ENGLISH);
                     xAxisFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-                    SimpleDateFormat markerDateFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (radio1W ? "EEE, MMM d h:mm a" : (radio1M ? "EEE, MMM d" : "MMM d, yyyy")), Locale.ENGLISH);
+                    DateFormat markerDateFormat = new SimpleDateFormat(radio1D ? "h:mm a" : (radio1W ? "EEE, MMM d h:mm a" : (radio1M ? "EEE, MMM d" : "MMM d, yyyy")), Locale.ENGLISH);
                     markerDateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
                     ChartSetting setting;
                     int numResults = jsonArray.length();
@@ -378,10 +359,7 @@ public class StockInfoFragment extends Fragment {
             @Override
             public String getFormattedValue(float value) {
                 int i = (int) value;
-                if (i < 0 || i >= numXAxisValues) {
-                    return "";
-                }
-                return xAxisValues.get(i);
+                return i < 0 || i >= numXAxisValues ? "" : xAxisValues.get(i);
             }
         });
         marker.setMarkerDates(chartSetting.getMarkerDates());
@@ -416,9 +394,8 @@ public class StockInfoFragment extends Fragment {
         }
         activity.invalidateOptionsMenu();
     }
-
     void updateHistory() {
         history.clear();
-        portfolio.queryHistory(history, adapter, ticker, true, view.findViewById(R.id.history), view.findViewById(R.id.showAll));
+        portfolio.queryHistory(history, adapter, ticker, view.findViewById(R.id.history), view.findViewById(R.id.showAll));
     }
 }

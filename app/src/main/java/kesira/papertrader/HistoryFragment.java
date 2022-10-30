@@ -46,7 +46,7 @@ public class HistoryFragment extends Fragment {
         HistoryArrayAdapter adapter = new HistoryArrayAdapter(activity, history);
         NonScrollListView historyListView = view.findViewById(R.id.historyListView);
         historyListView.setAdapter(adapter);
-        Portfolio.getInstance().queryHistory(history, adapter, null, false, null, null);
+        Portfolio.getInstance().queryHistory(history, adapter, null, null, null);
 
         return view;
     }

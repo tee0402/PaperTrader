@@ -8,12 +8,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.util.List;
+import java.util.Objects;
 
 class HistoryArrayAdapter extends ArrayAdapter<QueryDocumentSnapshot> {
     private final Portfolio portfolio = Portfolio.getInstance();
@@ -42,9 +42,7 @@ class HistoryArrayAdapter extends ArrayAdapter<QueryDocumentSnapshot> {
         }
         QueryDocumentSnapshot queryDocumentSnapshot = getItem(position);
         boolean trade = queryDocumentSnapshot.contains("buy");
-        Timestamp timestamp = queryDocumentSnapshot.getTimestamp("date");
-        assert timestamp != null;
-        textViews[0].setText(dateFormat.format(timestamp.toDate()));
+        textViews[0].setText(dateFormat.format(Objects.requireNonNull(queryDocumentSnapshot.getTimestamp("date")).toDate()));
         textViews[1].setText(queryDocumentSnapshot.getString("ticker"));
         if (trade) {
             boolean buy = Boolean.TRUE.equals(queryDocumentSnapshot.getBoolean("buy"));

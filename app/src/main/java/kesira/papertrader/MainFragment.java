@@ -1,6 +1,5 @@
 package kesira.papertrader;
 
-import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.graphics.Color;
@@ -11,10 +10,8 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -38,6 +35,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.navigation.NavigationView;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,15 +52,15 @@ public class MainFragment extends Fragment {
     private final Portfolio portfolio = Portfolio.getInstance();
     private View view;
     private MainActivity activity;
-    private EditText enterTicker;
-    private String tickerSelected;
     private CustomLineChart chart;
     private XAxis xAxis;
-    private int numDates;
-    private List<Date> dates;
-    private List<Entry> entries;
     private RadioGroup radioGroup;
+    private EditText enterTicker;
+    private List<Date> dates;
+    private int numDates;
+    private List<Entry> entries;
     private final Map<Integer, ChartSetting> chartSettings = new HashMap<>();
+    private String tickerSelected;
 
     @Nullable
     @Override
@@ -117,29 +115,9 @@ public class MainFragment extends Fragment {
         }, getViewLifecycleOwner());
 
         chart = view.findViewById(R.id.chart);
-        ViewGroup.LayoutParams layoutParams = chart.getLayoutParams();
-        layoutParams.height = getResources().getDisplayMetrics().heightPixels / 4;
-        chart.setLayoutParams(layoutParams);
-        chart.setNoDataText("Loading...");
-        chart.setDragYEnabled(false);
-        chart.setScaleYEnabled(false);
-        chart.setDrawGridBackground(true);
-        chart.getLegend().setEnabled(false);
+        chart.initialize(getResources().getDisplayMetrics().heightPixels / 4, activity);
         chart.getAxisLeft().setEnabled(false);
-        chart.getAxisRight().setEnabled(false);
-        chart.getDescription().setEnabled(false);
-        chart.setOnTouchListener((v, event) -> {
-            v.performClick();
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                chart.highlightValues(null);
-            }
-            return activity.onTouchEvent(event);
-        });
         xAxis = chart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setDrawAxisLine(false);
-        xAxis.setDrawGridLines(false);
-        xAxis.setLabelCount(4, false);
         radioGroup = view.findViewById(R.id.radioGroup);
 
         enterTicker = view.findViewById(R.id.enterTicker);
@@ -168,11 +146,34 @@ public class MainFragment extends Fragment {
         }
         enterTicker.getText().clear();
         enterTicker.clearFocus();
-        hideSoftInput(v);
+        activity.hideSoftInput(v);
     }
 
-    private void hideSoftInput(View v) {
-        ((InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(), 0);
+    void showCash(String cash) {
+        ((TextView) view.findViewById(R.id.cash)).setText(cash);
+    }
+    void setPositionsVisibility(boolean visible) {
+        view.findViewById(R.id.positions).setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+    void setProgressBarVisibility(boolean positions, boolean visible) {
+        view.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+    void showPortfolioValueIfReady() {
+        if (portfolio.isPortfolioValueReady()) {
+            BigDecimal portfolioValue = portfolio.getPortfolioValue();
+            ((TextView) view.findViewById(R.id.portfolioValue)).setText(portfolio.formatCurrency(portfolioValue));
+            showPortfolioValuePerformance(chartSettings.get(radioGroup.getCheckedRadioButtonId()), portfolioValue);
+        }
+    }
+    void showPortfolioValuePerformance(ChartSetting chartSetting, BigDecimal portfolioValue) {
+        if (chartSetting != null) {
+            BigDecimal initialPortfolioValue = chartSetting.getInitialPortfolioValue();
+            BigDecimal change = portfolio.roundCurrency(portfolioValue.subtract(initialPortfolioValue));
+            boolean positive = portfolio.isPositive(change);
+            TextView portfolioValuePerformance = view.findViewById(R.id.portfolioValuePerformance);
+            portfolioValuePerformance.setText((positive ? " +" : " ") + portfolio.formatCurrency(change) + (positive ? " (+" : " (") + portfolio.createPercentage(change, initialPortfolioValue) + ")");
+            portfolioValuePerformance.setTextColor(positive ? Color.parseColor("#33CC33") : Color.RED);
+        }
     }
 
     void initializeChartData(List<Date> dates, List<Float> portfolioValues) {
@@ -191,7 +192,7 @@ public class MainFragment extends Fragment {
 
         entries = new ArrayList<>();
         List<String> markerDates = new ArrayList<>();
-        SimpleDateFormat markerDateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH);
+        DateFormat markerDateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH);
         markerDateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         for (int i = 0; i < numDates; i++) {
             Date date = dates.get(i);
@@ -204,7 +205,7 @@ public class MainFragment extends Fragment {
             while (iterator.hasNext()) {
                 Map.Entry<Integer, Calendar> startCalendar = iterator.next();
                 if (calendar.after(startCalendar.getValue())) {
-                    SimpleDateFormat xAxisFormat = new SimpleDateFormat(calendar.after(start3M) ? "MMM d" : (calendar.after(start5Y) ? "MMM yyyy" : "yyyy"), Locale.ENGLISH);
+                    DateFormat xAxisFormat = new SimpleDateFormat(calendar.after(start3M) ? "MMM d" : (calendar.after(start5Y) ? "MMM yyyy" : "yyyy"), Locale.ENGLISH);
                     xAxisFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
                     chartSettings.put(startCalendar.getKey(), new ChartSetting(i, new BigDecimal(portfolioValue), xAxisFormat));
                     iterator.remove();
@@ -232,7 +233,7 @@ public class MainFragment extends Fragment {
         ChartSetting chartSetting = chartSettings.get(checkedId);
         assert chartSetting != null;
         if (portfolio.isPortfolioValueReady()) {
-            showPortfolioValuePerformance(chartSetting);
+            showPortfolioValuePerformance(chartSetting, portfolio.getPortfolioValue());
         }
         int initialIndex = chartSetting.getInitialIndex();
         LineData lineData = chartSetting.getLineData();
@@ -242,7 +243,7 @@ public class MainFragment extends Fragment {
             lineDataSet.setDrawValues(false);
             lineDataSet.setDrawCircles(false);
             lineDataSet.setLineWidth(2);
-            boolean isPositivePortfolio = portfolio.isPositiveChange(BigDecimal.valueOf(entries.get(numDates - 1).getY()), BigDecimal.valueOf(entries.get(initialIndex).getY()));
+            boolean isPositivePortfolio = portfolio.isPositiveChange(BigDecimal.valueOf(entries.get(initialIndex).getY()), BigDecimal.valueOf(entries.get(numDates - 1).getY()));
             lineDataSet.setColor(isPositivePortfolio ? Color.parseColor("#33CC33") : Color.RED);
             lineDataSet.setDrawFilled(true);
             lineDataSet.setFillDrawable(ContextCompat.getDrawable(activity, isPositivePortfolio ? R.drawable.fill_green : R.drawable.fill_red));
@@ -250,53 +251,15 @@ public class MainFragment extends Fragment {
             chartSetting.setLineData(lineData);
         }
         chart.setData(lineData);
-        SimpleDateFormat xAxisFormat = chartSetting.getXAxisFormat();
+        DateFormat xAxisFormat = chartSetting.getXAxisFormat();
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
                 int i = (int) value;
-                if (i < initialIndex || i >= numDates) {
-                    return "";
-                }
-                return xAxisFormat.format(dates.get(i));
+                return i < initialIndex || i >= numDates ? "" : xAxisFormat.format(dates.get(i));
             }
         });
         chart.invalidate();
-    }
-
-    void showPortfolioValuePerformance(ChartSetting chartSetting) {
-        if (chartSetting == null) {
-            chartSetting = chartSettings.get(radioGroup.getCheckedRadioButtonId());
-        }
-        if (chartSetting != null) {
-            BigDecimal initialPortfolioValue = chartSetting.getInitialPortfolioValue();
-            BigDecimal portfolioValue = portfolio.getPortfolioValue();
-            BigDecimal change = portfolio.roundCurrency(portfolioValue.subtract(initialPortfolioValue));
-            boolean positive = portfolio.isPositive(change);
-            TextView portfolioValuePerformance = view.findViewById(R.id.portfolioValuePerformance);
-            portfolioValuePerformance.setText((positive ? " +" : " ") + portfolio.formatCurrency(change) + (positive ? " (+" : " (") + portfolio.createPercentage(change, initialPortfolioValue) + ")");
-            portfolioValuePerformance.setTextColor(positive ? Color.parseColor("#33CC33") : Color.RED);
-        }
-    }
-
-    void showPortfolioValueIfReady() {
-        if (portfolio.isPortfolioValueReady()) {
-            BigDecimal portfolioValue = portfolio.getPortfolioValue();
-            ((TextView) view.findViewById(R.id.portfolioValue)).setText(portfolio.formatCurrency(portfolioValue));
-            showPortfolioValuePerformance(null);
-        }
-    }
-
-    void showCash(String cash) {
-        ((TextView) view.findViewById(R.id.cash)).setText(cash);
-    }
-
-    void setPositionsVisibility(int visibility) {
-        view.findViewById(R.id.positions).setVisibility(visibility);
-    }
-
-    void setProgressBarVisibility(boolean positions, int visibility) {
-        view.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(visibility);
     }
 
     @Override

@@ -7,12 +7,22 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
 class APIHelper {
+    private static final DateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+
+    static void initializeISODateFormat() {
+        isoDateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+    }
+    static DateFormat getISODateFormat() {
+        return isoDateFormat;
+    }
+
     static String get(String url) {
         StringBuilder result = new StringBuilder();
         try {
@@ -49,17 +59,13 @@ class APIHelper {
     }
 
     static String getToday() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-        return dateFormat.format(getTodayCalendar().getTime());
+        return isoDateFormat.format(getTodayCalendar().getTime());
     }
 
     static String getRangeStart(int field, int amount) {
         Calendar calendar = getTodayCalendar();
         calendar.add(field, -amount);
         calendar.add(Calendar.DAY_OF_WEEK, 1);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
-        return dateFormat.format(calendar.getTime());
+        return isoDateFormat.format(calendar.getTime());
     }
 }

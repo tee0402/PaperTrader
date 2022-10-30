@@ -4,7 +4,7 @@ import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.data.LineData;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.List;
 
 class ChartSetting {
@@ -16,7 +16,7 @@ class ChartSetting {
     private LimitLine previousCloseLimitLine;
     private int initialIndex;
     private BigDecimal initialPortfolioValue;
-    private SimpleDateFormat xAxisFormat;
+    private DateFormat xAxisFormat;
 
     ChartSetting(LineData lineData, List<String> xAxisValues, List<String> markerDates, BigDecimal change, BigDecimal percentChange) {
         this.lineData = lineData;
@@ -26,7 +26,7 @@ class ChartSetting {
         this.percentChange = percentChange;
     }
 
-    ChartSetting(int initialIndex, BigDecimal initialPortfolioValue, SimpleDateFormat xAxisFormat) {
+    ChartSetting(int initialIndex, BigDecimal initialPortfolioValue, DateFormat xAxisFormat) {
         this.initialIndex = initialIndex;
         this.initialPortfolioValue = initialPortfolioValue;
         this.xAxisFormat = xAxisFormat;
@@ -70,7 +70,7 @@ class ChartSetting {
         return initialPortfolioValue;
     }
 
-    SimpleDateFormat getXAxisFormat() {
+    DateFormat getXAxisFormat() {
         return xAxisFormat;
     }
 }

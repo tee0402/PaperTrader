@@ -22,7 +22,7 @@ import java.net.URLEncoder;
 public class SuggestionProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
-        return false;
+        return true;
     }
 
     @Nullable
