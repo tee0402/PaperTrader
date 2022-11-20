@@ -24,9 +24,7 @@ class Stock {
     }
 
     Stock(String ticker, BigDecimal previousClose, BigDecimal quote, BigDecimal change, BigDecimal percentChange) {
-        this.ticker = ticker;
-        this.shares = 0;
-        this.cost = BigDecimal.ZERO;
+        this(ticker);
         this.previousClose = previousClose;
         this.quote = quote;
         this.change = change;
@@ -34,9 +32,7 @@ class Stock {
     }
 
     Stock(String ticker, int shares, BigDecimal cost, BigDecimal previousClose, BigDecimal quote, BigDecimal change, BigDecimal percentChange) {
-        this.ticker = ticker;
-        this.shares = shares;
-        this.cost = cost;
+        this(ticker, shares, cost);
         this.previousClose = previousClose;
         this.quote = quote;
         this.change = change;
