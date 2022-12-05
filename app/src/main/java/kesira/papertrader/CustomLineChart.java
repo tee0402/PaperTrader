@@ -19,7 +19,7 @@ public class CustomLineChart extends LineChart {
         super(context, attrs, defStyle);
     }
 
-    void initialize(int height, MainActivity activity) {
+    void initialize(int height) {
         ViewGroup.LayoutParams layoutParams = getLayoutParams();
         layoutParams.height = height;
         setLayoutParams(layoutParams);
@@ -30,13 +30,6 @@ public class CustomLineChart extends LineChart {
         getLegend().setEnabled(false);
         getAxisRight().setEnabled(false);
         getDescription().setEnabled(false);
-        setOnTouchListener((v, event) -> {
-            v.performClick();
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                highlightValues(null);
-            }
-            return activity.onTouchEvent(event);
-        });
         XAxis xAxis = getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawAxisLine(false);

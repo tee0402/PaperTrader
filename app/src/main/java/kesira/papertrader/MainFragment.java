@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -32,6 +33,8 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.android.material.navigation.NavigationView;
 
 import java.math.BigDecimal;
@@ -115,7 +118,23 @@ public class MainFragment extends Fragment {
         }, getViewLifecycleOwner());
 
         chart = view.findViewById(R.id.chart);
-        chart.initialize(getResources().getDisplayMetrics().heightPixels / 4, activity);
+        chart.initialize(getResources().getDisplayMetrics().heightPixels / 4);
+        chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry entry, Highlight highlight) {
+                setPortfolioValueAndPerformance(BigDecimal.valueOf(entry.getY()));
+            }
+            @Override
+            public void onNothingSelected() {}
+        });
+        chart.setOnTouchListener((v, event) -> {
+            v.performClick();
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                chart.highlightValues(null);
+                showPortfolioValue();
+            }
+            return activity.onTouchEvent(event);
+        });
         chart.getAxisLeft().setEnabled(false);
         xAxis = chart.getXAxis();
         radioGroup = view.findViewById(R.id.radioGroup);
@@ -158,16 +177,16 @@ public class MainFragment extends Fragment {
     void setProgressBarVisibility(boolean positions, boolean visible) {
         view.findViewById(positions ? R.id.progressBarPositions : R.id.progressBarWatchlist).setVisibility(visible ? View.VISIBLE : View.GONE);
     }
-    void showPortfolioValueIfReady() {
-        if (portfolio.isPortfolioValueReady()) {
-            BigDecimal portfolioValue = portfolio.getPortfolioValue();
-            ((TextView) view.findViewById(R.id.portfolioValue)).setText(portfolio.formatCurrency(portfolioValue));
-            showPortfolioValuePerformance(chartSettings.get(radioGroup.getCheckedRadioButtonId()), portfolioValue);
-        }
+    private void setPortfolioValueAndPerformance(BigDecimal portfolioValue) {
+        ((TextView) view.findViewById(R.id.portfolioValue)).setText(portfolio.formatCurrency(portfolioValue));
+        showPortfolioValuePerformance(chartSettings.get(radioGroup.getCheckedRadioButtonId()), portfolioValue);
+    }
+    void showPortfolioValue() {
+        setPortfolioValueAndPerformance(portfolio.getPortfolioValue());
     }
     void showPortfolioValuePerformance(ChartSetting chartSetting, BigDecimal portfolioValue) {
         if (chartSetting != null) {
-            BigDecimal initialPortfolioValue = chartSetting.getInitialPortfolioValue();
+            BigDecimal initialPortfolioValue = chartSetting.getOpen();
             BigDecimal change = portfolio.roundCurrency(portfolioValue.subtract(initialPortfolioValue));
             boolean positive = portfolio.isPositive(change);
             TextView portfolioValuePerformance = view.findViewById(R.id.portfolioValuePerformance);
@@ -214,10 +233,6 @@ public class MainFragment extends Fragment {
                 }
             }
         }
-        CustomMarker marker = new CustomMarker(activity);
-        marker.setChartView(chart);
-        chart.setMarker(marker);
-        marker.setMarkerDates(markerDates);
         setChartData(radioGroup.getCheckedRadioButtonId());
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> setChartData(checkedId));
     }

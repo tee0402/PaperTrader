@@ -15,20 +15,21 @@ class ChartSetting {
     private BigDecimal percentChange;
     private LimitLine previousCloseLimitLine;
     private int initialIndex;
-    private BigDecimal initialPortfolioValue;
+    private final BigDecimal open;
     private DateFormat xAxisFormat;
 
-    ChartSetting(LineData lineData, List<String> xAxisValues, List<String> markerDates, BigDecimal change, BigDecimal percentChange) {
+    ChartSetting(LineData lineData, List<String> xAxisValues, List<String> markerDates, BigDecimal change, BigDecimal percentChange, BigDecimal open) {
         this.lineData = lineData;
         this.xAxisValues = xAxisValues;
         this.markerDates = markerDates;
         this.change = change;
         this.percentChange = percentChange;
+        this.open = open;
     }
 
-    ChartSetting(int initialIndex, BigDecimal initialPortfolioValue, DateFormat xAxisFormat) {
+    ChartSetting(int initialIndex, BigDecimal open, DateFormat xAxisFormat) {
         this.initialIndex = initialIndex;
-        this.initialPortfolioValue = initialPortfolioValue;
+        this.open = open;
         this.xAxisFormat = xAxisFormat;
     }
 
@@ -66,8 +67,8 @@ class ChartSetting {
         return initialIndex;
     }
 
-    BigDecimal getInitialPortfolioValue() {
-        return initialPortfolioValue;
+    BigDecimal getOpen() {
+        return open;
     }
 
     DateFormat getXAxisFormat() {

@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
@@ -28,6 +29,8 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.json.JSONArray;
@@ -45,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 
@@ -61,9 +65,9 @@ public class StockInfoFragment extends Fragment {
     private static final long BILLION = 1000000000L;
     private static final long TRILLION = 1000000000000L;
     private CustomLineChart chart;
-    private CustomMarker marker;
     private XAxis xAxis;
     private YAxis yAxis;
+    private RadioGroup radioGroup;
     private final Map<Integer, ChartSetting> chartSettings = new HashMap<>();
     private final List<QueryDocumentSnapshot> history = new ArrayList<>();
     private HistoryArrayAdapter adapter;
@@ -118,14 +122,27 @@ public class StockInfoFragment extends Fragment {
         }, getViewLifecycleOwner());
 
         chart = view.findViewById(R.id.chart);
-        chart.initialize(getResources().getDisplayMetrics().heightPixels / 3, activity);
+        chart.initialize(getResources().getDisplayMetrics().heightPixels / 3);
+        chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry entry, Highlight highlight) {
+                setQuoteAndChange(BigDecimal.valueOf(entry.getY()));
+            }
+            @Override
+            public void onNothingSelected() {}
+        });
+        chart.setOnTouchListener((v, event) -> {
+            v.performClick();
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                chart.highlightValues(null);
+                resetQuoteAndChange();
+            }
+            return activity.onTouchEvent(event);
+        });
         xAxis = chart.getXAxis();
         yAxis = chart.getAxisLeft();
         yAxis.setDrawAxisLine(false);
-        marker = new CustomMarker(activity, true);
-        marker.setChartView(chart);
-        chart.setMarker(marker);
-        RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
+        radioGroup = view.findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> getChartData(checkedId));
         getChartData(R.id.radio1D);
 
@@ -207,6 +224,15 @@ public class StockInfoFragment extends Fragment {
         boolean changePositive = portfolio.isPositive(change);
         changeText.setText((changePositive ? "+" : "") + portfolio.formatCurrency(change) + (changePositive ? " (+" : " (") + portfolio.formatPercentage(percentChange) + ")");
         changeText.setTextColor(changePositive ? Color.parseColor("#33CC33") : Color.RED);
+    }
+    private void setQuoteAndChange(BigDecimal quote) {
+        ((TextView) view.findViewById(R.id.stockPrice)).setText(portfolio.formatCurrency(quote));
+        BigDecimal open = Objects.requireNonNull(chartSettings.get(radioGroup.getCheckedRadioButtonId())).getOpen();
+        BigDecimal change = quote.subtract(open);
+        setChange(change, portfolio.divide(change, open));
+    }
+    private void resetQuoteAndChange() {
+        setQuoteAndChange(stockPrice);
     }
 
     private void getChartData(int checkedId) {
@@ -293,7 +319,7 @@ public class StockInfoFragment extends Fragment {
                         lineDataSet.setLineWidth(2);
                         lineDataSet.setColor(color);
                         LineData lineData = new LineData(premarketDataSet, lineDataSet, afterHoursDataSet);
-                        setting = new ChartSetting(lineData, xAxisValues, markerDates, stockChange, stockPercentChange);
+                        setting = new ChartSetting(lineData, xAxisValues, markerDates, stockChange, stockPercentChange, stockPrice.subtract(stockChange));
                         LimitLine previousCloseLimitLine = new LimitLine(previousClose.floatValue());
                         previousCloseLimitLine.setLineColor(Color.BLACK);
                         previousCloseLimitLine.setLineWidth(1);
@@ -318,7 +344,7 @@ public class StockInfoFragment extends Fragment {
                         lineDataSet.setLineWidth(2);
                         lineDataSet.setColor(portfolio.isPositive(change) ? Color.parseColor("#33CC33") : Color.RED);
                         LineData lineData = new LineData(lineDataSet);
-                        setting = new ChartSetting(lineData, xAxisValues, markerDates, portfolio.roundCurrency(change), portfolio.roundPercentage(portfolio.divide(change, open)));
+                        setting = new ChartSetting(lineData, xAxisValues, markerDates, portfolio.roundCurrency(change), portfolio.roundPercentage(portfolio.divide(change, open)), open);
                     }
                     chartSettings.put(checkedId, setting);
                     setChart(setting);
@@ -362,7 +388,6 @@ public class StockInfoFragment extends Fragment {
                 return i < 0 || i >= numXAxisValues ? "" : xAxisValues.get(i);
             }
         });
-        marker.setMarkerDates(chartSetting.getMarkerDates());
     }
 
     private void showTradeDialogFragment(boolean buy) {

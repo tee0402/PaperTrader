@@ -114,7 +114,7 @@ class Portfolio {
                             }
                             positions = new StockCollection(true, positionsView, positionsList, positionsShares, positionsCost);
                             if (positions.isEmpty()) {
-                                mainFragment.showPortfolioValueIfReady();
+                                mainFragment.showPortfolioValue();
                             }
                             watchlist = new StockCollection(false, watchlistView, watchlistList, null, null);
                             mainFragment.initializeChartData(datesList, portfolioValuesList);
@@ -513,8 +513,8 @@ class Portfolio {
                     new Handler(Looper.getMainLooper()).post(() -> {
                         adapter.notifyDataSetChanged();
                         mainFragment.setProgressBarVisibility(positions, false);
-                        if (positions) {
-                            mainFragment.showPortfolioValueIfReady();
+                        if (positions && isPositionsValueReady()) {
+                            mainFragment.showPortfolioValue();
                         }
                     });
                 } catch (JSONException e) {
