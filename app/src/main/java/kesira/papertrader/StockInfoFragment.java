@@ -65,6 +65,7 @@ public class StockInfoFragment extends Fragment {
     private static final long BILLION = 1000000000L;
     private static final long TRILLION = 1000000000000L;
     private CustomLineChart chart;
+    private CustomMarker marker;
     private XAxis xAxis;
     private YAxis yAxis;
     private RadioGroup radioGroup;
@@ -142,6 +143,9 @@ public class StockInfoFragment extends Fragment {
         xAxis = chart.getXAxis();
         yAxis = chart.getAxisLeft();
         yAxis.setDrawAxisLine(false);
+        marker = new CustomMarker(activity);
+        marker.setChartView(chart);
+        chart.setMarker(marker);
         radioGroup = view.findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> getChartData(checkedId));
         getChartData(R.id.radio1D);
@@ -388,6 +392,7 @@ public class StockInfoFragment extends Fragment {
                 return i < 0 || i >= numXAxisValues ? "" : xAxisValues.get(i);
             }
         });
+        marker.setMarkerDates(chartSetting.getMarkerDates());
     }
 
     private void showTradeDialogFragment(boolean buy) {

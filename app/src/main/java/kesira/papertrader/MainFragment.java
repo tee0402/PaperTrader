@@ -233,6 +233,10 @@ public class MainFragment extends Fragment {
                 }
             }
         }
+        CustomMarker marker = new CustomMarker(activity);
+        marker.setChartView(chart);
+        chart.setMarker(marker);
+        marker.setMarkerDates(markerDates);
         setChartData(radioGroup.getCheckedRadioButtonId());
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> setChartData(checkedId));
     }
